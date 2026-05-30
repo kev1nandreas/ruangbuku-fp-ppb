@@ -19,30 +19,26 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-        $user->assignRole('user');
-
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        return response()->json([
-            'message' => 'Register berhasil',
-            'token'   => $token,
-            'user'    => $user,
-        ], 201);
+        return $this->created('Registrasi berhasil', [
+            'user'  => $user,
+            'token' => $token,
+        ]);
     }
 
     public function login(LoginRequest $request): JsonResponse
     {
         if (!Auth::attempt($request->only('email', 'password'))) {
-            return response()->json(['message' => 'Email atau password salah'], 401);
+            return $this->error("Email atau password salah");
         }
 
         $user  = Auth::user();
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        return response()->json([
-            'message' => 'Login berhasil',
-            'token'   => $token,
-            'user'    => $user,
+        return $this->success('Login berhasil', [
+            'token' => $token,
+            'user'  => $user,
         ]);
     }
 
@@ -50,11 +46,11 @@ class AuthController extends Controller
     {
         Auth::user()->tokens()->delete();
 
-        return response()->json(['message' => 'Logout berhasil']);
+        return $this->success('Logout berhasil');
     }
 
     public function me(): JsonResponse
     {
-        return response()->json(Auth::user()->load('roles'));
+        return $this->success('Berhasil mengambil data pengguna', Auth::user()->load('roles'));
     }
 }

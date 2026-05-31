@@ -14,8 +14,8 @@ return new class extends Migration
             $table->string('title', 255);
             $table->string('author', 255);
             $table->string('description', 2000)->nullable();
-            $table->boolean('isPublic')->default(false);
-            $table->string('statusVerifikasi', 20)->default('pending');
+            $table->string('statusVerifikasi', 20)->default('private');
+            $table->string('coverImageUrl', 255)->nullable();
             $table->timestamps();
         });
     }

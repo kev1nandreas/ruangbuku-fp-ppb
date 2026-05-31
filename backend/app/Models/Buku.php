@@ -17,16 +17,9 @@ class Buku extends Model
         'title',
         'author',
         'description',
-        'isPublic',
+        'coverImageUrl',
         'statusVerifikasi',
     ];
-
-    protected function casts(): array
-    {
-        return [
-            'isPublic' => 'boolean',
-        ];
-    }
 
     public function genres()
     {
@@ -35,7 +28,8 @@ class Buku extends Model
 
     public function users()
     {
-        return $this->belongsToMany(User::class, 'user_buku', 'buku_id', 'user_id');
+        return $this->belongsToMany(User::class, 'user_buku', 'buku_id', 'user_id')
+                    ->withPivot('isPublic');
     }
 
     public function peminjaman()

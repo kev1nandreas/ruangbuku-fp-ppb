@@ -21,6 +21,7 @@ return new class extends Migration
         Schema::create('user_buku', function (Blueprint $table) {
             $table->uuid('user_id');
             $table->uuid('buku_id');
+            $table->boolean('isPublic')->default(false);
 
             $table->primary(['user_id', 'buku_id']);
 

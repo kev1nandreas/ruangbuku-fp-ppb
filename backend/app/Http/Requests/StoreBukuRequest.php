@@ -19,7 +19,7 @@ class StoreBukuRequest extends FormRequest
             'author'          => ['required', 'string', 'max:255'],
             'description'     => ['nullable', 'string', 'max:2000'],
             'isPublic'        => ['boolean'],
-            'statusVerifikasi' => ['string', 'in:pending,approved,rejected', 'max:20'],
+            'coverImageUrl'   => ['nullable', 'string', 'max:255'],
             'genre_ids'       => ['nullable', 'array'],
             'genre_ids.*'     => ['string', 'exists:genres,id'],
         ];

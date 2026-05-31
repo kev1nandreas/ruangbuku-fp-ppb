@@ -10,7 +10,9 @@ class GenreController extends Controller
 {
     public function index()
     {
-        //
+        $genres = Genre::all(['id', 'name']);
+
+        return $this->success('Daftar genre berhasil diambil', $genres);
     }
 
     public function store(StoreGenreRequest $request)

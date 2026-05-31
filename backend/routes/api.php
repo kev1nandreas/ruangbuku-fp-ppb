@@ -21,6 +21,8 @@ Route::prefix('v1')->group(function () {
 
         // Buku
         Route::apiResource('/buku', BukuController::class);
+        Route::get("/isbn-check/{id}", [BukuController::class, 'isbnCheck']);
+        Route::patch('/buku/{buku}/verify', [BukuController::class, 'verifyBuku'])->middleware('role:admin');
 
         // Peminjaman
         Route::apiResource('/peminjaman', PeminjamanController::class);

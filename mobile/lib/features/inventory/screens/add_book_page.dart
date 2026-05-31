@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme.dart';
+import '../../../core/state.dart';
 
 class AddBookPage extends StatefulWidget {
   const AddBookPage({super.key});
@@ -10,20 +11,75 @@ class AddBookPage extends StatefulWidget {
 
 class _AddBookPageState extends State<AddBookPage> {
   bool _isLoading = false;
-  bool _isAutoFilled = false;
+
+  final TextEditingController _isbnController = TextEditingController();
+  final TextEditingController _titleController = TextEditingController();
+  final TextEditingController _authorController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
+  
+  String _condition = 'Like New';
+  bool _isAvailableForLending = true;
+
+  @override
+  void dispose() {
+    _isbnController.dispose();
+    _titleController.dispose();
+    _authorController.dispose();
+    _descriptionController.dispose();
+    super.dispose();
+  }
 
   void _simulateScan() {
     setState(() {
       _isLoading = true;
     });
-    Future.delayed(const Duration(seconds: 2), () {
+    Future.delayed(const Duration(seconds: 1), () {
       if (mounted) {
         setState(() {
           _isLoading = false;
-          _isAutoFilled = true;
+          _isbnController.text = '9781471156267';
+          _titleController.text = 'Sapiens: A Brief History of Humankind';
+          _authorController.text = 'Yuval Noah Harari';
+          _descriptionController.text = 
+              'Earth is 4.5 billion years old. In just a fraction of that time, one species among countless others has conquered it: us. In this bold and provocative book, Yuval Noah Harari explores who we are, how we got here and where we\'re going.';
         });
       }
     });
+  }
+
+  void _submitBook() {
+    final isbn = _isbnController.text.trim();
+    final title = _titleController.text.trim();
+    final author = _authorController.text.trim();
+    final description = _descriptionController.text.trim();
+
+    if (title.isEmpty || author.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill in at least the Title and Author.')),
+      );
+      return;
+    }
+
+    RuangBukuState.instance.addBook(
+      isbn.isEmpty ? 'N/A' : isbn,
+      title,
+      author,
+      description.isEmpty ? 'No description available.' : description,
+      _condition,
+      _isAvailableForLending,
+    );
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          _isAvailableForLending 
+              ? '"$title" added and submitted for Admin Curation approval (F-01)!' 
+              : '"$title" added to your private collection!'
+        ),
+      ),
+    );
+
+    Navigator.pop(context);
   }
 
   @override
@@ -59,11 +115,11 @@ class _AddBookPageState extends State<AddBookPage> {
               children: [
                 Expanded(
                   child: TextField(
+                    controller: _isbnController,
                     decoration: const InputDecoration(
                       labelText: 'ISBN Number',
                       hintText: 'e.g., 9781471156267',
                     ),
-                    controller: _isAutoFilled ? TextEditingController(text: '9781471156267') : null,
                   ),
                 ),
                 const SizedBox(width: RuangBukuSpacing.md),
@@ -84,29 +140,37 @@ class _AddBookPageState extends State<AddBookPage> {
             ),
             const SizedBox(height: RuangBukuSpacing.xl),
 
-            if (_isAutoFilled) ...[
-              Text(
-                'Book Details (Auto-filled)',
-                style: textTheme.titleLarge,
+            Text(
+              'Book Details',
+              style: textTheme.titleLarge,
+            ),
+            const SizedBox(height: RuangBukuSpacing.md),
+            TextField(
+              controller: _titleController,
+              decoration: const InputDecoration(
+                labelText: 'Title',
+                hintText: 'Enter book title',
               ),
-              const SizedBox(height: RuangBukuSpacing.md),
-              TextField(
-                decoration: const InputDecoration(
-                  labelText: 'Title',
-                ),
-                controller: TextEditingController(text: 'Sapiens: A Brief History of Humankind'),
-                readOnly: true,
+            ),
+            const SizedBox(height: RuangBukuSpacing.lg),
+            TextField(
+              controller: _authorController,
+              decoration: const InputDecoration(
+                labelText: 'Author',
+                hintText: 'Enter author name',
               ),
-              const SizedBox(height: RuangBukuSpacing.lg),
-              TextField(
-                decoration: const InputDecoration(
-                  labelText: 'Author',
-                ),
-                controller: TextEditingController(text: 'Yuval Noah Harari'),
-                readOnly: true,
+            ),
+            const SizedBox(height: RuangBukuSpacing.lg),
+            TextField(
+              controller: _descriptionController,
+              maxLines: 3,
+              decoration: const InputDecoration(
+                labelText: 'Description',
+                hintText: 'Enter synopsis or short description',
+                alignLabelWithHint: true,
               ),
-              const SizedBox(height: RuangBukuSpacing.xl),
-            ],
+            ),
+            const SizedBox(height: RuangBukuSpacing.xl),
 
             Text(
               'Your Copy',
@@ -117,14 +181,20 @@ class _AddBookPageState extends State<AddBookPage> {
               decoration: const InputDecoration(
                 labelText: 'Condition',
               ),
+              value: _condition,
               items: const [
                 DropdownMenuItem(value: 'Like New', child: Text('Like New')),
                 DropdownMenuItem(value: 'Very Good', child: Text('Very Good')),
                 DropdownMenuItem(value: 'Good', child: Text('Good')),
                 DropdownMenuItem(value: 'Acceptable', child: Text('Acceptable')),
               ],
-              onChanged: (value) {},
-              hint: const Text('Select condition'),
+              onChanged: (value) {
+                if (value != null) {
+                  setState(() {
+                    _condition = value;
+                  });
+                }
+              },
             ),
             const SizedBox(height: RuangBukuSpacing.lg),
             
@@ -154,8 +224,12 @@ class _AddBookPageState extends State<AddBookPage> {
                     ),
                   ),
                   Switch(
-                    value: true,
-                    onChanged: (value) {},
+                    value: _isAvailableForLending,
+                    onChanged: (value) {
+                      setState(() {
+                        _isAvailableForLending = value;
+                      });
+                    },
                   ),
                 ],
               ),
@@ -178,13 +252,10 @@ class _AddBookPageState extends State<AddBookPage> {
           ],
         ),
         child: FilledButton(
-          onPressed: () {
-            Navigator.pop(context);
-          },
+          onPressed: _submitBook,
           child: const Text('Add Book to Library'),
         ),
       ),
     );
   }
 }
-

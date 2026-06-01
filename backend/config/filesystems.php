@@ -60,6 +60,24 @@ return [
             'report' => false,
         ],
 
+        'minio' => [
+            'driver' => 's3',
+            'key' => env('MINIO_ACCESS_KEY'),
+            'secret' => env('MINIO_SECRET_KEY'),
+            'region' => env('MINIO_REGION', 'us-east-1'),
+            'bucket' => env('MINIO_BUCKET'),
+            // Endpoint the backend uses to talk to MinIO (server-to-server).
+            'endpoint' => env('MINIO_ENDPOINT', 'http://minio:9000'),
+            // Public endpoint embedded in presigned URLs so the client can reach MinIO.
+            'url' => env('MINIO_URL'),
+            // MinIO requires path-style addressing (http://endpoint/bucket/key).
+            'use_path_style_endpoint' => true,
+            // Presigned URL lifetime in seconds.
+            'presign_ttl' => env('MINIO_PRESIGN_TTL', 300),
+            'throw' => false,
+            'report' => false,
+        ],
+
     ],
 
     /*

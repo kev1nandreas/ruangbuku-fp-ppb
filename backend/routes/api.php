@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BukuController;
 use App\Http\Controllers\GenreController;
 use App\Http\Controllers\PeminjamanController;
+use App\Http\Controllers\StorageController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -26,5 +27,8 @@ Route::prefix('v1')->group(function () {
 
         // Peminjaman
         Route::apiResource('/peminjaman', PeminjamanController::class);
+
+        // Storage (MinIO)
+        Route::post('/storage/presigned-url', [StorageController::class, 'presignedUrl']);
     });
 });

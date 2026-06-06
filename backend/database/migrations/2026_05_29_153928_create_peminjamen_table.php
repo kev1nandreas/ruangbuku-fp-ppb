@@ -9,14 +9,17 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('peminjaman', function (Blueprint $table) {
-            $table->bigIncrements('id');
+            $table->uuid('id')->primary();
             $table->timestamp('start_date');
             $table->timestamp('end_date');
-            $table->string('status', 20)->default('pending');
+            $table->string('status', 30)->default('pending');
             $table->timestamp('created_at')->nullable();
+            $table->timestamp('updated_at')->nullable();
             $table->timestamp('verified_at')->nullable();
+            $table->timestamp('deposit_received_at')->nullable();
+            $table->timestamp('handed_over_at')->nullable();
             $table->timestamp('returned_at')->nullable();
-            $table->integer('buktiDeposit');
+            $table->string('buktiDeposit', 255)->nullable();
             $table->uuid('user_id');
             $table->uuid('buku_id');
 

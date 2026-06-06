@@ -15,7 +15,7 @@ services:
       DB_USERNAME: ${DB_USERNAME:-admin}
       DB_PASSWORD: ${DB_PASSWORD:-password}
       # MinIO: backend talks to the container over the compose network.
-      MINIO_ENDPOINT: http://minio:9000
+      MINIO_ENDPOINT: ${MINIO_ENDPOINT}
       # Presigned URLs must point at a host-reachable address for the client.
       MINIO_URL: ${MINIO_URL:-http://localhost:9000/ruangbuku}
       MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-minioadmin}

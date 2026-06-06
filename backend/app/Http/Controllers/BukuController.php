@@ -5,13 +5,44 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreBukuRequest;
 use App\Http\Requests\UpdateBukuRequest;
 use App\Models\Buku;
+use App\Models\Peminjaman;
 use Illuminate\Support\Facades\Http;
 
 class BukuController extends Controller
 {
     public function index()
     {
-        //
+        $startDate = request()->query('start_date');
+        $endDate   = request()->query('end_date');
+        $userId    = request()->query('user_id');
+        $statusVerifikasi = request()->query('status_verifikasi');
+        $isPublic    = request()->query('is_public');
+
+        $query = Buku::query()
+            ->with(['genres:id,name', 'users:id,name']);
+
+        if ($statusVerifikasi) {
+            $query->where('statusVerifikasi', $statusVerifikasi);
+        }
+
+        if (isset($isPublic)) {
+            $query->whereHas('users', fn($q) => $q->wherePivot('isPublic', filter_var($isPublic, FILTER_VALIDATE_BOOLEAN)));
+        }
+
+        // Check the book's availability for the given date range if both dates are provided.
+        if ($startDate && $endDate) {
+            $query->whereDoesntHave('peminjamans', fn($q) =>
+                $q->where('status', Peminjaman::ACTIVE_STATUSES)
+                    ->where('start_date', '<=', $endDate)
+                    ->where('end_date', '>=', $startDate)
+            );
+        }
+
+        if ($userId) {
+            $query->whereHas('users', fn($q) => $q->whereKey($userId));
+        }
+
+        return $this->success('Daftar buku berhasil dimuat', $query->get());
     }
 
     public function store(StoreBukuRequest $request)

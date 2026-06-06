@@ -23,10 +23,22 @@ Route::prefix('v1')->group(function () {
         // Buku
         Route::apiResource('/buku', BukuController::class);
         Route::get("/isbn-check/{id}", [BukuController::class, 'isbnCheck']);
-        Route::patch('/buku/{buku}/verify', [BukuController::class, 'verifyBuku'])->middleware('role:admin');
+        Route::post('/buku/{buku}/verify', [BukuController::class, 'verifyBuku'])->middleware('role:admin');
 
-        // Peminjaman
-        Route::apiResource('/peminjaman', PeminjamanController::class);
+        // Peminjaman (borrowing lifecycle)
+        Route::apiResource('/peminjaman', PeminjamanController::class)
+            ->only(['index', 'store', 'show']);
+
+        // Borrower actions
+        Route::post('/peminjaman/{peminjaman}/deposit', [PeminjamanController::class, 'submitDeposit']);
+        Route::post('/peminjaman/{peminjaman}/cancel', [PeminjamanController::class, 'cancel']);
+
+        // Owner actions
+        Route::post('/peminjaman/{peminjaman}/approve', [PeminjamanController::class, 'approve']);
+        Route::post('/peminjaman/{peminjaman}/reject', [PeminjamanController::class, 'reject']);
+        Route::post('/peminjaman/{peminjaman}/confirm-deposit', [PeminjamanController::class, 'confirmDeposit'])->middleware('role:admin');
+        Route::post('/peminjaman/{peminjaman}/hand-over', [PeminjamanController::class, 'handOver']);
+        Route::post('/peminjaman/{peminjaman}/confirm-return', [PeminjamanController::class, 'confirmReturn']);
 
         // Storage (MinIO)
         Route::post('/storage/presigned-url', [StorageController::class, 'presignedUrl']);

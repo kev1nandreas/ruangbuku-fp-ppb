@@ -3,7 +3,9 @@ import '../../../core/theme.dart';
 import 'request_borrow_page.dart';
 
 class LenderListPage extends StatelessWidget {
-  const LenderListPage({super.key});
+  final String bookId;
+
+  const LenderListPage({super.key, required this.bookId});
 
   @override
   Widget build(BuildContext context) {
@@ -100,7 +102,7 @@ class LenderListPage extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => const RequestBorrowPage(),
+            builder: (context) => RequestBorrowPage(bookId: bookId),
           ),
         );
       },

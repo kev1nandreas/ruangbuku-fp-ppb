@@ -1,13 +1,139 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme.dart';
+import '../../../core/state.dart';
 
-class RequestBorrowPage extends StatelessWidget {
-  const RequestBorrowPage({super.key});
+class RequestBorrowPage extends StatefulWidget {
+  final String bookId;
+
+  const RequestBorrowPage({super.key, required this.bookId});
+
+  @override
+  State<RequestBorrowPage> createState() => _RequestBorrowPageState();
+}
+
+class _RequestBorrowPageState extends State<RequestBorrowPage> {
+  DateTime? _pickupDate;
+  DateTime? _returnDate;
+  final TextEditingController _messageController = TextEditingController();
+
+  @override
+  void dispose() {
+    _messageController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _selectDate(BuildContext context, bool isPickup) async {
+    final DateTime now = DateTime.now();
+    final DateTime firstDate = now;
+    final DateTime lastDate = now.add(const Duration(days: 90));
+
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: isPickup ? (_pickupDate ?? now) : (_returnDate ?? now.add(const Duration(days: 7))),
+      firstDate: firstDate,
+      lastDate: lastDate,
+    );
+
+    if (picked != null) {
+      setState(() {
+        if (isPickup) {
+          _pickupDate = picked;
+          // Automatically set return date to 7 days later if not selected or invalid
+          if (_returnDate == null || _returnDate!.isBefore(picked)) {
+            _returnDate = picked.add(const Duration(days: 7));
+          }
+        } else {
+          _returnDate = picked;
+        }
+      });
+    }
+  }
+
+  void _submitRequest(BookModel book) {
+    if (_pickupDate == null || _returnDate == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select both Pickup and Return dates.')),
+      );
+      return;
+    }
+
+    if (_returnDate!.isBefore(_pickupDate!)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Return date must be after pickup date.')),
+      );
+      return;
+    }
+
+    final state = RuangBukuState.instance;
+    final error = state.requestBorrow(
+      widget.bookId,
+      _pickupDate!,
+      _returnDate!,
+      _messageController.text.trim(),
+    );
+
+    if (error != null) {
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Row(
+              children: [
+                const Icon(Icons.error_outline, color: RuangBukuColors.error),
+                const SizedBox(width: 8),
+                Text('Borrow Limit Exceeded', style: Theme.of(context).textTheme.titleLarge?.copyWith(color: RuangBukuColors.error)),
+              ],
+            ),
+            content: Text(
+              error,
+              style: const TextStyle(height: 1.4),
+            ),
+            actions: [
+              FilledButton(
+                style: FilledButton.styleFrom(backgroundColor: RuangBukuColors.primary),
+                onPressed: () => Navigator.pop(context),
+                child: const Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Borrowing request submitted successfully (F-02)!')),
+      );
+      Navigator.popUntil(context, (route) => route.isFirst);
+    }
+  }
+
+  String _formatDate(DateTime? date) {
+    if (date == null) return 'Select date';
+    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
+    final state = RuangBukuState.instance;
+
+    final book = state.books.firstWhere(
+      (b) => b.id == widget.bookId,
+      orElse: () => BookModel(
+        id: '',
+        isbn: '',
+        title: 'Not Found',
+        author: 'Unknown',
+        description: '',
+        isPublic: false,
+        statusVerifikasi: BookStatus.private,
+        ownerId: '',
+        ownerName: 'Sarah M.',
+        imageUrl: 'https://picsum.photos/200/300',
+        distance: '',
+        condition: 'Good',
+      ),
+    );
 
     return Scaffold(
       appBar: AppBar(
@@ -46,8 +172,8 @@ class RequestBorrowPage extends StatelessWidget {
                     height: 90,
                     decoration: BoxDecoration(
                       borderRadius: RuangBukuRadius.borderRadiusBase,
-                      image: const DecorationImage(
-                        image: NetworkImage('https://picsum.photos/id/1015/200/300'),
+                      image: DecorationImage(
+                        image: NetworkImage(book.imageUrl),
                         fit: BoxFit.cover,
                       ),
                     ),
@@ -58,12 +184,14 @@ class RequestBorrowPage extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'The Midnight Library',
+                          book.title,
                           style: textTheme.titleMedium,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: RuangBukuSpacing.xs),
                         Text(
-                          'Matt Haig',
+                          book.author,
                           style: textTheme.bodyMedium?.copyWith(
                             color: RuangBukuColors.textSecondary,
                           ),
@@ -81,12 +209,12 @@ class RequestBorrowPage extends StatelessWidget {
             const SizedBox(height: RuangBukuSpacing.md),
             Row(
               children: [
-                const CircleAvatar(
+                CircleAvatar(
                   radius: 20,
-                  backgroundImage: NetworkImage('https://picsum.photos/seed/lender1/100/100'),
+                  backgroundImage: NetworkImage('https://picsum.photos/seed/${book.ownerId}/100/100'),
                 ),
                 const SizedBox(width: RuangBukuSpacing.md),
-                Text('Sarah M.', style: textTheme.titleMedium),
+                Text(book.ownerName, style: textTheme.titleMedium),
                 const SizedBox(width: RuangBukuSpacing.sm),
                 const Icon(Icons.verified, color: RuangBukuColors.primary, size: 16),
               ],
@@ -97,27 +225,46 @@ class RequestBorrowPage extends StatelessWidget {
             Text('Borrow Details', style: textTheme.headlineSmall),
             const SizedBox(height: RuangBukuSpacing.md),
             
-            const TextField(
-              decoration: InputDecoration(
-                labelText: 'Pickup Date',
-                hintText: 'Select date',
-                suffixIcon: Icon(Icons.calendar_today_outlined),
+            // Pickup Date Input
+            InkWell(
+              onTap: () => _selectDate(context, true),
+              child: InputDecorator(
+                decoration: const InputDecoration(
+                  labelText: 'Pickup Date',
+                  suffixIcon: Icon(Icons.calendar_today_outlined),
+                ),
+                child: Text(
+                  _formatDate(_pickupDate),
+                  style: TextStyle(
+                    color: _pickupDate == null ? RuangBukuColors.textSecondary.withValues(alpha: 0.6) : RuangBukuColors.textPrimary,
+                  ),
+                ),
               ),
             ),
             const SizedBox(height: RuangBukuSpacing.lg),
             
-            const TextField(
-              decoration: InputDecoration(
-                labelText: 'Return Date',
-                hintText: 'Select date',
-                suffixIcon: Icon(Icons.calendar_today_outlined),
+            // Return Date Input
+            InkWell(
+              onTap: () => _selectDate(context, false),
+              child: InputDecorator(
+                decoration: const InputDecoration(
+                  labelText: 'Return Date',
+                  suffixIcon: Icon(Icons.calendar_today_outlined),
+                ),
+                child: Text(
+                  _formatDate(_returnDate),
+                  style: TextStyle(
+                    color: _returnDate == null ? RuangBukuColors.textSecondary.withValues(alpha: 0.6) : RuangBukuColors.textPrimary,
+                  ),
+                ),
               ),
             ),
             const SizedBox(height: RuangBukuSpacing.lg),
 
-            const TextField(
+            TextField(
+              controller: _messageController,
               maxLines: 4,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Message to Lender (Optional)',
                 hintText: 'Hi, I would love to borrow this book...',
                 alignLabelWithHint: true,
@@ -141,17 +288,10 @@ class RequestBorrowPage extends StatelessWidget {
           ],
         ),
         child: FilledButton(
-          onPressed: () {
-            // Mock send request
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Request sent successfully!')),
-            );
-            Navigator.popUntil(context, (route) => route.isFirst);
-          },
+          onPressed: () => _submitRequest(book),
           child: const Text('Send Request'),
         ),
       ),
     );
   }
 }
-

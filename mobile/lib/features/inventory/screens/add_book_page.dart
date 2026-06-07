@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme.dart';
 import '../../../core/state.dart';
+import '../../../core/api_service.dart';
 
 class AddBookPage extends StatefulWidget {
   const AddBookPage({super.key});
@@ -29,22 +30,37 @@ class _AddBookPageState extends State<AddBookPage> {
     super.dispose();
   }
 
-  void _simulateScan() {
+  void _lookupIsbn() async {
+    String isbn = _isbnController.text.trim();
+    if (isbn.isEmpty) {
+      // Demo helper: if empty, search Sapiens
+      isbn = '9781471156267';
+      _isbnController.text = isbn;
+    }
+
     setState(() {
       _isLoading = true;
     });
-    Future.delayed(const Duration(seconds: 1), () {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-          _isbnController.text = '9781471156267';
-          _titleController.text = 'Sapiens: A Brief History of Humankind';
-          _authorController.text = 'Yuval Noah Harari';
-          _descriptionController.text = 
-              'Earth is 4.5 billion years old. In just a fraction of that time, one species among countless others has conquered it: us. In this bold and provocative book, Yuval Noah Harari explores who we are, how we got here and where we\'re going.';
-        });
-      }
-    });
+
+    final details = await ApiService.checkIsbn(isbn);
+
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+        if (details != null) {
+          _titleController.text = details['title']?.toString() ?? '';
+          _authorController.text = details['author']?.toString() ?? '';
+          _descriptionController.text = details['description']?.toString() ?? '';
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Detail buku berhasil dimuat dari API!')),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Buku tidak ditemukan di server/Google Books.')),
+          );
+        }
+      });
+    }
   }
 
   void _submitBook() {
@@ -130,7 +146,7 @@ class _AddBookPageState extends State<AddBookPage> {
                     borderRadius: RuangBukuRadius.borderRadiusLg,
                   ),
                   child: IconButton(
-                    onPressed: _isLoading ? null : _simulateScan,
+                    onPressed: _isLoading ? null : _lookupIsbn,
                     icon: _isLoading 
                         ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))
                         : const Icon(Icons.document_scanner_outlined, color: RuangBukuColors.primary),

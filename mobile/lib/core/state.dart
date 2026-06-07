@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'api_service.dart';
+import 'database_helper.dart';
 
 enum UserRole { borrower, lender, admin }
 
@@ -150,8 +152,84 @@ class RuangBukuState extends ChangeNotifier {
   final List<BorrowModel> _borrowings = [];
   final List<NotificationModel> _notifications = [];
 
+  bool isLoadingBooks = false;
+
   RuangBukuState._() {
     _seedMockData();
+    loadDiscoveryBooks();
+  }
+
+  Future<void> loadDiscoveryBooks() async {
+    isLoadingBooks = true;
+    notifyListeners();
+
+    // 1. Try to fetch from API
+    final apiBooks = await ApiService.fetchPublicBooks();
+
+    if (apiBooks != null) {
+      // API success: clear local DB and cache new data
+      await DatabaseHelper.instance.clearBooks();
+      _books.clear();
+
+      for (var b in apiBooks) {
+        final owner = (b['users'] != null && b['users'].isNotEmpty) ? b['users'][0] : null;
+        
+        final bookMap = {
+          'id': b['id']?.toString() ?? '',
+          'isbn': b['isbn']?.toString(),
+          'title': b['title']?.toString() ?? 'No Title',
+          'author': b['author']?.toString(),
+          'description': b['description']?.toString(),
+          'isPublic': 1,
+          'statusVerifikasi': b['statusVerifikasi']?.toString(),
+          'ownerId': owner != null ? owner['id']?.toString() : null,
+          'ownerName': owner != null ? owner['name']?.toString() : 'Unknown',
+          'imageUrl': b['coverImageUrl']?.toString() ?? 'https://picsum.photos/seed/${b['id']}/200/300',
+          'distance': '1.0 km away', // Mock distance
+          'condition': 'Good', // Mock condition
+        };
+
+        await DatabaseHelper.instance.insertBook(bookMap);
+        _addBookFromMap(bookMap);
+      }
+    } else {
+      // API failed (offline/unauthorized): fetch from local DB
+      print('API failed, falling back to local DB...');
+      final localBooks = await DatabaseHelper.instance.getAllBooks();
+      _books.clear();
+      for (var b in localBooks) {
+        _addBookFromMap(b);
+      }
+    }
+
+    isLoadingBooks = false;
+    notifyListeners();
+  }
+
+  void _addBookFromMap(Map<String, dynamic> b) {
+    BookStatus status = BookStatus.private;
+    if (b['statusVerifikasi'] == 'approved') {
+      status = BookStatus.publicApproved;
+    } else if (b['statusVerifikasi'] == 'need_verification') {
+      status = BookStatus.publicPending;
+    } else if (b['statusVerifikasi'] == 'rejected') {
+      status = BookStatus.publicRejected;
+    }
+
+    _books.add(BookModel(
+      id: b['id']?.toString() ?? '',
+      isbn: b['isbn']?.toString() ?? '',
+      title: b['title']?.toString() ?? 'No Title',
+      author: b['author']?.toString() ?? 'Unknown',
+      description: b['description']?.toString() ?? '',
+      isPublic: b['isPublic'] == 1 || b['isPublic'] == true,
+      statusVerifikasi: status,
+      ownerId: b['ownerId']?.toString() ?? 'user_0',
+      ownerName: b['ownerName']?.toString() ?? 'Unknown',
+      imageUrl: b['imageUrl']?.toString() ?? 'https://picsum.photos/200/300',
+      distance: b['distance']?.toString() ?? '1.0 km away',
+      condition: b['condition']?.toString() ?? 'Good',
+    ));
   }
 
   UserRole get currentRole => _currentRole;
@@ -166,121 +244,6 @@ class RuangBukuState extends ChangeNotifier {
 
   // Seed initial mock books
   void _seedMockData() {
-    _books.addAll([
-      BookModel(
-        id: 'book_1',
-        isbn: '9781471156267',
-        title: 'Sapiens: A Brief History of Humankind',
-        author: 'Yuval Noah Harari',
-        description: 'Earth is 4.5 billion years old. In just a fraction of that time, one species among countless others has conquered it: us. In this bold and provocative book, Yuval Noah Harari explores who we are, how we got here and where we\'re going.',
-        isPublic: true,
-        statusVerifikasi: BookStatus.publicApproved,
-        ownerId: 'user_sarah',
-        ownerName: 'Sarah M.',
-        imageUrl: 'https://picsum.photos/seed/pop0/200/300',
-        distance: '1.2 km away',
-        condition: 'Like New',
-      ),
-      BookModel(
-        id: 'book_2',
-        isbn: '9780441172719',
-        title: 'Dune',
-        author: 'Frank Herbert',
-        description: 'Set on the desert planet Arrakis, Dune is the story of the boy Paul Atreides, heir to a noble family tasked with ruling an inhospitable world where the only thing of value is the "spice" melange, a drug capable of extending life and enhancing consciousness.',
-        isPublic: true,
-        statusVerifikasi: BookStatus.publicApproved,
-        ownerId: 'user_david',
-        ownerName: 'David T.',
-        imageUrl: 'https://picsum.photos/seed/pop2/200/300',
-        distance: '2.5 km away',
-        condition: 'Good',
-      ),
-      BookModel(
-        id: 'book_3',
-        isbn: '9781529055962',
-        title: 'Tomorrow, and Tomorrow, and Tomorrow',
-        author: 'Gabrielle Zevin',
-        description: 'Two friends—often in love, but never lovers—become creative partners in a dazzling and intricately imagined world of video game design, where success brings them fame, joy, tragedy, duplicity, and, ultimately, a kind of immortality.',
-        isPublic: true,
-        statusVerifikasi: BookStatus.publicApproved,
-        ownerId: 'user_emma',
-        ownerName: 'Emma W.',
-        imageUrl: 'https://picsum.photos/seed/pop1/200/300',
-        distance: '3.1 km away',
-        condition: 'Very Good',
-      ),
-      BookModel(
-        id: 'book_4',
-        isbn: '9780593135204',
-        title: 'Project Hail Mary',
-        author: 'Andy Weir',
-        description: 'Ryland Grace is the sole survivor on a desperate, last-chance mission—and if he fails, humanity and the earth itself will perish. Except that right now, he doesn\'t know that. He can\'t even remember his own name, let alone the nature of his assignment or how to complete it.',
-        isPublic: true,
-        statusVerifikasi: BookStatus.publicApproved,
-        ownerId: 'user_michael',
-        ownerName: 'Michael K.',
-        imageUrl: 'https://picsum.photos/seed/rec2/200/300',
-        distance: '4.8 km away',
-        condition: 'Acceptable',
-      ),
-      BookModel(
-        id: 'book_5',
-        isbn: '9781847941831',
-        title: 'Atomic Habits',
-        author: 'James Clear',
-        description: 'People think when you want to change your life, you need to think big. But world-renowned habits expert James Clear has discovered another way. He knows that real change comes from the compound effect of hundreds of small decisions.',
-        isPublic: true,
-        statusVerifikasi: BookStatus.publicApproved,
-        ownerId: 'user_sarah',
-        ownerName: 'Sarah M.',
-        imageUrl: 'https://picsum.photos/seed/rec0/200/300',
-        distance: '1.2 km away',
-        condition: 'Like New',
-      ),
-      BookModel(
-        id: 'book_6',
-        isbn: '9781471156269',
-        title: 'The Midnight Library',
-        author: 'Matt Haig',
-        description: 'Between life and death there is a library, and within that library, the shelves go on forever. Every book provides a chance to try another life you could have lived. To see how things would be if you had made other choices... Would you have done anything different, if you had the chance to undo your regrets?',
-        isPublic: true,
-        statusVerifikasi: BookStatus.publicApproved,
-        ownerId: 'user_sarah',
-        ownerName: 'Sarah M.',
-        imageUrl: 'https://picsum.photos/seed/grid0/200/300',
-        distance: '1.5 km away',
-        condition: 'Very Good',
-      ),
-      BookModel(
-        id: 'book_7',
-        isbn: '9780451524935',
-        title: '1984',
-        author: 'George Orwell',
-        description: 'Winston Smith reins in his rebellion against the Party\'s total control, but his secret love affair with Julia leads him into the clutches of the Thought Police, where he faces torture and brainwashing in Room 101.',
-        isPublic: true,
-        statusVerifikasi: BookStatus.publicApproved,
-        ownerId: 'user_david',
-        ownerName: 'David T.',
-        imageUrl: 'https://picsum.photos/seed/grid1/200/300',
-        distance: '2.5 km away',
-        condition: 'Good',
-      ),
-      BookModel(
-        id: 'book_8',
-        isbn: '9780374275631',
-        title: 'Thinking, Fast and Slow',
-        author: 'Daniel Kahneman',
-        description: 'In the international bestseller, Thinking, Fast and Slow, Daniel Kahneman, the renowned psychologist and winner of the Nobel Prize in Economics, takes us on a groundbreaking tour of the mind and explains the two systems that drive the way we think.',
-        isPublic: true,
-        statusVerifikasi: BookStatus.publicApproved,
-        ownerId: 'user_emma',
-        ownerName: 'Emma W.',
-        imageUrl: 'https://picsum.photos/seed/grid3/200/300',
-        distance: '3.1 km away',
-        condition: 'Like New',
-      ),
-    ]);
-
     // Initial Notifications Seed
     _notifications.addAll([
       NotificationModel(

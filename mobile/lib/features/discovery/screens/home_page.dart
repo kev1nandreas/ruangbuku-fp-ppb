@@ -147,7 +147,12 @@ class _HomePageState extends State<HomePage> {
                 const SizedBox(height: RuangBukuSpacing.xxl),
 
                 // Popular Near You Carousel (Static filtering, shows top approved)
-                if (popularBooks.isNotEmpty) ...[
+                if (state.isLoadingBooks)
+                  const Padding(
+                    padding: EdgeInsets.all(RuangBukuSpacing.xl),
+                    child: Center(child: CircularProgressIndicator()),
+                  )
+                else if (popularBooks.isNotEmpty) ...[
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: RuangBukuSpacing.marginMobile),
                     child: Row(
@@ -194,8 +199,13 @@ class _HomePageState extends State<HomePage> {
                 ),
                 const SizedBox(height: RuangBukuSpacing.md),
                 
-                filteredRecentBooks.isEmpty
-                    ? Padding(
+                if (state.isLoadingBooks)
+                  const Padding(
+                    padding: EdgeInsets.all(RuangBukuSpacing.xl),
+                    child: Center(child: CircularProgressIndicator()),
+                  )
+                else if (filteredRecentBooks.isEmpty)
+                    Padding(
                         padding: const EdgeInsets.all(RuangBukuSpacing.marginMobile),
                         child: Center(
                           child: Text(
@@ -204,7 +214,8 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ),
                       )
-                    : ListView.separated(
+                else
+                    ListView.separated(
                         padding: const EdgeInsets.symmetric(horizontal: RuangBukuSpacing.marginMobile),
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),

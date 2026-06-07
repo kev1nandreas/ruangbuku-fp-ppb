@@ -20,11 +20,21 @@ return new class extends Migration
             $table->timestamp('handed_over_at')->nullable();
             $table->timestamp('returned_at')->nullable();
             $table->string('buktiDeposit', 255)->nullable();
+
+            // Deposit settlement — recorded by admin when the borrow is closed.
+            // `deposit_returned_to`: who received the deposit (borrower | owner).
+            $table->string('deposit_returned_to', 10)->nullable();
+            $table->string('deposit_proof_url', 255)->nullable();
+            $table->text('resolution_note')->nullable();
+            $table->timestamp('deposit_returned_at')->nullable();
+            $table->uuid('resolved_by')->nullable();
+
             $table->uuid('user_id');
             $table->uuid('buku_id');
 
             $table->foreign('user_id')->references('id')->on('users')->cascadeOnDelete();
             $table->foreign('buku_id')->references('id')->on('bukus')->cascadeOnDelete();
+            $table->foreign('resolved_by')->references('id')->on('users')->nullOnDelete();
         });
     }
 

@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ReportDamageRequest;
+use App\Http\Requests\ResolveDamageRequest;
+use App\Http\Requests\ReturnDepositRequest;
 use App\Http\Requests\StorePeminjamanRequest;
 use App\Http\Requests\SubmitDepositRequest;
 use App\Models\Buku;
@@ -80,6 +83,7 @@ class PeminjamanController extends Controller
         return $this->success('Detail peminjaman', $peminjaman->load([
             'buku:id,title,author,coverImageUrl',
             'user:id,name,email',
+            'kerusakan',
         ]));
     }
 
@@ -165,7 +169,72 @@ class PeminjamanController extends Controller
             'updated_at'  => now(),
         ]);
 
-        return $this->success('Buku telah dikembalikan, peminjaman selesai', $peminjaman);
+        return $this->success('Buku dikembalikan dalam kondisi baik, menunggu pengembalian deposit oleh admin', $peminjaman);
+    }
+
+    public function reportDamage(ReportDamageRequest $request, Peminjaman $peminjaman): JsonResponse
+    {
+        $this->authorizeOwner($peminjaman);
+        $this->assertStatus($peminjaman, Peminjaman::STATUS_BOOK_RECEIVED);
+
+        $validated = $request->validated();
+
+        $peminjaman->kerusakan()->create([
+            'description' => $validated['damage_description'],
+            'photos'      => $validated['damage_photos'],
+            'reported_at' => now(),
+        ]);
+
+        $peminjaman->update([
+            'status'      => Peminjaman::STATUS_DAMAGED,
+            'returned_at' => now(),
+            'updated_at'  => now(),
+        ]);
+
+        return $this->success('Kerusakan buku dilaporkan, menunggu verifikasi admin', $peminjaman->load('kerusakan'));
+    }
+
+    public function returnDeposit(ReturnDepositRequest $request, Peminjaman $peminjaman): JsonResponse
+    {
+        $this->assertStatus($peminjaman, Peminjaman::STATUS_RETURNED);
+
+        $validated = $request->validated();
+
+        $peminjaman->update([
+            'status'              => Peminjaman::STATUS_COMPLETED,
+            'deposit_returned_to' => Peminjaman::DEPOSIT_TO_BORROWER,
+            'deposit_proof_url'   => $validated['deposit_proof_url'] ?? null,
+            'resolution_note'     => $validated['resolution_note'] ?? null,
+            'deposit_returned_at' => now(),
+            'resolved_by'         => Auth::id(),
+            'updated_at'          => now(),
+        ]);
+
+        return $this->success('Deposit dikembalikan ke peminjam, peminjaman selesai', $peminjaman);
+    }
+
+    public function resolveDamage(ResolveDamageRequest $request, Peminjaman $peminjaman): JsonResponse
+    {
+        $this->assertStatus($peminjaman, Peminjaman::STATUS_DAMAGED);
+
+        $validated = $request->validated();
+
+        $peminjaman->update([
+            'status'              => Peminjaman::STATUS_COMPLETED,
+            'deposit_returned_to' => $validated['resolution'],
+            'deposit_proof_url'   => $validated['deposit_proof_url'] ?? null,
+            'resolution_note'     => $validated['resolution_note'],
+            'deposit_returned_at' => now(),
+            'resolved_by'         => Auth::id(),
+            'updated_at'          => now(),
+        ]);
+
+        $recipient = $validated['resolution'] === Peminjaman::DEPOSIT_TO_OWNER ? 'pemilik' : 'peminjam';
+
+        return $this->success(
+            "Kerusakan diselesaikan, deposit dikembalikan ke {$recipient}, peminjaman selesai",
+            $peminjaman->load('kerusakan'),
+        );
     }
 
     // --- helpers ---------------------------------------------------------

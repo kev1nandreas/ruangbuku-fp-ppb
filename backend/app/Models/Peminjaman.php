@@ -23,8 +23,14 @@ class Peminjaman extends Model
     public const STATUS_DEPOSIT_RECEIVED = 'deposit_received';
     public const STATUS_BOOK_RECEIVED    = 'book_received';
     public const STATUS_RETURNED         = 'returned';
+    public const STATUS_DAMAGED          = 'damaged';
+    public const STATUS_COMPLETED        = 'completed';
     public const STATUS_REJECTED         = 'rejected';
     public const STATUS_CANCELLED        = 'cancelled';
+
+    // Who the admin returned the deposit to when settling a borrow.
+    public const DEPOSIT_TO_BORROWER = 'borrower';
+    public const DEPOSIT_TO_OWNER    = 'owner';
 
     /**
      * Statuses that count as an in-flight borrow: the book is reserved/held
@@ -48,6 +54,11 @@ class Peminjaman extends Model
         'handed_over_at',
         'returned_at',
         'buktiDeposit',
+        'deposit_returned_to',
+        'deposit_proof_url',
+        'resolution_note',
+        'deposit_returned_at',
+        'resolved_by',
         'user_id',
         'buku_id',
     ];
@@ -63,7 +74,18 @@ class Peminjaman extends Model
             'deposit_received_at' => 'datetime',
             'handed_over_at'      => 'datetime',
             'returned_at'         => 'datetime',
+            'deposit_returned_at' => 'datetime',
         ];
+    }
+
+    public function resolver()
+    {
+        return $this->belongsTo(User::class, 'resolved_by');
+    }
+
+    public function kerusakan()
+    {
+        return $this->hasOne(Kerusakan::class, 'peminjaman_id');
     }
 
     public function user()

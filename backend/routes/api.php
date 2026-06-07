@@ -31,7 +31,6 @@ Route::prefix('v1')->group(function () {
 
         // Borrower actions
         Route::post('/peminjaman/{peminjaman}/deposit', [PeminjamanController::class, 'submitDeposit']);
-        Route::post('/peminjaman/{peminjaman}/cancel', [PeminjamanController::class, 'cancel']);
 
         // Owner actions
         Route::post('/peminjaman/{peminjaman}/approve', [PeminjamanController::class, 'approve']);
@@ -39,6 +38,11 @@ Route::prefix('v1')->group(function () {
         Route::post('/peminjaman/{peminjaman}/confirm-deposit', [PeminjamanController::class, 'confirmDeposit'])->middleware('role:admin');
         Route::post('/peminjaman/{peminjaman}/hand-over', [PeminjamanController::class, 'handOver']);
         Route::post('/peminjaman/{peminjaman}/confirm-return', [PeminjamanController::class, 'confirmReturn']);
+        Route::post('/peminjaman/{peminjaman}/report-damage', [PeminjamanController::class, 'reportDamage']);
+
+        // Deposit settlement (admin)
+        Route::post('/peminjaman/{peminjaman}/return-deposit', [PeminjamanController::class, 'returnDeposit'])->middleware('role:admin');
+        Route::post('/peminjaman/{peminjaman}/resolve-damage', [PeminjamanController::class, 'resolveDamage'])->middleware('role:admin');
 
         // Storage (MinIO)
         Route::post('/storage/presigned-url', [StorageController::class, 'presignedUrl']);

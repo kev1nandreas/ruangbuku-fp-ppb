@@ -69,6 +69,91 @@ class ApiService {
     } catch (e) {
       print('Exception checking ISBN API: $e');
     }
+  /// Create a new book on the backend
+  static Future<Map<String, dynamic>?> createBook(Map<String, dynamic> payload) async {
+    try {
+      final headers = {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      };
+      if (bearerToken != null && bearerToken!.isNotEmpty) {
+        headers['Authorization'] = 'Bearer $bearerToken';
+      }
+
+      final response = await http.post(
+        Uri.parse('$baseUrl/buku'),
+        headers: headers,
+        body: json.encode(payload),
+      );
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['data'] != null) {
+          return Map<String, dynamic>.from(data['data']);
+        }
+      } else {
+        print('Error creating book: \${response.statusCode} - \${response.body}');
+      }
+    } catch (e) {
+      print('Exception creating book: $e');
+    }
     return null;
+  }
+
+  /// Update an existing book's condition/visibility on the backend
+  static Future<Map<String, dynamic>?> updateBook(String id, Map<String, dynamic> payload) async {
+    try {
+      final headers = {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      };
+      if (bearerToken != null && bearerToken!.isNotEmpty) {
+        headers['Authorization'] = 'Bearer $bearerToken';
+      }
+
+      final response = await http.put(
+        Uri.parse('$baseUrl/buku/$id'),
+        headers: headers,
+        body: json.encode(payload),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['data'] != null) {
+          return Map<String, dynamic>.from(data['data']);
+        }
+      } else {
+        print('Error updating book: \${response.statusCode} - \${response.body}');
+      }
+    } catch (e) {
+      print('Exception updating book: $e');
+    }
+    return null;
+  }
+
+  /// Delete a book from the backend
+  static Future<bool> deleteBook(String id) async {
+    try {
+      final headers = {
+        'Accept': 'application/json',
+      };
+      if (bearerToken != null && bearerToken!.isNotEmpty) {
+        headers['Authorization'] = 'Bearer $bearerToken';
+      }
+
+      final response = await http.delete(
+        Uri.parse('$baseUrl/buku/$id'),
+        headers: headers,
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        return true;
+      } else {
+        print('Error deleting book: \${response.statusCode} - \${response.body}');
+      }
+    } catch (e) {
+      print('Exception deleting book: $e');
+    }
+    return false;
   }
 }

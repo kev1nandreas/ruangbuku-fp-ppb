@@ -268,19 +268,30 @@ class RuangBukuState extends ChangeNotifier {
   }
 
   // F-01: Book Registration
-  void addBook(String isbn, String title, String author, String description, String condition, bool isPublic) {
-    final newId = 'book_${DateTime.now().millisecondsSinceEpoch}';
+  Future<void> addBook(String isbn, String title, String author, String description, String condition, bool isPublic) async {
+    final payload = {
+      'isbn': isbn,
+      'title': title,
+      'author': author,
+      'description': description,
+      'isPublic': isPublic,
+    };
+    
+    final serverData = await ApiService.createBook(payload);
+    
+    final newId = serverData?['id']?.toString() ?? 'book_${DateTime.now().millisecondsSinceEpoch}';
+    
     final book = BookModel(
       id: newId,
-      isbn: isbn,
-      title: title,
-      author: author,
-      description: description,
+      isbn: serverData?['isbn'] ?? isbn,
+      title: serverData?['title'] ?? title,
+      author: serverData?['author'] ?? author,
+      description: serverData?['description'] ?? description,
       isPublic: isPublic,
       statusVerifikasi: isPublic ? BookStatus.publicPending : BookStatus.private,
       ownerId: 'user_alex',
       ownerName: 'Alex Johnson',
-      imageUrl: 'https://picsum.photos/seed/own${_books.length}/200/300',
+      imageUrl: serverData?['coverImageUrl'] ?? 'https://picsum.photos/seed/own${_books.length}/200/300',
       distance: '0.0 km away',
       condition: condition,
     );
@@ -680,13 +691,22 @@ class RuangBukuState extends ChangeNotifier {
   }
 
   // Delete book from owner catalog
-  void deleteBook(String bookId) {
+  Future<void> deleteBook(String bookId) async {
+    if (!bookId.startsWith('book_')) {
+      await ApiService.deleteBook(bookId);
+    }
     _books.removeWhere((b) => b.id == bookId);
     notifyListeners();
   }
 
   // Update book conditions
-  void updateBookCondition(String bookId, String condition, bool isPublic) {
+  Future<void> updateBookCondition(String bookId, String condition, bool isPublic) async {
+    if (!bookId.startsWith('book_')) {
+      await ApiService.updateBook(bookId, {
+        'isPublic': isPublic,
+      });
+    }
+
     final index = _books.indexWhere((b) => b.id == bookId);
     if (index != -1) {
       final oldBook = _books[index];

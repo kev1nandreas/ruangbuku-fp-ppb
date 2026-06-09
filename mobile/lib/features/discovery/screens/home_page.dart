@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme.dart';
 import '../../../core/state.dart';
-import '../../borrowing/screens/borrower_book_detail_page.dart';
+import '../../../core/widgets/app_search_field.dart';
+import '../widgets/popular_book_card.dart';
+import '../widgets/recent_book_card.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -18,6 +20,13 @@ class _HomePageState extends State<HomePage> {
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  bool _isBookOnLoan(RuangBukuState state, String bookId) {
+    return state.borrowings.any((b) =>
+        b.bookId == bookId &&
+        b.status != BorrowStatus.completed &&
+        b.status != BorrowStatus.cancelled);
   }
 
   @override
@@ -41,7 +50,10 @@ class _HomePageState extends State<HomePage> {
         }
 
         // Get public approved books
-        final publicBooks = state.books.where((b) => b.isPublic && b.statusVerifikasi == BookStatus.publicApproved).toList();
+        final publicBooks = state.books
+            .where((b) =>
+                b.isPublic && b.statusVerifikasi == BookStatus.publicApproved)
+            .toList();
 
         // Popular: first 3 public approved books
         final popularBooks = publicBooks.take(3).toList();
@@ -50,7 +62,8 @@ class _HomePageState extends State<HomePage> {
         final filteredRecentBooks = publicBooks.where((b) {
           if (_searchQuery.isEmpty) return true;
           final query = _searchQuery.toLowerCase();
-          return b.title.toLowerCase().contains(query) || b.author.toLowerCase().contains(query);
+          return b.title.toLowerCase().contains(query) ||
+              b.author.toLowerCase().contains(query);
         }).toList();
 
         return Scaffold(
@@ -70,7 +83,8 @@ class _HomePageState extends State<HomePage> {
                 padding: const EdgeInsets.only(right: RuangBukuSpacing.lg),
                 child: CircleAvatar(
                   radius: 18,
-                  backgroundImage: const NetworkImage('https://picsum.photos/seed/user_alex/100/100'),
+                  backgroundImage: const NetworkImage(
+                      'https://picsum.photos/seed/user_alex/100/100'),
                   backgroundColor: RuangBukuColors.surfaceContainerHigh,
                 ),
               ),
@@ -83,11 +97,13 @@ class _HomePageState extends State<HomePage> {
               children: [
                 // Welcome Header
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: RuangBukuSpacing.marginMobile),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: RuangBukuSpacing.marginMobile),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Good morning, $greetingName', style: textTheme.displayMedium),
+                      Text('Good morning, $greetingName',
+                          style: textTheme.displayMedium),
                       const SizedBox(height: RuangBukuSpacing.sm),
                       Text(
                         'Find your next read from your community library.',
@@ -96,64 +112,31 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ),
                       const SizedBox(height: RuangBukuSpacing.xl),
-                      
-                      // Search Bar
-                      TextField(
+                      AppSearchField(
                         controller: _searchController,
-                        onChanged: (val) {
-                          setState(() {
-                            _searchQuery = val;
-                          });
+                        onChanged: (val) =>
+                            setState(() => _searchQuery = val),
+                        onClear: () {
+                          _searchController.clear();
+                          setState(() => _searchQuery = '');
                         },
-                        decoration: InputDecoration(
-                          prefixIcon: const Icon(Icons.search),
-                          suffixIcon: _searchQuery.isNotEmpty 
-                              ? IconButton(
-                                  icon: const Icon(Icons.clear), 
-                                  onPressed: () {
-                                    _searchController.clear();
-                                    setState(() {
-                                      _searchQuery = '';
-                                    });
-                                  }) 
-                              : null,
-                          hintText: 'Search books or neighbors...',
-                          fillColor: RuangBukuColors.surfaceContainerLow,
-                          border: OutlineInputBorder(
-                            borderRadius: RuangBukuRadius.borderRadiusFull,
-                            borderSide: BorderSide.none,
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: RuangBukuRadius.borderRadiusFull,
-                            borderSide: BorderSide.none,
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: RuangBukuRadius.borderRadiusFull,
-                            borderSide: const BorderSide(
-                              color: RuangBukuColors.primary,
-                              width: 2.0,
-                            ),
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: RuangBukuSpacing.xl,
-                            vertical: RuangBukuSpacing.lg,
-                          ),
-                        ),
                       ),
                     ],
                   ),
                 ),
-                
+
                 const SizedBox(height: RuangBukuSpacing.xxl),
 
-                // Popular Near You Carousel (Static filtering, shows top approved)
+                // Popular Near You Carousel
                 if (popularBooks.isNotEmpty) ...[
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: RuangBukuSpacing.marginMobile),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: RuangBukuSpacing.marginMobile),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('Popular Near You', style: textTheme.headlineSmall),
+                        Text('Popular Near You',
+                            style: textTheme.headlineSmall),
                         TextButton(
                           onPressed: () {},
                           style: TextButton.styleFrom(
@@ -168,14 +151,15 @@ class _HomePageState extends State<HomePage> {
                   SizedBox(
                     height: 280,
                     child: ListView.separated(
-                      padding: const EdgeInsets.symmetric(horizontal: RuangBukuSpacing.marginMobile),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: RuangBukuSpacing.marginMobile),
                       scrollDirection: Axis.horizontal,
                       itemCount: popularBooks.length,
-                      separatorBuilder: (context, index) => const SizedBox(width: RuangBukuSpacing.lg),
+                      separatorBuilder: (context, index) =>
+                          const SizedBox(width: RuangBukuSpacing.lg),
                       itemBuilder: (context, index) {
                         final bk = popularBooks[index];
-                        return _buildPopularBookCard(
-                          context,
+                        return PopularBookCard(
                           bookId: bk.id,
                           title: bk.title,
                           author: bk.author,
@@ -189,47 +173,43 @@ class _HomePageState extends State<HomePage> {
 
                 // Recently Added List
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: RuangBukuSpacing.marginMobile),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: RuangBukuSpacing.marginMobile),
                   child: Text('Recently Added', style: textTheme.headlineSmall),
                 ),
                 const SizedBox(height: RuangBukuSpacing.md),
-                
+
                 filteredRecentBooks.isEmpty
                     ? Padding(
-                        padding: const EdgeInsets.all(RuangBukuSpacing.marginMobile),
+                        padding: const EdgeInsets.all(
+                            RuangBukuSpacing.marginMobile),
                         child: Center(
                           child: Text(
                             'No books found matching "$_searchQuery"',
-                            style: textTheme.bodyLarge?.copyWith(color: RuangBukuColors.textSecondary),
+                            style: textTheme.bodyLarge?.copyWith(
+                                color: RuangBukuColors.textSecondary),
                           ),
                         ),
                       )
                     : ListView.separated(
-                        padding: const EdgeInsets.symmetric(horizontal: RuangBukuSpacing.marginMobile),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: RuangBukuSpacing.marginMobile),
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
                         itemCount: filteredRecentBooks.length,
-                        separatorBuilder: (context, index) => const SizedBox(height: RuangBukuSpacing.md),
+                        separatorBuilder: (context, index) =>
+                            const SizedBox(height: RuangBukuSpacing.md),
                         itemBuilder: (context, index) {
                           final bk = filteredRecentBooks[index];
-                          
-                          // Check lending status dynamically
-                          bool isBorrowed = state.borrowings.any((b) => 
-                            b.bookId == bk.id && 
-                            b.status != BorrowStatus.completed && 
-                            b.status != BorrowStatus.cancelled
-                          );
-                          String statusStr = isBorrowed ? 'On Loan' : 'Available';
-
-                          return _buildRecentBookCard(
-                            context,
+                          return RecentBookCard(
                             bookId: bk.id,
                             title: bk.title,
                             author: bk.author,
                             addedBy: bk.ownerName,
-                            avatarUrl: 'https://picsum.photos/seed/${bk.ownerId}/100/100',
+                            avatarUrl:
+                                'https://picsum.photos/seed/${bk.ownerId}/100/100',
                             imageUrl: bk.imageUrl,
-                            status: statusStr,
+                            isAvailable: !_isBookOnLoan(state, bk.id),
                           );
                         },
                       ),
@@ -239,168 +219,6 @@ class _HomePageState extends State<HomePage> {
           ),
         );
       },
-    );
-  }
-
-  Widget _buildPopularBookCard(BuildContext context, {required String bookId, required String title, required String author, required String imageUrl}) {
-    final textTheme = Theme.of(context).textTheme;
-
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => BorrowerBookDetailPage(bookId: bookId),
-          ),
-        );
-      },
-      child: SizedBox(
-        width: 160,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              height: 220,
-              decoration: BoxDecoration(
-                borderRadius: RuangBukuRadius.borderRadiusBase,
-                image: DecorationImage(
-                  image: NetworkImage(imageUrl),
-                  fit: BoxFit.cover,
-                ),
-                boxShadow: RuangBukuElevation.level1,
-              ),
-            ),
-            const SizedBox(height: RuangBukuSpacing.sm),
-            Text(
-              title,
-              style: textTheme.titleMedium,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            Text(
-              author,
-              style: textTheme.bodyMedium?.copyWith(
-                color: RuangBukuColors.textSecondary,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildRecentBookCard(BuildContext context, {
-    required String bookId,
-    required String title,
-    required String author,
-    required String addedBy,
-    required String avatarUrl,
-    required String imageUrl,
-    required String status,
-  }) {
-    final theme = Theme.of(context);
-    final textTheme = theme.textTheme;
-    final semanticColors = theme.extension<RuangBukuSemanticColors>()!;
-
-    final isAvailable = status == 'Available';
-
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => BorrowerBookDetailPage(bookId: bookId),
-          ),
-        );
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          color: theme.cardTheme.color,
-          borderRadius: RuangBukuRadius.borderRadiusLg,
-          boxShadow: RuangBukuElevation.level1,
-          border: Border.all(
-            color: RuangBukuColors.outlineVariant.withValues(alpha: 0.3),
-            width: 1,
-          ),
-        ),
-        padding: const EdgeInsets.all(RuangBukuSpacing.md),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: 70,
-              height: 100,
-              decoration: BoxDecoration(
-                borderRadius: RuangBukuRadius.borderRadiusBase,
-                image: DecorationImage(
-                  image: NetworkImage(imageUrl),
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
-            const SizedBox(width: RuangBukuSpacing.lg),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          title,
-                          style: textTheme.titleMedium,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      const SizedBox(width: RuangBukuSpacing.sm),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: isAvailable ? semanticColors.success.withValues(alpha: 0.2) : semanticColors.neutralChip.withValues(alpha: 0.2),
-                          borderRadius: RuangBukuRadius.borderRadiusSm,
-                        ),
-                        child: Text(
-                          status,
-                          style: textTheme.labelSmall?.copyWith(
-                            color: isAvailable ? semanticColors.success : RuangBukuColors.textSecondary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: RuangBukuSpacing.xs),
-                  Text(
-                    author,
-                    style: textTheme.bodyMedium?.copyWith(
-                      color: RuangBukuColors.textSecondary,
-                    ),
-                  ),
-                  const SizedBox(height: RuangBukuSpacing.lg),
-                  Row(
-                    children: [
-                      CircleAvatar(
-                        radius: 10,
-                        backgroundImage: NetworkImage(avatarUrl),
-                        backgroundColor: RuangBukuColors.surfaceContainerHigh,
-                      ),
-                      const SizedBox(width: RuangBukuSpacing.sm),
-                      Text(
-                        'Added by $addedBy',
-                        style: textTheme.bodySmall,
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

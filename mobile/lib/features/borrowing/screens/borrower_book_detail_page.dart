@@ -1,84 +1,13 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme.dart';
 import '../../../core/state.dart';
-import 'request_borrow_page.dart';
+import '../../../core/widgets/bottom_action_bar.dart';
+import '../widgets/borrow_action_section.dart';
 
 class BorrowerBookDetailPage extends StatelessWidget {
   final String bookId;
 
   const BorrowerBookDetailPage({super.key, required this.bookId});
-
-  void _showReturnDialog(BuildContext context, BorrowModel borrowing) {
-    final TextEditingController damageController = TextEditingController();
-    final state = RuangBukuState.instance;
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Book Return Inspection'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                'Please inspect the returned book. Is the book returned in good condition (A) or is it damaged/cacat (B)?',
-                style: TextStyle(height: 1.4),
-              ),
-              const SizedBox(height: RuangBukuSpacing.lg),
-              TextField(
-                controller: damageController,
-                maxLines: 2,
-                decoration: const InputDecoration(
-                  labelText: 'Damage Details (Only if Damaged)',
-                  hintText: 'e.g., Cover ripped, pages missing...',
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text('Cancel'),
-            ),
-            OutlinedButton(
-              style: OutlinedButton.styleFrom(
-                foregroundColor: RuangBukuColors.error,
-                side: const BorderSide(color: RuangBukuColors.error),
-              ),
-              onPressed: () {
-                final desc = damageController.text.trim();
-                state.returnBook(
-                  borrowing.id,
-                  isGoodCondition: false,
-                  damageDescription: desc.isEmpty ? 'Halaman terlipat/sobek' : desc,
-                );
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Book marked as DAMAGED. Dispute sent to Admin (F-03).')),
-                );
-              },
-              child: const Text('Damaged (B)'),
-            ),
-            FilledButton(
-              style: FilledButton.styleFrom(
-                backgroundColor: RuangBukuColors.primary,
-              ),
-              onPressed: () {
-                state.returnBook(borrowing.id, isGoodCondition: true);
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Book returned in GOOD condition. Refund pending (F-03).')),
-                );
-              },
-              child: const Text('Good (A)'),
-            ),
-          ],
-        );
-      },
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -232,153 +161,11 @@ class BorrowerBookDetailPage extends StatelessWidget {
               ],
             ),
           ),
-          bottomSheet: Container(
-            padding: const EdgeInsets.all(RuangBukuSpacing.marginMobile),
-            decoration: BoxDecoration(
-              color: theme.scaffoldBackgroundColor,
-              boxShadow: [
-                BoxShadow(
-                  color: RuangBukuColors.shadowTint.withValues(alpha: 0.05),
-                  offset: const Offset(0, -4),
-                  blurRadius: 12,
-                ),
-              ],
-            ),
-            child: _buildActionButtons(context, state, book, activeBorrow),
+          bottomSheet: BottomActionBar(
+            child: BorrowActionSection(book: book, borrowing: activeBorrow),
           ),
         );
       },
     );
-  }
-
-  Widget _buildActionButtons(BuildContext context, RuangBukuState state, BookModel book, BorrowModel? borrowing) {
-    // If own book
-    if (book.ownerId == 'user_alex') {
-      return OutlinedButton(
-        onPressed: null,
-        child: const Text('This is your own book'),
-      );
-    }
-
-    if (borrowing == null) {
-      // Check if book is already borrowed by someone else
-      final isAlreadyBorrowed = state.borrowings.any((b) => 
-        b.bookId == book.id && 
-        b.status != BorrowStatus.completed && 
-        b.status != BorrowStatus.cancelled
-      );
-
-      if (isAlreadyBorrowed) {
-        return const OutlinedButton(
-          onPressed: null,
-          child: Text('Book Currently on Loan'),
-        );
-      }
-
-      return FilledButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => RequestBorrowPage(bookId: book.id),
-            ),
-          );
-        },
-        child: const Text('Borrow Book'),
-      );
-    }
-
-    // Handle status lifecycle
-    switch (borrowing.status) {
-      case BorrowStatus.requested:
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              'Waiting for Lender approval...',
-              style: TextStyle(color: RuangBukuColors.primary, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            OutlinedButton(
-              onPressed: null,
-              child: const Text('Requested'),
-            ),
-          ],
-        );
-      case BorrowStatus.waitingDeposit:
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('Lender approved! Please pay the deposit.', style: TextStyle(fontWeight: FontWeight.w600)),
-            const SizedBox(height: 8),
-            FilledButton(
-              onPressed: () {
-                state.uploadProofOfDeposit(borrowing.id);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Deposit receipt uploaded successfully (F-02)!')),
-                );
-              },
-              child: const Text('Upload Deposit Proof (Rp. 50,000)'),
-            ),
-          ],
-        );
-      case BorrowStatus.depositUploaded:
-        return const OutlinedButton(
-          onPressed: null,
-          child: Text('Waiting for Admin Verification'),
-        );
-      case BorrowStatus.depositVerified:
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('Deposit verified. Meet owner and pick up book.', style: TextStyle(fontWeight: FontWeight.w600)),
-            const SizedBox(height: 8),
-            FilledButton(
-              onPressed: () {
-                state.confirmBookReceived(borrowing.id);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Book status updated: Sedang Dipinjam.')),
-                );
-              },
-              child: const Text('Confirm Book Received'),
-            ),
-          ],
-        );
-      case BorrowStatus.bookReceived:
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('You have this book. Coordinate via WA to return.', style: TextStyle(fontWeight: FontWeight.w600)),
-            const SizedBox(height: 8),
-            FilledButton(
-              onPressed: () => _showReturnDialog(context, borrowing),
-              child: const Text('Return Book'),
-            ),
-          ],
-        );
-      case BorrowStatus.returnedGood:
-        return const OutlinedButton(
-          onPressed: null,
-          child: Text('Returned Good - Waiting Refund'),
-        );
-      case BorrowStatus.returnedDamaged:
-        return const OutlinedButton(
-          onPressed: null,
-          child: Text('Returned Damaged - Dispute Open'),
-        );
-      case BorrowStatus.completed:
-      case BorrowStatus.cancelled:
-        return FilledButton(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => RequestBorrowPage(bookId: book.id),
-              ),
-            );
-          },
-          child: const Text('Borrow Book'),
-        );
-    }
   }
 }

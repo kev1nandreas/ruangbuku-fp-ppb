@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme.dart';
 import '../../../core/state.dart';
+import '../../../core/widgets/app_card.dart';
+import '../../../core/widgets/book_summary_row.dart';
+import '../../../core/widgets/bottom_action_bar.dart';
 
 class RequestBorrowPage extends StatefulWidget {
   final String bookId;
@@ -154,52 +157,12 @@ class _RequestBorrowPageState extends State<RequestBorrowPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Book Summary Card
-            Container(
-              decoration: BoxDecoration(
-                color: theme.cardTheme.color,
-                borderRadius: RuangBukuRadius.borderRadiusLg,
-                boxShadow: RuangBukuElevation.level1,
-                border: Border.all(
-                  color: RuangBukuColors.outlineVariant.withValues(alpha: 0.3),
-                  width: 1,
-                ),
-              ),
+            AppCard(
               padding: const EdgeInsets.all(RuangBukuSpacing.lg),
-              child: Row(
-                children: [
-                  Container(
-                    width: 60,
-                    height: 90,
-                    decoration: BoxDecoration(
-                      borderRadius: RuangBukuRadius.borderRadiusBase,
-                      image: DecorationImage(
-                        image: NetworkImage(book.imageUrl),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: RuangBukuSpacing.lg),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          book.title,
-                          style: textTheme.titleMedium,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: RuangBukuSpacing.xs),
-                        Text(
-                          book.author,
-                          style: textTheme.bodyMedium?.copyWith(
-                            color: RuangBukuColors.textSecondary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+              child: BookSummaryRow(
+                title: book.title,
+                author: book.author,
+                imageUrl: book.imageUrl,
               ),
             ),
             const SizedBox(height: RuangBukuSpacing.xl),
@@ -275,18 +238,7 @@ class _RequestBorrowPageState extends State<RequestBorrowPage> {
           ],
         ),
       ),
-      bottomSheet: Container(
-        padding: const EdgeInsets.all(RuangBukuSpacing.marginMobile),
-        decoration: BoxDecoration(
-          color: theme.scaffoldBackgroundColor,
-          boxShadow: [
-            BoxShadow(
-              color: RuangBukuColors.shadowTint.withValues(alpha: 0.05),
-              offset: const Offset(0, -4),
-              blurRadius: 12,
-            ),
-          ],
-        ),
+      bottomSheet: BottomActionBar(
         child: FilledButton(
           onPressed: () => _submitRequest(book),
           child: const Text('Send Request'),

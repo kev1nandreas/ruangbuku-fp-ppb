@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme.dart';
 import '../../../core/state.dart';
+import '../../../core/services/book_service.dart';
 import '../../../core/widgets/bottom_action_bar.dart';
 import '../widgets/condition_dropdown.dart';
 import '../widgets/lending_permission_switch.dart';
@@ -32,57 +33,81 @@ class _AddBookPageState extends State<AddBookPage> {
     super.dispose();
   }
 
-  void _simulateScan() {
-    setState(() {
-      _isLoading = true;
-    });
-    Future.delayed(const Duration(seconds: 1), () {
-      if (mounted) {
+  void _simulateScan() async {
+    final isbn = _isbnController.text.trim();
+    if (isbn.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter ISBN first.')),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+    try {
+      final bookData = await BookService.checkIsbn(isbn);
+      if (mounted && bookData != null) {
         setState(() {
-          _isLoading = false;
-          _isbnController.text = '9781471156267';
-          _titleController.text = 'Sapiens: A Brief History of Humankind';
-          _authorController.text = 'Yuval Noah Harari';
-          _descriptionController.text = 
-              'Earth is 4.5 billion years old. In just a fraction of that time, one species among countless others has conquered it: us. In this bold and provocative book, Yuval Noah Harari explores who we are, how we got here and where we\'re going.';
+          _titleController.text = bookData['title'] ?? '';
+          _authorController.text = bookData['author'] ?? '';
+          _descriptionController.text = bookData['description'] ?? '';
         });
       }
-    });
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString())),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
-  void _submitBook() {
+  void _submitBook() async {
     final isbn = _isbnController.text.trim();
     final title = _titleController.text.trim();
     final author = _authorController.text.trim();
     final description = _descriptionController.text.trim();
 
-    if (title.isEmpty || author.isEmpty) {
+    if (title.isEmpty || author.isEmpty || isbn.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill in at least the Title and Author.')),
+        const SnackBar(content: Text('Please fill in ISBN, Title, and Author.')),
       );
       return;
     }
 
-    RuangBukuState.instance.addBook(
-      isbn.isEmpty ? 'N/A' : isbn,
-      title,
-      author,
-      description.isEmpty ? 'No description available.' : description,
-      _condition,
-      _isAvailableForLending,
-    );
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          _isAvailableForLending 
-              ? '"$title" added and submitted for Admin Curation approval (F-01)!' 
-              : '"$title" added to your private collection!'
-        ),
-      ),
-    );
-
-    Navigator.pop(context);
+    // Call API
+    setState(() => _isLoading = true);
+    try {
+      await BookService.addBook({
+        'isbn': isbn,
+        'title': title,
+        'author': author,
+        'description': description.isEmpty ? null : description,
+        'isPublic': _isAvailableForLending,
+      });
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              _isAvailableForLending 
+                  ? '"$title" added and submitted for Admin Curation approval (F-01)!' 
+                  : '"$title" added to your private collection!'
+            ),
+          ),
+        );
+        Navigator.pop(context, true); // Return true to trigger refresh
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString())),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   @override

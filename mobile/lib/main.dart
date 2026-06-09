@@ -2,13 +2,17 @@ import 'package:flutter/material.dart';
 import 'core/theme.dart';
 import 'core/state.dart';
 
+import 'features/auth/domain/auth_notifier.dart';
+import 'features/auth/presentation/screens/login_screen.dart';
 import 'features/discovery/screens/home_page.dart';
 import 'features/discovery/screens/find_book_page.dart';
 import 'features/inventory/screens/your_books_page.dart';
 import 'features/notifications/screens/notification_page.dart';
 import 'features/profile/screens/profile_page.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await AuthNotifier.instance.checkAuthStatus();
   runApp(const RuangBukuApp());
 }
 
@@ -23,7 +27,38 @@ class RuangBukuApp extends StatelessWidget {
       theme: RuangBukuTheme.lightTheme.copyWith(
         extensions: [RuangBukuSemanticColors.standard],
       ),
-      home: const MainScaffold(),
+      home: ListenableBuilder(
+        listenable: AuthNotifier.instance,
+        builder: (context, _) {
+          final status = AuthNotifier.instance.status;
+
+          if (status == AuthStatus.initial || status == AuthStatus.loading) {
+            return const _SplashScreen();
+          }
+
+          if (status == AuthStatus.authenticated) {
+            return const MainScaffold();
+          }
+
+          return const LoginScreen();
+        },
+      ),
+    );
+  }
+}
+
+class _SplashScreen extends StatelessWidget {
+  const _SplashScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(
+      backgroundColor: RuangBukuColors.surface,
+      body: Center(
+        child: CircularProgressIndicator(
+          color: RuangBukuColors.primary,
+        ),
+      ),
     );
   }
 }
@@ -96,4 +131,3 @@ class _MainScaffoldState extends State<MainScaffold> {
     );
   }
 }
-

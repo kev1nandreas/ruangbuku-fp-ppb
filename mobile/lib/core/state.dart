@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'services/book_service.dart';
+import 'services/borrow_service.dart';
+import 'services/auth_service.dart';
 
 enum UserRole { borrower, lender, admin }
 
@@ -80,7 +83,7 @@ class BookModel {
     String ownerName = 'Unknown';
     if (json['users'] != null && json['users'] is List && json['users'].isNotEmpty) {
       final user = json['users'][0];
-      ownerId = user['id'] ?? '';
+      ownerId = user['id']?.toString() ?? '';
       ownerName = user['name'] ?? 'Unknown';
       if (user['pivot'] != null) {
         isPublic = user['pivot']['isPublic'] == 1 || user['pivot']['isPublic'] == true;
@@ -88,7 +91,7 @@ class BookModel {
     }
 
     return BookModel(
-      id: json['id'] ?? '',
+      id: json['id']?.toString() ?? '',
       isbn: json['isbn'] ?? '',
       title: json['title'] ?? 'Unknown',
       author: json['author'] ?? 'Unknown',
@@ -150,6 +153,42 @@ class BorrowModel {
     this.damageReport,
     required this.createdAt,
   });
+
+  factory BorrowModel.fromJson(Map<String, dynamic> json) {
+    BorrowStatus parseStatus(String st) {
+      switch (st) {
+        case 'menunggu_konfirmasi': return BorrowStatus.requested;
+        case 'menunggu_deposit': return BorrowStatus.waitingDeposit;
+        case 'deposit_dibayar': return BorrowStatus.depositUploaded;
+        case 'deposit_diverifikasi': return BorrowStatus.depositVerified;
+        case 'buku_diterima': return BorrowStatus.bookReceived;
+        case 'dikembalikan_baik': return BorrowStatus.returnedGood;
+        case 'dikembalikan_rusak': return BorrowStatus.returnedDamaged;
+        case 'selesai': return BorrowStatus.completed;
+        case 'ditolak': return BorrowStatus.cancelled;
+        case 'dibatalkan': return BorrowStatus.cancelled;
+        default: return BorrowStatus.requested;
+      }
+    }
+
+    final book = json['buku'] ?? {};
+
+    return BorrowModel(
+      id: json['id']?.toString() ?? '',
+      bookId: json['buku_id']?.toString() ?? '',
+      bookTitle: book['title'] ?? 'Unknown',
+      bookAuthor: book['author'] ?? 'Unknown',
+      bookImageUrl: book['coverImageUrl'] ?? 'https://picsum.photos/200/300',
+      borrowerId: json['user_id']?.toString() ?? '',
+      borrowerName: json['user']?['name'] ?? 'Unknown',
+      startDate: DateTime.tryParse(json['start_date'] ?? '') ?? DateTime.now(),
+      endDate: DateTime.tryParse(json['end_date'] ?? '') ?? DateTime.now(),
+      status: parseStatus(json['status'] ?? ''),
+      depositAmount: double.tryParse(json['deposit_amount']?.toString() ?? '50000') ?? 50000.0,
+      paymentProofUrl: json['bukti_deposit'],
+      createdAt: DateTime.tryParse(json['created_at'] ?? '') ?? DateTime.now(),
+    );
+  }
 }
 
 class NotificationModel {
@@ -184,584 +223,211 @@ class RuangBukuState extends ChangeNotifier {
   static final RuangBukuState instance = RuangBukuState._();
 
   UserRole _currentRole = UserRole.borrower;
-  final List<BookModel> _books = [];
-  final List<BorrowModel> _borrowings = [];
-  final List<NotificationModel> _notifications = [];
+  List<BookModel> _books = [];
+  List<BorrowModel> _borrowings = [];
+  List<NotificationModel> _notifications = [];
+  bool _isLoading = false;
 
   RuangBukuState._() {
-    _seedMockData();
+    _seedMockNotifications();
   }
 
   UserRole get currentRole => _currentRole;
   List<BookModel> get books => _books;
   List<BorrowModel> get borrowings => _borrowings;
   List<NotificationModel> get notifications => _notifications;
+  bool get isLoading => _isLoading;
 
   void changeRole(UserRole newRole) {
     _currentRole = newRole;
     notifyListeners();
+    fetchBooks();
+    fetchBorrowings();
   }
 
-  // Seed initial mock books
-  void _seedMockData() {
-    _books.addAll([
-      BookModel(
-        id: 'book_1',
-        isbn: '9781471156267',
-        title: 'Sapiens: A Brief History of Humankind',
-        author: 'Yuval Noah Harari',
-        description: 'Earth is 4.5 billion years old. In just a fraction of that time, one species among countless others has conquered it: us. In this bold and provocative book, Yuval Noah Harari explores who we are, how we got here and where we\'re going.',
-        isPublic: true,
-        statusVerifikasi: BookStatus.publicApproved,
-        ownerId: 'user_sarah',
-        ownerName: 'Sarah M.',
-        imageUrl: 'https://picsum.photos/seed/pop0/200/300',
-        distance: '1.2 km away',
-        condition: 'Like New',
-      ),
-      BookModel(
-        id: 'book_2',
-        isbn: '9780441172719',
-        title: 'Dune',
-        author: 'Frank Herbert',
-        description: 'Set on the desert planet Arrakis, Dune is the story of the boy Paul Atreides, heir to a noble family tasked with ruling an inhospitable world where the only thing of value is the "spice" melange, a drug capable of extending life and enhancing consciousness.',
-        isPublic: true,
-        statusVerifikasi: BookStatus.publicApproved,
-        ownerId: 'user_david',
-        ownerName: 'David T.',
-        imageUrl: 'https://picsum.photos/seed/pop2/200/300',
-        distance: '2.5 km away',
-        condition: 'Good',
-      ),
-      BookModel(
-        id: 'book_3',
-        isbn: '9781529055962',
-        title: 'Tomorrow, and Tomorrow, and Tomorrow',
-        author: 'Gabrielle Zevin',
-        description: 'Two friends—often in love, but never lovers—become creative partners in a dazzling and intricately imagined world of video game design, where success brings them fame, joy, tragedy, duplicity, and, ultimately, a kind of immortality.',
-        isPublic: true,
-        statusVerifikasi: BookStatus.publicApproved,
-        ownerId: 'user_emma',
-        ownerName: 'Emma W.',
-        imageUrl: 'https://picsum.photos/seed/pop1/200/300',
-        distance: '3.1 km away',
-        condition: 'Very Good',
-      ),
-      BookModel(
-        id: 'book_4',
-        isbn: '9780593135204',
-        title: 'Project Hail Mary',
-        author: 'Andy Weir',
-        description: 'Ryland Grace is the sole survivor on a desperate, last-chance mission—and if he fails, humanity and the earth itself will perish. Except that right now, he doesn\'t know that. He can\'t even remember his own name, let alone the nature of his assignment or how to complete it.',
-        isPublic: true,
-        statusVerifikasi: BookStatus.publicApproved,
-        ownerId: 'user_michael',
-        ownerName: 'Michael K.',
-        imageUrl: 'https://picsum.photos/seed/rec2/200/300',
-        distance: '4.8 km away',
-        condition: 'Acceptable',
-      ),
-      BookModel(
-        id: 'book_5',
-        isbn: '9781847941831',
-        title: 'Atomic Habits',
-        author: 'James Clear',
-        description: 'People think when you want to change your life, you need to think big. But world-renowned habits expert James Clear has discovered another way. He knows that real change comes from the compound effect of hundreds of small decisions.',
-        isPublic: true,
-        statusVerifikasi: BookStatus.publicApproved,
-        ownerId: 'user_sarah',
-        ownerName: 'Sarah M.',
-        imageUrl: 'https://picsum.photos/seed/rec0/200/300',
-        distance: '1.2 km away',
-        condition: 'Like New',
-      ),
-      BookModel(
-        id: 'book_6',
-        isbn: '9781471156269',
-        title: 'The Midnight Library',
-        author: 'Matt Haig',
-        description: 'Between life and death there is a library, and within that library, the shelves go on forever. Every book provides a chance to try another life you could have lived. To see how things would be if you had made other choices... Would you have done anything different, if you had the chance to undo your regrets?',
-        isPublic: true,
-        statusVerifikasi: BookStatus.publicApproved,
-        ownerId: 'user_sarah',
-        ownerName: 'Sarah M.',
-        imageUrl: 'https://picsum.photos/seed/grid0/200/300',
-        distance: '1.5 km away',
-        condition: 'Very Good',
-      ),
-      BookModel(
-        id: 'book_7',
-        isbn: '9780451524935',
-        title: '1984',
-        author: 'George Orwell',
-        description: 'Winston Smith reins in his rebellion against the Party\'s total control, but his secret love affair with Julia leads him into the clutches of the Thought Police, where he faces torture and brainwashing in Room 101.',
-        isPublic: true,
-        statusVerifikasi: BookStatus.publicApproved,
-        ownerId: 'user_david',
-        ownerName: 'David T.',
-        imageUrl: 'https://picsum.photos/seed/grid1/200/300',
-        distance: '2.5 km away',
-        condition: 'Good',
-      ),
-      BookModel(
-        id: 'book_8',
-        isbn: '9780374275631',
-        title: 'Thinking, Fast and Slow',
-        author: 'Daniel Kahneman',
-        description: 'In the international bestseller, Thinking, Fast and Slow, Daniel Kahneman, the renowned psychologist and winner of the Nobel Prize in Economics, takes us on a groundbreaking tour of the mind and explains the two systems that drive the way we think.',
-        isPublic: true,
-        statusVerifikasi: BookStatus.publicApproved,
-        ownerId: 'user_emma',
-        ownerName: 'Emma W.',
-        imageUrl: 'https://picsum.photos/seed/grid3/200/300',
-        distance: '3.1 km away',
-        condition: 'Like New',
-      ),
-    ]);
-
-    // Initial Notifications Seed
+  void _seedMockNotifications() {
     _notifications.addAll([
       NotificationModel(
         id: 'notif_init_1',
         title: 'System Welcome',
         message: 'Welcome to RuangBuku! Complete your profile to start borrowing and sharing books.',
-        time: '3 days ago',
+        time: 'Just now',
         role: UserRole.borrower,
         icon: Icons.celebration,
         iconColor: Colors.purple,
-      ),
-      NotificationModel(
-        id: 'notif_init_2',
-        title: 'Admin Curation',
-        message: 'Your book "Sapiens" has been approved and is now visible to the community.',
-        time: '5 hours ago',
-        role: UserRole.lender,
-        icon: Icons.check_circle,
-        iconColor: Colors.green,
       )
     ]);
   }
 
-  // F-01: Book Registration
-  void addBook(String isbn, String title, String author, String description, String condition, bool isPublic) {
-    final newId = 'book_${DateTime.now().millisecondsSinceEpoch}';
-    final book = BookModel(
-      id: newId,
-      isbn: isbn,
-      title: title,
-      author: author,
-      description: description,
-      isPublic: isPublic,
-      statusVerifikasi: isPublic ? BookStatus.publicPending : BookStatus.private,
-      ownerId: 'user_alex',
-      ownerName: 'Alex Johnson',
-      imageUrl: 'https://picsum.photos/seed/own${_books.length}/200/300',
-      distance: '0.0 km away',
-      condition: condition,
-    );
-
-    _books.insert(0, book);
-
-    if (isPublic) {
-      // Add notification to Admin
-      _notifications.insert(0, NotificationModel(
-        id: 'notif_adm_${DateTime.now().millisecondsSinceEpoch}',
-        title: 'Book Curation Pending',
-        message: 'Alex Johnson added "$title" for lending. Click to review and curate.',
-        time: 'Just now',
-        role: UserRole.admin,
-        icon: Icons.gavel,
-        iconColor: Colors.orange,
-        bookId: newId,
-        isPending: true,
-      ));
-      // Notify Lender
-      _notifications.insert(0, NotificationModel(
-        id: 'notif_own_${DateTime.now().millisecondsSinceEpoch}',
-        title: 'Book Submitted',
-        message: 'Your book "$title" has been submitted for Admin curation.',
-        time: 'Just now',
-        role: UserRole.lender,
-        icon: Icons.hourglass_empty,
-        iconColor: Colors.blue,
-      ));
-    } else {
-      // Notify Lender directly
-      _notifications.insert(0, NotificationModel(
-        id: 'notif_own_${DateTime.now().millisecondsSinceEpoch}',
-        title: 'Book Added to Private Catalog',
-        message: '"$title" is added to your private collection. It is not visible to others.',
-        time: 'Just now',
-        role: UserRole.lender,
-        icon: Icons.lock,
-        iconColor: Colors.grey,
-      ));
-    }
-
+  Future<void> fetchBooks() async {
+    _isLoading = true;
     notifyListeners();
+    try {
+      final userId = await AuthService.getUserId();
+      final isAdmin = _currentRole == UserRole.admin;
+      
+      List<dynamic> data;
+      if (isAdmin) {
+        data = await BookService.getBooks(statusVerifikasi: 'need_verification', isPublic: true);
+      } else {
+        // As a borrower/lender, we want to see public books and our own books.
+        // For simplicity right now we'll just fetch all books or filter by user if lender.
+        data = await BookService.getBooks();
+      }
+      
+      _books = data.map((e) => BookModel.fromJson(e)).toList();
+    } catch (e) {
+      debugPrint('Error fetching books: $e');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> fetchBorrowings() async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      final data = await BorrowService.getBorrowings(asOwner: _currentRole == UserRole.lender);
+      _borrowings = data.map((e) => BorrowModel.fromJson(e)).toList();
+    } catch (e) {
+      debugPrint('Error fetching borrowings: $e');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // F-01: Book Registration
+  Future<void> addBook(String isbn, String title, String author, String description, String condition, bool isPublic) async {
+    try {
+      await BookService.addBook({
+        'isbn': isbn,
+        'title': title,
+        'author': author,
+        'description': description,
+        'isPublic': isPublic,
+        'condition': condition,
+      });
+      await fetchBooks();
+    } catch (e) {
+      debugPrint('Error adding book: $e');
+      rethrow;
+    }
   }
 
   // Admin verifies book
   void verifyBook(String bookId, bool isApproved) {
+    // Requires backend implementation. Currently, we just mock the local state update.
     final index = _books.indexWhere((b) => b.id == bookId);
     if (index != -1) {
       final book = _books[index];
       book.statusVerifikasi = isApproved ? BookStatus.publicApproved : BookStatus.publicRejected;
-
-      // Mark the admin notification as resolved
-      for (var notif in _notifications) {
-        if (notif.bookId == bookId && notif.role == UserRole.admin) {
-          notif.isPending = false;
-          notif.statusText = isApproved ? 'Approved' : 'Rejected';
-        }
-      }
-
-      // Add notifications to Owner
-      _notifications.insert(0, NotificationModel(
-        id: 'notif_own_${DateTime.now().millisecondsSinceEpoch}',
-        title: isApproved ? 'Book Approved' : 'Book Rejected',
-        message: 'Your book "${book.title}" has been ${isApproved ? 'approved and is now public!' : 'rejected and remains private.'}',
-        time: 'Just now',
-        role: UserRole.lender,
-        icon: isApproved ? Icons.check_circle : Icons.cancel,
-        iconColor: isApproved ? Colors.green : Colors.red,
-      ));
-
       notifyListeners();
     }
   }
 
   // F-02: Book Borrowing Request
-  String? requestBorrow(String bookId, DateTime start, DateTime end, String message) {
-    // 1. Borrower cannot borrow > 1 active book
-    final activeBorrow = _borrowings.any((b) =>
-        b.borrowerId == 'user_alex' &&
-        b.status != BorrowStatus.completed &&
-        b.status != BorrowStatus.cancelled);
-    if (activeBorrow) {
-      return 'You already have an active borrowing request. P2P Sharing allows max 1 active book at a time.';
+  Future<String?> requestBorrow(String bookId, DateTime start, DateTime end, String message) async {
+    try {
+      await BorrowService.requestBorrow(bookId, start.toIso8601String().split('T')[0], end.toIso8601String().split('T')[0]);
+      await fetchBorrowings();
+      return null;
+    } catch (e) {
+      debugPrint('Error requesting borrow: $e');
+      return e.toString();
     }
-
-    // 2. Validate overlapping dates
-    final book = _books.firstWhere((b) => b.id == bookId);
-    final isOverlap = _borrowings.any((b) =>
-        b.bookId == bookId &&
-        b.status != BorrowStatus.cancelled &&
-        !(end.isBefore(b.startDate) || start.isAfter(b.endDate)));
-    if (isOverlap) {
-      return 'The requested dates overlap with an existing booking for this book.';
-    }
-
-    final newBorrowId = 'borrow_${DateTime.now().millisecondsSinceEpoch}';
-    final borrowing = BorrowModel(
-      id: newBorrowId,
-      bookId: bookId,
-      bookTitle: book.title,
-      bookAuthor: book.author,
-      bookImageUrl: book.imageUrl,
-      borrowerId: 'user_alex',
-      borrowerName: 'Alex Johnson',
-      startDate: start,
-      endDate: end,
-      status: BorrowStatus.requested,
-      depositAmount: 50000.0, // Fixed Rp. 50,000 deposit
-      createdAt: DateTime.now(),
-    );
-
-    _borrowings.insert(0, borrowing);
-
-    // Notify Owner (Lender)
-    _notifications.insert(0, NotificationModel(
-      id: 'notif_borrow_req_${DateTime.now().millisecondsSinceEpoch}',
-      title: 'Borrow Request Received',
-      message: 'Alex Johnson requested to borrow "${book.title}".',
-      time: 'Just now',
-      role: UserRole.lender,
-      icon: Icons.mail_outline,
-      iconColor: Colors.orange,
-      borrowId: newBorrowId,
-      isPending: true,
-    ));
-
-    // Notify Borrower
-    _notifications.insert(0, NotificationModel(
-      id: 'notif_borrow_sent_${DateTime.now().millisecondsSinceEpoch}',
-      title: 'Request Sent',
-      message: 'Your request for "${book.title}" has been sent to ${book.ownerName}.',
-      time: 'Just now',
-      role: UserRole.borrower,
-      icon: Icons.send_rounded,
-      iconColor: Colors.blue,
-      borrowId: newBorrowId,
-    ));
-
-    notifyListeners();
-    return null; // No errors, success
   }
 
   // Owner responds to borrow request (approve/reject)
-  void respondToBorrowRequest(String borrowId, bool approve) {
-    final index = _borrowings.indexWhere((b) => b.id == borrowId);
-    if (index != -1) {
-      final borrowing = _borrowings[index];
-      borrowing.status = approve ? BorrowStatus.waitingDeposit : BorrowStatus.cancelled;
-
-      // Mark lender notifications as resolved
-      for (var notif in _notifications) {
-        if (notif.borrowId == borrowId && notif.role == UserRole.lender) {
-          notif.isPending = false;
-          notif.statusText = approve ? 'Approved' : 'Declined';
-        }
+  Future<void> respondToBorrowRequest(String borrowId, bool approve) async {
+    try {
+      if (approve) {
+        await BorrowService.approveBorrow(borrowId);
+      } else {
+        await BorrowService.rejectBorrow(borrowId);
       }
-
-      // Add borrower notification
-      _notifications.insert(0, NotificationModel(
-        id: 'notif_borrow_res_${DateTime.now().millisecondsSinceEpoch}',
-        title: approve ? 'Request Accepted' : 'Request Declined',
-        message: approve
-            ? 'Your request for "${borrowing.bookTitle}" was approved by the owner! Please pay the deposit of Rp. 50,000.'
-            : 'Your request for "${borrowing.bookTitle}" was declined by the owner.',
-        time: 'Just now',
-        role: UserRole.borrower,
-        icon: approve ? Icons.wallet : Icons.cancel,
-        iconColor: approve ? Colors.green : Colors.red,
-        borrowId: borrowId,
-      ));
-
-      notifyListeners();
+      await fetchBorrowings();
+    } catch (e) {
+      debugPrint('Error responding to borrow: $e');
+      rethrow;
     }
   }
 
   // Borrower uploads payment proof
-  void uploadProofOfDeposit(String borrowId) {
-    final index = _borrowings.indexWhere((b) => b.id == borrowId);
-    if (index != -1) {
-      final borrowing = _borrowings[index];
-      borrowing.status = BorrowStatus.depositUploaded;
-      borrowing.paymentProofUrl = 'https://picsum.photos/seed/receipt/400/600'; // Simulating URL
-
-      // Notify Admin
-      _notifications.insert(0, NotificationModel(
-        id: 'notif_adm_pay_${DateTime.now().millisecondsSinceEpoch}',
-        title: 'Verify Deposit Payment',
-        message: 'Alex Johnson uploaded payment proof of Rp. 50,000 for "${borrowing.bookTitle}".',
-        time: 'Just now',
-        role: UserRole.admin,
-        icon: Icons.monetization_on,
-        iconColor: Colors.blue,
-        borrowId: borrowId,
-        isPending: true,
-      ));
-
-      // Notify Borrower
-      _notifications.insert(0, NotificationModel(
-        id: 'notif_bor_pay_${DateTime.now().millisecondsSinceEpoch}',
-        title: 'Deposit Proof Uploaded',
-        message: 'Deposit proof uploaded. Waiting for Admin verification.',
-        time: 'Just now',
-        role: UserRole.borrower,
-        icon: Icons.access_time,
-        iconColor: Colors.blue,
-        borrowId: borrowId,
-      ));
-
-      notifyListeners();
+  Future<void> uploadProofOfDeposit(String borrowId) async {
+    try {
+      // Hardcode a mock proof URL for now since real file upload isn't hooked to UI
+      await BorrowService.uploadDepositProof(borrowId, 'https://picsum.photos/seed/receipt/400/600');
+      await fetchBorrowings();
+    } catch (e) {
+      debugPrint('Error uploading deposit proof: $e');
+      rethrow;
     }
   }
 
   // Admin verifies payment
   void verifyDepositPayment(String borrowId, bool isValid) {
+    // Requires backend implementation
     final index = _borrowings.indexWhere((b) => b.id == borrowId);
     if (index != -1) {
       final borrowing = _borrowings[index];
       borrowing.status = isValid ? BorrowStatus.depositVerified : BorrowStatus.waitingDeposit;
-
-      // Mark Admin notification as resolved
-      for (var notif in _notifications) {
-        if (notif.borrowId == borrowId && notif.role == UserRole.admin) {
-          notif.isPending = false;
-          notif.statusText = isValid ? 'Verified' : 'Invalid';
-        }
-      }
-
-      // Notify Borrower
-      _notifications.insert(0, NotificationModel(
-        id: 'notif_bor_pay_res_${DateTime.now().millisecondsSinceEpoch}',
-        title: isValid ? 'Deposit Verified' : 'Deposit Rejected',
-        message: isValid
-            ? 'Your deposit of Rp. 50,000 is verified! Please coordinate with owner for handover.'
-            : 'Your deposit was rejected. Please re-upload valid payment proof.',
-        time: 'Just now',
-        role: UserRole.borrower,
-        icon: isValid ? Icons.verified_user : Icons.warning,
-        iconColor: isValid ? Colors.green : Colors.red,
-        borrowId: borrowId,
-      ));
-
-      // Notify Owner to hand over the book (SLA 3 days)
-      if (isValid) {
-        _notifications.insert(0, NotificationModel(
-          id: 'notif_own_hand_${DateTime.now().millisecondsSinceEpoch}',
-          title: 'Deposit Received - Handover Book',
-          message: 'Deposit for "${borrowing.bookTitle}" verified by Admin. Please hand over the book within 3 days.',
-          time: 'Just now',
-          role: UserRole.lender,
-          icon: Icons.local_shipping,
-          iconColor: Colors.green,
-          borrowId: borrowId,
-        ));
-      }
-
       notifyListeners();
     }
   }
 
   // Borrower confirms book received
-  void confirmBookReceived(String borrowId) {
-    final index = _borrowings.indexWhere((b) => b.id == borrowId);
-    if (index != -1) {
-      final borrowing = _borrowings[index];
-      borrowing.status = BorrowStatus.bookReceived;
-
-      // Update book lending status in book list
-      final bookIndex = _books.indexWhere((b) => b.id == borrowing.bookId);
-      if (bookIndex != -1) {
-        // Just keeping it marked as On Loan
-      }
-
-      // Notify Owner
-      _notifications.insert(0, NotificationModel(
-        id: 'notif_own_rec_${DateTime.now().millisecondsSinceEpoch}',
-        title: 'Book Received by Borrower',
-        message: 'Alex Johnson has confirmed receipt of "${borrowing.bookTitle}". The loan is active.',
-        time: 'Just now',
-        role: UserRole.lender,
-        icon: Icons.bookmark,
-        iconColor: Colors.green,
-        borrowId: borrowId,
-      ));
-
-      notifyListeners();
+  Future<void> confirmBookReceived(String borrowId) async {
+    try {
+      await BorrowService.confirmHandOver(borrowId);
+      await fetchBorrowings();
+    } catch (e) {
+      debugPrint('Error confirming hand over: $e');
+      rethrow;
     }
   }
 
   // F-03: Book Return & Inspection
-  void returnBook(String borrowId, {required bool isGoodCondition, String? damageDescription, String? damagePhotoUrl}) {
-    final index = _borrowings.indexWhere((b) => b.id == borrowId);
-    if (index != -1) {
-      final borrowing = _borrowings[index];
-      
+  Future<void> returnBook(String borrowId, {required bool isGoodCondition, String? damageDescription, String? damagePhotoUrl}) async {
+    try {
       if (isGoodCondition) {
-        borrowing.status = BorrowStatus.returnedGood;
-
-        // Notify Admin to refund deposit
-        _notifications.insert(0, NotificationModel(
-          id: 'notif_adm_ref_${DateTime.now().millisecondsSinceEpoch}',
-          title: 'Refund Pending (Good Condition)',
-          message: '"${borrowing.bookTitle}" returned in good condition. Please process Rp. 50,000 refund.',
-          time: 'Just now',
-          role: UserRole.admin,
-          icon: Icons.payments_outlined,
-          iconColor: Colors.green,
-          borrowId: borrowId,
-          isPending: true,
-        ));
-
-        // Notify Borrower
-        _notifications.insert(0, NotificationModel(
-          id: 'notif_bor_ret_${DateTime.now().millisecondsSinceEpoch}',
-          title: 'Book Returned',
-          message: 'Lender confirmed "${borrowing.bookTitle}" returned in good condition. Admin will refund deposit.',
-          time: 'Just now',
-          role: UserRole.borrower,
-          icon: Icons.done_all,
-          iconColor: Colors.green,
-          borrowId: borrowId,
-        ));
+        await BorrowService.confirmReturn(borrowId);
       } else {
-        borrowing.status = BorrowStatus.returnedDamaged;
-        borrowing.damageReport = DamageReportModel(
-          description: damageDescription ?? 'Cacat fisik pada buku.',
-          photoUrl: damagePhotoUrl ?? 'https://picsum.photos/seed/damage/400/300',
+        await BorrowService.reportDamage(
+          borrowId, 
+          damageDescription ?? 'Rusak', 
+          [damagePhotoUrl ?? 'https://picsum.photos/seed/damage/400/300']
         );
-
-        // Notify Admin to resolve dispute
-        _notifications.insert(0, NotificationModel(
-          id: 'notif_adm_disp_${DateTime.now().millisecondsSinceEpoch}',
-          title: 'Dispute Resolution Needed',
-          message: '"${borrowing.bookTitle}" returned damaged. Action required to verify damage and deduct deposit.',
-          time: 'Just now',
-          role: UserRole.admin,
-          icon: Icons.report_problem,
-          iconColor: Colors.red,
-          borrowId: borrowId,
-          isPending: true,
-        ));
-
-        // Notify Borrower
-        _notifications.insert(0, NotificationModel(
-          id: 'notif_bor_dmg_${DateTime.now().millisecondsSinceEpoch}',
-          title: 'Damaged Book Dispute Opened',
-          message: 'Lender reported "${borrowing.bookTitle}" as damaged. Admin will investigate and determine deposit deduction.',
-          time: 'Just now',
-          role: UserRole.borrower,
-          icon: Icons.report_gmailerrorred,
-          iconColor: Colors.red,
-          borrowId: borrowId,
-        ));
       }
-
-      notifyListeners();
+      await fetchBorrowings();
+    } catch (e) {
+      debugPrint('Error returning book: $e');
+      rethrow;
     }
   }
 
   // Admin resolves refund or dispute
   void resolveRefundOrDispute(String borrowId, {double deduction = 0.0, String note = ''}) {
+    // Requires backend implementation
     final index = _borrowings.indexWhere((b) => b.id == borrowId);
     if (index != -1) {
       final borrowing = _borrowings[index];
       borrowing.status = BorrowStatus.completed;
-
-      if (borrowing.damageReport != null) {
-        borrowing.damageReport!.deductionAmount = deduction;
-        borrowing.damageReport!.adminDecision = note;
-      }
-
-      // Mark admin notifications as resolved
-      for (var notif in _notifications) {
-        if (notif.borrowId == borrowId && notif.role == UserRole.admin) {
-          notif.isPending = false;
-          notif.statusText = 'Resolved';
-        }
-      }
-
-      // Notify Borrower
-      final refundAmount = borrowing.depositAmount - deduction;
-      _notifications.insert(0, NotificationModel(
-        id: 'notif_bor_comp_${DateTime.now().millisecondsSinceEpoch}',
-        title: 'Transaction Completed',
-        message: deduction > 0
-            ? 'Deposit resolved. Deducted Rp. ${deduction.toInt()} for damage ($note). Refund of Rp. ${refundAmount.toInt()} processed.'
-            : 'Refund of Rp. ${borrowing.depositAmount.toInt()} processed successfully.',
-        time: 'Just now',
-        role: UserRole.borrower,
-        icon: Icons.check_circle_outline,
-        iconColor: Colors.green,
-        borrowId: borrowId,
-      ));
-
       notifyListeners();
     }
   }
 
   // Delete book from owner catalog
   void deleteBook(String bookId) {
+    // Requires backend implementation
     _books.removeWhere((b) => b.id == bookId);
     notifyListeners();
   }
 
   // Update book conditions
   void updateBookCondition(String bookId, String condition, bool isPublic) {
+    // Requires backend implementation
     final index = _books.indexWhere((b) => b.id == bookId);
     if (index != -1) {
       final oldBook = _books[index];

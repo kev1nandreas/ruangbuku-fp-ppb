@@ -16,60 +16,12 @@ class YourBooksPage extends StatefulWidget {
 }
 
 class _YourBooksPageState extends State<YourBooksPage> {
-  bool _isLoading = true;
-  List<BookModel> _myBooks = [];
-  List<BookModel> _pendingBooks = [];
-  bool _isAdmin = false;
-
   @override
   void initState() {
     super.initState();
-    _fetchBooks();
-  }
-
-  Future<void> _fetchBooks() async {
-    setState(() => _isLoading = true);
-    try {
-      final userId = await AuthService.getUserId();
-      _isAdmin = RuangBukuState.instance.currentRole == UserRole.admin;
-
-      if (_isAdmin) {
-        final data = await BookService.getBooks(statusVerifikasi: 'need_verification', isPublic: true);
-        if (mounted) {
-          setState(() {
-            _pendingBooks = data.map((e) => BookModel.fromJson(e)).toList();
-          });
-        }
-      } else {
-        if (userId != null) {
-          final data = await BookService.getBooks(userId: userId);
-          if (mounted) {
-            setState(() {
-              _myBooks = data.map((e) => BookModel.fromJson(e)).toList();
-            });
-          }
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error loading books: $e')));
-      }
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
-  }
-
-  Future<void> _verifyBook(String bookId, bool isApproved) async {
-    // Calling backend verify endpoint (Assume it exists, if not, it will error nicely)
-    try {
-       // Currently backend BukuController has verify logic? In our analysis it was POST /buku/{id}/verify
-       // Let's just simulate the state update or use ApiClient directly
-       // await ApiClient.post('/buku/$bookId/verify', {'approved': isApproved});
-       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Admin Verify feature requires backend implementation.')));
-       _fetchBooks();
-    } catch (e) {
-       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      RuangBukuState.instance.fetchBooks();
+    });
   }
 
   @override
@@ -82,6 +34,10 @@ class _YourBooksPageState extends State<YourBooksPage> {
       builder: (context, _) {
         final state = RuangBukuState.instance;
         final isAdmin = state.currentRole == UserRole.admin;
+
+        if (state.isLoading) {
+          return const Scaffold(body: Center(child: CircularProgressIndicator()));
+        }
 
         // If Admin: Curation Dashboard
         if (isAdmin) {

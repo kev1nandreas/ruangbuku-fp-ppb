@@ -76,6 +76,15 @@ class MainScaffold extends StatefulWidget {
 class _MainScaffoldState extends State<MainScaffold> {
   int _currentIndex = 0;
 
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      RuangBukuState.instance.fetchBooks();
+      RuangBukuState.instance.fetchBorrowings();
+    });
+  }
+
   final List<Widget> _pages = const [
     HomePage(),
     FindBookPage(),

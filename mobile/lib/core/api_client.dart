@@ -3,8 +3,7 @@ import 'package:http/http.dart' as http;
 import 'storage/secure_storage.dart';
 
 class ApiClient {
-  // Use local backend for testing
-  static const String baseUrl = 'http://127.0.0.1:8000/api';
+  static const String baseUrl = 'https://api-ruangbuku.kevin-andreas.com/api/v1';
 
   static Future<Map<String, String>> _getHeaders() async {
     final token = await SecureStorage.instance.getToken();

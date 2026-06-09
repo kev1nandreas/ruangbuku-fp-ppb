@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme.dart';
 import '../../../core/state.dart';
+import '../../../core/widgets/bottom_action_bar.dart';
+import '../widgets/condition_dropdown.dart';
+import '../widgets/lending_permission_switch.dart';
 
 class AddBookPage extends StatefulWidget {
   const AddBookPage({super.key});
@@ -177,80 +180,23 @@ class _AddBookPageState extends State<AddBookPage> {
               style: textTheme.titleLarge,
             ),
             const SizedBox(height: RuangBukuSpacing.md),
-            DropdownButtonFormField<String>(
-              decoration: const InputDecoration(
-                labelText: 'Condition',
-              ),
+            ConditionDropdown(
               value: _condition,
-              items: const [
-                DropdownMenuItem(value: 'Like New', child: Text('Like New')),
-                DropdownMenuItem(value: 'Very Good', child: Text('Very Good')),
-                DropdownMenuItem(value: 'Good', child: Text('Good')),
-                DropdownMenuItem(value: 'Acceptable', child: Text('Acceptable')),
-              ],
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() {
-                    _condition = value;
-                  });
-                }
-              },
+              onChanged: (value) => setState(() => _condition = value),
             ),
             const SizedBox(height: RuangBukuSpacing.lg),
-            
-            // Lending Permission
-            Container(
-              decoration: BoxDecoration(
-                color: theme.cardTheme.color,
-                borderRadius: RuangBukuRadius.borderRadiusLg,
-                border: Border.all(
-                  color: RuangBukuColors.outlineVariant.withValues(alpha: 0.5),
-                ),
-              ),
-              padding: const EdgeInsets.all(RuangBukuSpacing.md),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Available for Lending', style: textTheme.titleMedium),
-                        const SizedBox(height: RuangBukuSpacing.xs),
-                        Text(
-                          'Allow others in your area to borrow this book.',
-                          style: textTheme.bodySmall?.copyWith(color: RuangBukuColors.textSecondary),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Switch(
-                    value: _isAvailableForLending,
-                    onChanged: (value) {
-                      setState(() {
-                        _isAvailableForLending = value;
-                      });
-                    },
-                  ),
-                ],
-              ),
+
+            LendingPermissionSwitch(
+              value: _isAvailableForLending,
+              onChanged: (value) =>
+                  setState(() => _isAvailableForLending = value),
             ),
 
             const SizedBox(height: 100), // Space for bottom button
           ],
         ),
       ),
-      bottomSheet: Container(
-        padding: const EdgeInsets.all(RuangBukuSpacing.marginMobile),
-        decoration: BoxDecoration(
-          color: theme.scaffoldBackgroundColor,
-          boxShadow: [
-            BoxShadow(
-              color: RuangBukuColors.shadowTint.withValues(alpha: 0.05),
-              offset: const Offset(0, -4),
-              blurRadius: 12,
-            ),
-          ],
-        ),
+      bottomSheet: BottomActionBar(
         child: FilledButton(
           onPressed: _submitBook,
           child: const Text('Add Book to Library'),

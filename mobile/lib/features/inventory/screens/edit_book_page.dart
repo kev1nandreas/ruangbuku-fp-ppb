@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme.dart';
 import '../../../core/state.dart';
+import '../../../core/widgets/book_summary_row.dart';
+import '../../../core/widgets/bottom_action_bar.dart';
+import '../widgets/condition_dropdown.dart';
+import '../widgets/lending_permission_switch.dart';
 
 class EditBookPage extends StatefulWidget {
   final String bookId;
@@ -68,39 +72,10 @@ class _EditBookPageState extends State<EditBookPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Book Summary
-                Row(
-                  children: [
-                    Container(
-                      width: 60,
-                      height: 90,
-                      decoration: BoxDecoration(
-                        borderRadius: RuangBukuRadius.borderRadiusBase,
-                        image: DecorationImage(
-                          image: NetworkImage(book.imageUrl),
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: RuangBukuSpacing.lg),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            book.title,
-                            style: textTheme.titleMedium,
-                          ),
-                          const SizedBox(height: RuangBukuSpacing.xs),
-                          Text(
-                            book.author,
-                            style: textTheme.bodyMedium?.copyWith(
-                              color: RuangBukuColors.textSecondary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+                BookSummaryRow(
+                  title: book.title,
+                  author: book.author,
+                  imageUrl: book.imageUrl,
                 ),
                 const SizedBox(height: RuangBukuSpacing.xxl),
 
@@ -109,83 +84,27 @@ class _EditBookPageState extends State<EditBookPage> {
                   style: textTheme.titleLarge,
                 ),
                 const SizedBox(height: RuangBukuSpacing.md),
-                DropdownButtonFormField<String>(
-                  decoration: const InputDecoration(
-                    labelText: 'Condition',
-                  ),
+                ConditionDropdown(
                   value: _condition,
-                  items: const [
-                    DropdownMenuItem(value: 'Like New', child: Text('Like New')),
-                    DropdownMenuItem(value: 'Very Good', child: Text('Very Good')),
-                    DropdownMenuItem(value: 'Good', child: Text('Good')),
-                    DropdownMenuItem(value: 'Acceptable', child: Text('Acceptable')),
-                  ],
-                  onChanged: (value) {
-                    if (value != null) {
-                      setState(() {
-                        _condition = value;
-                      });
-                    }
-                  },
+                  onChanged: (value) => setState(() => _condition = value),
                 ),
                 const SizedBox(height: RuangBukuSpacing.lg),
-                
-                // Lending Permission
-                Container(
-                  decoration: BoxDecoration(
-                    color: theme.cardTheme.color,
-                    borderRadius: RuangBukuRadius.borderRadiusLg,
-                    border: Border.all(
-                      color: RuangBukuColors.outlineVariant.withValues(alpha: 0.5),
-                    ),
-                  ),
-                  padding: const EdgeInsets.all(RuangBukuSpacing.md),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Available for Lending', style: textTheme.titleMedium),
-                            const SizedBox(height: RuangBukuSpacing.xs),
-                            Text(
-                              'Allow others in your area to borrow this book.',
-                              style: textTheme.bodySmall?.copyWith(color: RuangBukuColors.textSecondary),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Switch(
-                        value: _isAvailableForLending,
-                        onChanged: (value) {
-                          setState(() {
-                            _isAvailableForLending = value;
-                          });
-                        },
-                      ),
-                    ],
-                  ),
+
+                LendingPermissionSwitch(
+                  value: _isAvailableForLending,
+                  onChanged: (value) =>
+                      setState(() => _isAvailableForLending = value),
                 ),
-                
+
                 const SizedBox(height: 100), // Space for bottom button
               ],
             ),
           ),
-          bottomSheet: Container(
-            padding: const EdgeInsets.all(RuangBukuSpacing.marginMobile),
-            decoration: BoxDecoration(
-              color: theme.scaffoldBackgroundColor,
-              boxShadow: [
-                BoxShadow(
-                  color: RuangBukuColors.shadowTint.withValues(alpha: 0.05),
-                  offset: const Offset(0, -4),
-                  blurRadius: 12,
-                ),
-              ],
-            ),
+          bottomSheet: BottomActionBar(
             child: FilledButton(
               onPressed: () {
-                state.updateBookCondition(book.id, _condition, _isAvailableForLending);
+                state.updateBookCondition(
+                    book.id, _condition, _isAvailableForLending);
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Changes saved successfully')),
                 );

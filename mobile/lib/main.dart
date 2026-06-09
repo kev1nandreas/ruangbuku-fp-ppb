@@ -32,7 +32,10 @@ class RuangBukuApp extends StatelessWidget {
         builder: (context, _) {
           final status = AuthNotifier.instance.status;
 
-          if (status == AuthStatus.initial || status == AuthStatus.loading) {
+          // Only the one-time startup auth check shows the splash. A `loading`
+          // status during a login attempt must keep the LoginScreen mounted so
+          // it can show its in-button spinner and surface error messages.
+          if (status == AuthStatus.initial) {
             return const _SplashScreen();
           }
 

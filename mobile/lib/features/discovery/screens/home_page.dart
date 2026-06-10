@@ -128,7 +128,12 @@ class _HomePageState extends State<HomePage> {
                 const SizedBox(height: RuangBukuSpacing.xxl),
 
                 // Popular Near You Carousel
-                if (popularBooks.isNotEmpty) ...[
+                if (state.isLoadingBooks)
+                  const Padding(
+                    padding: EdgeInsets.all(RuangBukuSpacing.xl),
+                    child: Center(child: CircularProgressIndicator()),
+                  )
+                else if (popularBooks.isNotEmpty) ...[
                   Padding(
                     padding: const EdgeInsets.symmetric(
                         horizontal: RuangBukuSpacing.marginMobile),
@@ -179,40 +184,45 @@ class _HomePageState extends State<HomePage> {
                 ),
                 const SizedBox(height: RuangBukuSpacing.md),
 
-                filteredRecentBooks.isEmpty
-                    ? Padding(
-                        padding: const EdgeInsets.all(
-                            RuangBukuSpacing.marginMobile),
-                        child: Center(
-                          child: Text(
-                            'No books found matching "$_searchQuery"',
-                            style: textTheme.bodyLarge?.copyWith(
-                                color: RuangBukuColors.textSecondary),
-                          ),
-                        ),
-                      )
-                    : ListView.separated(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: RuangBukuSpacing.marginMobile),
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: filteredRecentBooks.length,
-                        separatorBuilder: (context, index) =>
-                            const SizedBox(height: RuangBukuSpacing.md),
-                        itemBuilder: (context, index) {
-                          final bk = filteredRecentBooks[index];
-                          return RecentBookCard(
-                            bookId: bk.id,
-                            title: bk.title,
-                            author: bk.author,
-                            addedBy: bk.ownerName,
-                            avatarUrl:
-                                'https://picsum.photos/seed/${bk.ownerId}/100/100',
-                            imageUrl: bk.imageUrl,
-                            isAvailable: !_isBookOnLoan(state, bk.id),
-                          );
-                        },
+                if (state.isLoadingBooks)
+                  const Padding(
+                    padding: EdgeInsets.all(RuangBukuSpacing.xl),
+                    child: Center(child: CircularProgressIndicator()),
+                  )
+                else if (filteredRecentBooks.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.all(RuangBukuSpacing.marginMobile),
+                    child: Center(
+                      child: Text(
+                        'No books found matching "$_searchQuery"',
+                        style: textTheme.bodyLarge?.copyWith(
+                            color: RuangBukuColors.textSecondary),
                       ),
+                    ),
+                  )
+                else
+                  ListView.separated(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: RuangBukuSpacing.marginMobile),
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: filteredRecentBooks.length,
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(height: RuangBukuSpacing.md),
+                    itemBuilder: (context, index) {
+                      final bk = filteredRecentBooks[index];
+                      return RecentBookCard(
+                        bookId: bk.id,
+                        title: bk.title,
+                        author: bk.author,
+                        addedBy: bk.ownerName,
+                        avatarUrl:
+                            'https://picsum.photos/seed/${bk.ownerId}/100/100',
+                        imageUrl: bk.imageUrl,
+                        isAvailable: !_isBookOnLoan(state, bk.id),
+                      );
+                    },
+                  ),
                 const SizedBox(height: RuangBukuSpacing.xxl),
               ],
             ),

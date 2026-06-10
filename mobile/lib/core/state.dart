@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'api_service.dart';
-import 'database_helper.dart';
+import '../features/discovery/data/models/book_model.dart';
+import '../features/discovery/domain/book_notifier.dart';
+
+export '../features/discovery/data/models/book_model.dart';
 
 enum UserRole { borrower, lender, admin }
-
-enum BookStatus { private, publicPending, publicApproved, publicRejected }
 
 enum BorrowStatus {
   requested,
@@ -16,56 +16,6 @@ enum BorrowStatus {
   returnedDamaged,
   completed,
   cancelled
-}
-
-class BookModel {
-  final String id;
-  final String isbn;
-  final String title;
-  final String author;
-  final String description;
-  final bool isPublic;
-  BookStatus statusVerifikasi;
-  final String ownerId;
-  final String ownerName;
-  final String imageUrl;
-  final String distance;
-  String condition;
-
-  BookModel({
-    required this.id,
-    required this.isbn,
-    required this.title,
-    required this.author,
-    required this.description,
-    required this.isPublic,
-    required this.statusVerifikasi,
-    required this.ownerId,
-    required this.ownerName,
-    required this.imageUrl,
-    required this.distance,
-    required this.condition,
-  });
-
-  BookModel copyWith({
-    BookStatus? statusVerifikasi,
-    String? condition,
-  }) {
-    return BookModel(
-      id: id,
-      isbn: isbn,
-      title: title,
-      author: author,
-      description: description,
-      isPublic: isPublic,
-      statusVerifikasi: statusVerifikasi ?? this.statusVerifikasi,
-      ownerId: ownerId,
-      ownerName: ownerName,
-      imageUrl: imageUrl,
-      distance: distance,
-      condition: condition ?? this.condition,
-    );
-  }
 }
 
 class DamageReportModel {
@@ -152,7 +102,7 @@ class RuangBukuState extends ChangeNotifier {
   final List<BorrowModel> _borrowings = [];
   final List<NotificationModel> _notifications = [];
 
-  bool isLoadingBooks = false;
+  bool get isLoadingBooks => BookNotifier.instance.isLoading;
 
   RuangBukuState._() {
     _seedMockData();
@@ -160,76 +110,10 @@ class RuangBukuState extends ChangeNotifier {
   }
 
   Future<void> loadDiscoveryBooks() async {
-    isLoadingBooks = true;
+    await BookNotifier.instance.loadPublicBooks();
+    _books.clear();
+    _books.addAll(BookNotifier.instance.books);
     notifyListeners();
-
-    // 1. Try to fetch from API
-    final apiBooks = await ApiService.fetchPublicBooks();
-
-    if (apiBooks != null) {
-      // API success: clear local DB and cache new data
-      await DatabaseHelper.instance.clearBooks();
-      _books.clear();
-
-      for (var b in apiBooks) {
-        final owner = (b['users'] != null && b['users'].isNotEmpty) ? b['users'][0] : null;
-        
-        final bookMap = {
-          'id': b['id']?.toString() ?? '',
-          'isbn': b['isbn']?.toString(),
-          'title': b['title']?.toString() ?? 'No Title',
-          'author': b['author']?.toString(),
-          'description': b['description']?.toString(),
-          'isPublic': 1,
-          'statusVerifikasi': b['statusVerifikasi']?.toString(),
-          'ownerId': owner != null ? owner['id']?.toString() : null,
-          'ownerName': owner != null ? owner['name']?.toString() : 'Unknown',
-          'imageUrl': b['coverImageUrl']?.toString() ?? 'https://picsum.photos/seed/${b['id']}/200/300',
-          'distance': '1.0 km away', // Mock distance
-          'condition': 'Good', // Mock condition
-        };
-
-        await DatabaseHelper.instance.insertBook(bookMap);
-        _addBookFromMap(bookMap);
-      }
-    } else {
-      // API failed (offline/unauthorized): fetch from local DB
-      print('API failed, falling back to local DB...');
-      final localBooks = await DatabaseHelper.instance.getAllBooks();
-      _books.clear();
-      for (var b in localBooks) {
-        _addBookFromMap(b);
-      }
-    }
-
-    isLoadingBooks = false;
-    notifyListeners();
-  }
-
-  void _addBookFromMap(Map<String, dynamic> b) {
-    BookStatus status = BookStatus.private;
-    if (b['statusVerifikasi'] == 'approved') {
-      status = BookStatus.publicApproved;
-    } else if (b['statusVerifikasi'] == 'need_verification') {
-      status = BookStatus.publicPending;
-    } else if (b['statusVerifikasi'] == 'rejected') {
-      status = BookStatus.publicRejected;
-    }
-
-    _books.add(BookModel(
-      id: b['id']?.toString() ?? '',
-      isbn: b['isbn']?.toString() ?? '',
-      title: b['title']?.toString() ?? 'No Title',
-      author: b['author']?.toString() ?? 'Unknown',
-      description: b['description']?.toString() ?? '',
-      isPublic: b['isPublic'] == 1 || b['isPublic'] == true,
-      statusVerifikasi: status,
-      ownerId: b['ownerId']?.toString() ?? 'user_0',
-      ownerName: b['ownerName']?.toString() ?? 'Unknown',
-      imageUrl: b['imageUrl']?.toString() ?? 'https://picsum.photos/200/300',
-      distance: b['distance']?.toString() ?? '1.0 km away',
-      condition: b['condition']?.toString() ?? 'Good',
-    ));
   }
 
   UserRole get currentRole => _currentRole;
@@ -277,7 +161,7 @@ class RuangBukuState extends ChangeNotifier {
       'isPublic': isPublic,
     };
     
-    final serverData = await ApiService.createBook(payload);
+    final serverData = await BookNotifier.instance.createBook(payload);
     
     final newId = serverData?['id']?.toString() ?? 'book_${DateTime.now().millisecondsSinceEpoch}';
     
@@ -693,7 +577,7 @@ class RuangBukuState extends ChangeNotifier {
   // Delete book from owner catalog
   Future<void> deleteBook(String bookId) async {
     if (!bookId.startsWith('book_')) {
-      await ApiService.deleteBook(bookId);
+      await BookNotifier.instance.deleteBook(bookId);
     }
     _books.removeWhere((b) => b.id == bookId);
     notifyListeners();
@@ -702,7 +586,7 @@ class RuangBukuState extends ChangeNotifier {
   // Update book conditions
   Future<void> updateBookCondition(String bookId, String condition, bool isPublic) async {
     if (!bookId.startsWith('book_')) {
-      await ApiService.updateBook(bookId, {
+      await BookNotifier.instance.updateBook(bookId, {
         'isPublic': isPublic,
       });
     }

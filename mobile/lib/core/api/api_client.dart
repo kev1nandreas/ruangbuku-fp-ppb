@@ -54,17 +54,50 @@ class ApiClient {
     );
   }
 
+  Future<Map<String, dynamic>> put(
+    String endpoint,
+    Map<String, dynamic> body, {
+    String? bearerToken,
+  }) {
+    return _send(
+      () => _client
+          .put(
+            Uri.parse('${ApiConstants.baseUrl}$endpoint'),
+            headers: _headers(bearerToken),
+            body: jsonEncode(body),
+          )
+          .timeout(const Duration(seconds: 30)),
+    );
+  }
+
+  Future<Map<String, dynamic>> delete(
+    String endpoint, {
+    String? bearerToken,
+  }) {
+    return _send(
+      () => _client
+          .delete(
+            Uri.parse('${ApiConstants.baseUrl}$endpoint'),
+            headers: _headers(bearerToken),
+          )
+          .timeout(const Duration(seconds: 30)),
+    );
+  }
+
   Future<Map<String, dynamic>> _send(
     Future<http.Response> Function() request,
   ) async {
     try {
       final response = await request();
-      final data = jsonDecode(response.body) as Map<String, dynamic>;
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
-        return data;
+        if (response.body.isEmpty) return {};
+        return jsonDecode(response.body) as Map<String, dynamic>;
       }
 
+      final data = response.body.isNotEmpty
+          ? jsonDecode(response.body) as Map<String, dynamic>
+          : <String, dynamic>{};
       throw ApiException(
         data['message'] as String? ?? 'Request failed',
         statusCode: response.statusCode,

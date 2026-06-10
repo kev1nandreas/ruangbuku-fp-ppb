@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme.dart';
 import '../../../core/state.dart';
-import '../../../core/api_service.dart';
+import '../../discovery/domain/book_notifier.dart';
 import '../../../core/widgets/bottom_action_bar.dart';
 import '../widgets/condition_dropdown.dart';
 import '../widgets/lending_permission_switch.dart';
@@ -45,7 +45,7 @@ class _AddBookPageState extends State<AddBookPage> {
       _isLoading = true;
     });
 
-    final details = await ApiService.checkIsbn(isbn);
+    final details = await BookNotifier.instance.checkIsbn(isbn);
 
     if (mounted) {
       setState(() {

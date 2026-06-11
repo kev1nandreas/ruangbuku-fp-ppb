@@ -1,3 +1,5 @@
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'core/theme.dart';
 import 'core/state.dart';
@@ -16,8 +18,10 @@ void main() async {
 
   // Set up Firebase Messaging (listeners, channel, background handler) before
   // the app renders. Best-effort: a Firebase failure must not block startup.
+  bool firebaseReady = false;
   try {
     await PushNotificationService.instance.initialize();
+    firebaseReady = true;
   } catch (e) {
     debugPrint('main: push init failed: $e');
   }
@@ -28,6 +32,17 @@ void main() async {
   // device so a token rotated while the app was closed reaches the backend.
   if (AuthNotifier.instance.isAuthenticated) {
     PushNotificationService.instance.registerDevice();
+  }
+
+  if (firebaseReady) {
+    FlutterError.onError = (errorDetails) {
+      FirebaseCrashlytics.instance.recordFlutterFatalError(errorDetails);
+    };
+    // Pass all uncaught asynchronous errors that aren't handled by the Flutter framework to Crashlytics
+    PlatformDispatcher.instance.onError = (error, stack) {
+      FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+      return true;
+    };
   }
 
   runApp(const RuangBukuApp());
@@ -75,9 +90,7 @@ class _SplashScreen extends StatelessWidget {
     return const Scaffold(
       backgroundColor: RuangBukuColors.surface,
       body: Center(
-        child: CircularProgressIndicator(
-          color: RuangBukuColors.primary,
-        ),
+        child: CircularProgressIndicator(color: RuangBukuColors.primary),
       ),
     );
   }
@@ -130,7 +143,9 @@ class _MainScaffoldState extends State<MainScaffold> {
                 label: 'Find Book',
               ),
               BottomNavigationBarItem(
-                icon: Icon(isAdmin ? Icons.gavel_outlined : Icons.library_books_outlined),
+                icon: Icon(
+                  isAdmin ? Icons.gavel_outlined : Icons.library_books_outlined,
+                ),
                 activeIcon: Icon(isAdmin ? Icons.gavel : Icons.library_books),
                 label: isAdmin ? 'Curation' : 'Your Books',
               ),

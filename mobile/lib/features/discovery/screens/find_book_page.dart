@@ -3,6 +3,7 @@ import '../../../core/theme.dart';
 import '../../../core/state.dart';
 import '../../../core/widgets/app_search_field.dart';
 import '../../../core/widgets/app_filter_chip.dart';
+import '../../auth/domain/auth_notifier.dart';
 import '../widgets/book_grid_card.dart';
 
 class FindBookPage extends StatefulWidget {
@@ -40,6 +41,7 @@ class _FindBookPageState extends State<FindBookPage> {
       listenable: RuangBukuState.instance,
       builder: (context, _) {
         final state = RuangBukuState.instance;
+        final currentUserId = AuthNotifier.instance.user?.id ?? 'guest';
 
         final publicBooks = state.books
             .where((b) =>
@@ -86,8 +88,8 @@ class _FindBookPageState extends State<FindBookPage> {
                 padding: const EdgeInsets.only(right: RuangBukuSpacing.lg),
                 child: CircleAvatar(
                   radius: 18,
-                  backgroundImage: const NetworkImage(
-                      'https://picsum.photos/seed/user_alex/100/100'),
+                  backgroundImage: NetworkImage(
+                      'https://picsum.photos/seed/$currentUserId/100/100'),
                   backgroundColor: RuangBukuColors.surfaceContainerHigh,
                 ),
               ),

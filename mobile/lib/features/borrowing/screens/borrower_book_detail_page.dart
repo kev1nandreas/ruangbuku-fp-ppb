@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../core/theme.dart';
 import '../../../core/state.dart';
 import '../../../core/widgets/bottom_action_bar.dart';
+import '../../auth/domain/auth_notifier.dart';
 import '../widgets/borrow_action_section.dart';
 
 class BorrowerBookDetailPage extends StatelessWidget {
@@ -37,9 +38,12 @@ class BorrowerBookDetailPage extends StatelessWidget {
           ),
         );
 
-        // Find active borrowing by user_alex for this book
+        final currentUserId = AuthNotifier.instance.user?.id ?? '';
+        
+        // Find active borrowing by current user for this book
         final activeBorrowIndex = state.borrowings.indexWhere((b) => 
           b.bookId == bookId && 
+          b.borrowerId == currentUserId &&
           b.status != BorrowStatus.completed && 
           b.status != BorrowStatus.cancelled
         );

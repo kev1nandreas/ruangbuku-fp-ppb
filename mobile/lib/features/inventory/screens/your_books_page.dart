@@ -4,6 +4,7 @@ import '../../../core/state.dart';
 import '../../../core/services/book_service.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../core/widgets/empty_state_view.dart';
+import '../../auth/domain/auth_notifier.dart';
 import '../widgets/admin_curation_card.dart';
 import '../widgets/owner_book_card.dart';
 import 'add_book_page.dart';
@@ -76,8 +77,9 @@ class _YourBooksPageState extends State<YourBooksPage> {
         }
 
         // If Lender/Borrower: Your Owned Books Catalog
+        final currentUserId = AuthNotifier.instance.user?.id ?? '';
         final myBooks =
-            state.books.where((b) => b.ownerId == 'user_alex').toList();
+            state.books.where((b) => b.ownerId == currentUserId).toList();
 
         return Scaffold(
           appBar: AppBar(

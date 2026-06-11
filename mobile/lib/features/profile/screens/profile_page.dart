@@ -62,17 +62,19 @@ class _ProfilePageState extends State<ProfilePage> {
         final state = RuangBukuState.instance;
         final auth = AuthNotifier.instance;
 
+        final currentUserId = auth.user?.id ?? '';
+
         final ownedCount =
-            state.books.where((b) => b.ownerId == 'user_alex').length;
+            state.books.where((b) => b.ownerId == currentUserId).length;
 
         final borrowedCount = state.borrowings
             .where((b) =>
-                b.borrowerId == 'user_alex' && _isHeldOrReturned(b))
+                b.borrowerId == currentUserId && _isHeldOrReturned(b))
             .length;
 
         final lentCount = state.borrowings.where((b) {
           final isMine = state.books
-              .any((bk) => bk.id == b.bookId && bk.ownerId == 'user_alex');
+              .any((bk) => bk.id == b.bookId && bk.ownerId == currentUserId);
           return isMine && _isHeldOrReturned(b);
         }).length;
 

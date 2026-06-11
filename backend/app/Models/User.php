@@ -46,4 +46,20 @@ class User extends Authenticatable
     {
         return $this->hasMany(Peminjaman::class, 'user_id');
     }
+
+    public function deviceTokens()
+    {
+        return $this->hasMany(DeviceToken::class, 'user_id');
+    }
+
+    /**
+     * FCM tokens used by the `notifications.channels.fcm` channel to fan a
+     * single notification out to every device the user has registered.
+     *
+     * @return list<string>
+     */
+    public function routeNotificationForFcm(): array
+    {
+        return $this->deviceTokens()->pluck('token')->all();
+    }
 }

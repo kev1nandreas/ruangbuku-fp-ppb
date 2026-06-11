@@ -9,12 +9,17 @@ use App\Http\Requests\StorePeminjamanRequest;
 use App\Http\Requests\SubmitDepositRequest;
 use App\Models\Buku;
 use App\Models\Peminjaman;
+use App\Services\PeminjamanNotifier;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class PeminjamanController extends Controller
 {
+    public function __construct(
+        private readonly PeminjamanNotifier $notifier,
+    ) {}
+
     public function index(Request $request): JsonResponse
     {
         $userId = Auth::id();
@@ -98,6 +103,12 @@ class PeminjamanController extends Controller
             'updated_at'  => now(),
         ]);
 
+        $this->notifier->notifyBorrower(
+            $peminjaman,
+            'Peminjaman disetujui',
+            'Pengajuanmu disetujui. Silakan kirim bukti deposit untuk melanjutkan.',
+        );
+
         return $this->success('Peminjaman disetujui, menunggu deposit', $peminjaman);
     }
 
@@ -111,6 +122,12 @@ class PeminjamanController extends Controller
             'updated_at' => now(),
         ]);
 
+        $this->notifier->notifyBorrower(
+            $peminjaman,
+            'Peminjaman ditolak',
+            'Maaf, pengajuan peminjamanmu ditolak oleh pemilik buku.',
+        );
+
         return $this->success('Peminjaman ditolak', $peminjaman);
     }
 
@@ -123,6 +140,12 @@ class PeminjamanController extends Controller
             'buktiDeposit' => $request->validated()['buktiDeposit'],
             'updated_at'   => now(),
         ]);
+
+        $this->notifier->notifyOwner(
+            $peminjaman,
+            'Bukti deposit dikirim',
+            'Peminjam telah mengirim bukti deposit dan menunggu konfirmasi admin.',
+        );
 
         return $this->success('Deposit dikirim, menunggu konfirmasi admin', $peminjaman);
     }
@@ -141,6 +164,12 @@ class PeminjamanController extends Controller
             'updated_at'          => now(),
         ]);
 
+        $this->notifier->notifyBorrower(
+            $peminjaman,
+            'Deposit dikonfirmasi',
+            'Depositmu telah dikonfirmasi admin. Silakan koordinasi pengambilan buku.',
+        );
+
         return $this->success('Deposit diterima', $peminjaman);
     }
 
@@ -155,6 +184,12 @@ class PeminjamanController extends Controller
             'updated_at'     => now(),
         ]);
 
+        $this->notifier->notifyOwner(
+            $peminjaman,
+            'Buku telah diterima peminjam',
+            'Peminjam mengonfirmasi telah menerima bukumu.',
+        );
+
         return $this->success('Buku diterima oleh peminjam', $peminjaman);
     }
 
@@ -168,6 +203,12 @@ class PeminjamanController extends Controller
             'returned_at' => now(),
             'updated_at'  => now(),
         ]);
+
+        $this->notifier->notifyBorrower(
+            $peminjaman,
+            'Pengembalian buku dikonfirmasi',
+            'Pemilik mengonfirmasi buku kembali dalam kondisi baik. Deposit akan dikembalikan admin.',
+        );
 
         return $this->success('Buku dikembalikan dalam kondisi baik, menunggu pengembalian deposit oleh admin', $peminjaman);
     }
@@ -191,6 +232,12 @@ class PeminjamanController extends Controller
             'updated_at'  => now(),
         ]);
 
+        $this->notifier->notifyBorrower(
+            $peminjaman,
+            'Kerusakan buku dilaporkan',
+            'Pemilik melaporkan buku dalam kondisi rusak. Admin akan meninjau dan menyelesaikan deposit.',
+        );
+
         return $this->success('Kerusakan buku dilaporkan, menunggu verifikasi admin', $peminjaman->load('kerusakan'));
     }
 
@@ -209,6 +256,12 @@ class PeminjamanController extends Controller
             'resolved_by'         => Auth::id(),
             'updated_at'          => now(),
         ]);
+
+        $this->notifier->notifyBorrower(
+            $peminjaman,
+            'Deposit dikembalikan',
+            'Depositmu telah dikembalikan. Peminjaman selesai. Terima kasih!',
+        );
 
         return $this->success('Deposit dikembalikan ke peminjam, peminjaman selesai', $peminjaman);
     }
@@ -230,6 +283,17 @@ class PeminjamanController extends Controller
         ]);
 
         $recipient = $validated['resolution'] === Peminjaman::DEPOSIT_TO_OWNER ? 'pemilik' : 'peminjam';
+
+        $this->notifier->notifyBorrower(
+            $peminjaman,
+            'Kerusakan diselesaikan',
+            "Laporan kerusakan diselesaikan. Deposit dikembalikan ke {$recipient}. Peminjaman selesai.",
+        );
+        $this->notifier->notifyOwner(
+            $peminjaman,
+            'Kerusakan diselesaikan',
+            "Laporan kerusakan diselesaikan. Deposit dikembalikan ke {$recipient}. Peminjaman selesai.",
+        );
 
         return $this->success(
             "Kerusakan diselesaikan, deposit dikembalikan ke {$recipient}, peminjaman selesai",

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'core/theme.dart';
 import 'core/state.dart';
+import 'core/notifications/push_notification_service.dart';
 
 import 'features/auth/domain/auth_notifier.dart';
 import 'features/auth/presentation/screens/login_screen.dart';
@@ -12,7 +13,23 @@ import 'features/profile/screens/profile_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Set up Firebase Messaging (listeners, channel, background handler) before
+  // the app renders. Best-effort: a Firebase failure must not block startup.
+  try {
+    await PushNotificationService.instance.initialize();
+  } catch (e) {
+    debugPrint('main: push init failed: $e');
+  }
+
   await AuthNotifier.instance.checkAuthStatus();
+
+  // Already-signed-in users (token restored from storage) re-register their
+  // device so a token rotated while the app was closed reaches the backend.
+  if (AuthNotifier.instance.isAuthenticated) {
+    PushNotificationService.instance.registerDevice();
+  }
+
   runApp(const RuangBukuApp());
 }
 

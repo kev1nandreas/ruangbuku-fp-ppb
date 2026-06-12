@@ -3,6 +3,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
+import '../../firebase_options.dart';
 import 'device_token_repository.dart';
 
 /// Channel id must match `default_notification_channel_id` in
@@ -20,7 +21,7 @@ const _channelDescription = 'Notifikasi perubahan status peminjaman buku.';
 /// only ensure Firebase is initialized here.
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   // No UI work needed: a `notification` payload is rendered by the OS.
   debugPrint('Background FCM message: ${message.messageId}');
 }
@@ -31,7 +32,10 @@ class PushNotificationService {
   PushNotificationService._();
   static final PushNotificationService instance = PushNotificationService._();
 
-  final _messaging = FirebaseMessaging.instance;
+  // Resolved lazily: touching FirebaseMessaging.instance before
+  // Firebase.initializeApp() throws `[core/no-app]`, and this field would
+  // otherwise evaluate when the singleton is first constructed.
+  FirebaseMessaging get _messaging => FirebaseMessaging.instance;
   final _localNotifications = FlutterLocalNotificationsPlugin();
   final _deviceTokenRepo = DeviceTokenRepository.instance;
 
@@ -43,7 +47,7 @@ class PushNotificationService {
   Future<void> initialize() async {
     if (_initialized) return;
 
-    await Firebase.initializeApp();
+    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 

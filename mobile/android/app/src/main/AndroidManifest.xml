@@ -1,4 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Required for all network calls (API, Firebase) in release builds. The
+         debug manifest also declares this, but that variant is not merged into
+         release APKs, so it must live here too. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <!-- Required on Android 13+ to show notifications. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <application

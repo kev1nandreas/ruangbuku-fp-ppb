@@ -6,6 +6,7 @@ use App\Http\Controllers\DeviceTokenController;
 use App\Http\Controllers\GenreController;
 use App\Http\Controllers\PeminjamanController;
 use App\Http\Controllers\StorageController;
+use App\Http\Controllers\TestNotificationController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -21,6 +22,8 @@ Route::prefix('v1')->group(function () {
         // Push notifications (FCM device token registration)
         Route::post('/device-token', [DeviceTokenController::class, 'store']);
         Route::delete('/device-token', [DeviceTokenController::class, 'destroy']);
+
+        Route::post('/test-notification', [TestNotificationController::class, 'send']);
 
         // Genre
         Route::apiResource('/genres', GenreController::class);

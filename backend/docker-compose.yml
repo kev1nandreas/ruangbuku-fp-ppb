@@ -23,6 +23,7 @@ services:
       MINIO_BUCKET: ${MINIO_BUCKET}
       MINIO_REGION: ${MINIO_REGION}
       GOOGLE_BOOKS_API_KEY: ${GOOGLE_BOOKS_API_KEY}
+      FIREBASE_CREDENTIALS: ${FIREBASE_CREDENTIALS}
     volumes:
       - ./storage:/var/www/html/storage
     depends_on:

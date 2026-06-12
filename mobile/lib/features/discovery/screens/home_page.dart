@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../core/theme.dart';
 import '../../../core/state.dart';
 import '../../../core/widgets/app_search_field.dart';
+import '../../auth/domain/auth_notifier.dart';
 import '../widgets/popular_book_card.dart';
 import '../widgets/recent_book_card.dart';
 
@@ -39,14 +40,18 @@ class _HomePageState extends State<HomePage> {
       builder: (context, _) {
         final state = RuangBukuState.instance;
 
+        final auth = AuthNotifier.instance;
+        final currentUserId = auth.user?.id ?? 'guest';
+        final firstName = auth.user?.name.split(' ').first ?? 'User';
+
         // Determine user greeting based on active role
-        String greetingName = 'Alex';
+        String greetingName = firstName;
         if (state.currentRole == UserRole.admin) {
-          greetingName = 'System Admin';
+          greetingName = 'Admin $firstName';
         } else if (state.currentRole == UserRole.lender) {
-          greetingName = 'Lender Alex';
+          greetingName = 'Lender $firstName';
         } else {
-          greetingName = 'Borrower Alex';
+          greetingName = 'Borrower $firstName';
         }
 
         // Get public approved books
@@ -83,8 +88,8 @@ class _HomePageState extends State<HomePage> {
                 padding: const EdgeInsets.only(right: RuangBukuSpacing.lg),
                 child: CircleAvatar(
                   radius: 18,
-                  backgroundImage: const NetworkImage(
-                      'https://picsum.photos/seed/user_alex/100/100'),
+                  backgroundImage: NetworkImage(
+                      'https://picsum.photos/seed/$currentUserId/100/100'),
                   backgroundColor: RuangBukuColors.surfaceContainerHigh,
                 ),
               ),

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme.dart';
 import '../../../core/state.dart';
+import '../../discovery/domain/book_notifier.dart';
+import '../domain/borrow_notifier.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/book_summary_row.dart';
 import '../../../core/widgets/bottom_action_bar.dart';
@@ -19,10 +21,38 @@ class _RequestBorrowPageState extends State<RequestBorrowPage> {
   DateTime? _returnDate;
   final TextEditingController _messageController = TextEditingController();
 
+  bool _isLoadingBook = true;
+  bool _isSubmitting = false;
+  BookModel? _book;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchBook();
+  }
+
   @override
   void dispose() {
     _messageController.dispose();
     super.dispose();
+  }
+
+  Future<void> _fetchBook() async {
+    setState(() => _isLoadingBook = true);
+    try {
+      final book = await BookNotifier.instance.fetchBookDetail(widget.bookId);
+      if (mounted) {
+        setState(() {
+          _book = book;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error loading book: $e')));
+      }
+    } finally {
+      if (mounted) setState(() => _isLoadingBook = false);
+    }
   }
 
   Future<void> _selectDate(BuildContext context, bool isPickup) async {
@@ -52,7 +82,7 @@ class _RequestBorrowPageState extends State<RequestBorrowPage> {
     }
   }
 
-  void _submitRequest(BookModel book) {
+  Future<void> _submitRequest(BookModel book) async {
     if (_pickupDate == null || _returnDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please select both Pickup and Return dates.')),
@@ -67,45 +97,49 @@ class _RequestBorrowPageState extends State<RequestBorrowPage> {
       return;
     }
 
-    final state = RuangBukuState.instance;
-    final error = state.requestBorrow(
-      widget.bookId,
-      _pickupDate!,
-      _returnDate!,
-      _messageController.text.trim(),
-    );
-
-    if (error != null) {
-      showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: Row(
-              children: [
-                const Icon(Icons.error_outline, color: RuangBukuColors.error),
-                const SizedBox(width: 8),
-                Text('Borrow Limit Exceeded', style: Theme.of(context).textTheme.titleLarge?.copyWith(color: RuangBukuColors.error)),
-              ],
-            ),
-            content: Text(
-              error,
-              style: const TextStyle(height: 1.4),
-            ),
-            actions: [
-              FilledButton(
-                style: FilledButton.styleFrom(backgroundColor: RuangBukuColors.primary),
-                onPressed: () => Navigator.pop(context),
-                child: const Text('OK'),
+    setState(() => _isSubmitting = true);
+    try {
+      final startDateStr = _formatDate(_pickupDate);
+      final endDateStr = _formatDate(_returnDate);
+      
+      await BorrowNotifier.instance.requestBorrow(widget.bookId, startDateStr, endDateStr);
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Borrowing request submitted successfully!')),
+        );
+        Navigator.popUntil(context, (route) => route.isFirst);
+      }
+    } catch (e) {
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: Row(
+                children: [
+                  const Icon(Icons.error_outline, color: RuangBukuColors.error),
+                  const SizedBox(width: 8),
+                  Text('Request Failed', style: Theme.of(context).textTheme.titleLarge?.copyWith(color: RuangBukuColors.error)),
+                ],
               ),
-            ],
-          );
-        },
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Borrowing request submitted successfully (F-02)!')),
-      );
-      Navigator.popUntil(context, (route) => route.isFirst);
+              content: Text(
+                e.toString(),
+                style: const TextStyle(height: 1.4),
+              ),
+              actions: [
+                FilledButton(
+                  style: FilledButton.styleFrom(backgroundColor: RuangBukuColors.primary),
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('OK'),
+                ),
+              ],
+            );
+          },
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
     }
   }
 
@@ -118,25 +152,22 @@ class _RequestBorrowPageState extends State<RequestBorrowPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
-    final state = RuangBukuState.instance;
 
-    final book = state.books.firstWhere(
-      (b) => b.id == widget.bookId,
-      orElse: () => BookModel(
-        id: '',
-        isbn: '',
-        title: 'Not Found',
-        author: 'Unknown',
-        description: '',
-        isPublic: false,
-        statusVerifikasi: BookStatus.private,
-        ownerId: '',
-        ownerName: 'Sarah M.',
-        imageUrl: 'https://picsum.photos/200/300',
-        distance: '',
-        condition: 'Good',
-      ),
-    );
+    if (_isLoadingBook) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Request to Borrow')),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (_book == null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Request to Borrow')),
+        body: const Center(child: Text('Book not found')),
+      );
+    }
+
+    final book = _book!;
 
     return Scaffold(
       appBar: AppBar(
@@ -174,7 +205,7 @@ class _RequestBorrowPageState extends State<RequestBorrowPage> {
               children: [
                 CircleAvatar(
                   radius: 20,
-                  backgroundImage: NetworkImage('https://picsum.photos/seed/${book.ownerId}/100/100'),
+                  backgroundImage: NetworkImage('https://ui-avatars.com/api/?name=${book.ownerName}'),
                 ),
                 const SizedBox(width: RuangBukuSpacing.md),
                 Text(book.ownerName, style: textTheme.titleMedium),
@@ -239,10 +270,12 @@ class _RequestBorrowPageState extends State<RequestBorrowPage> {
         ),
       ),
       bottomSheet: BottomActionBar(
-        child: FilledButton(
-          onPressed: () => _submitRequest(book),
-          child: const Text('Send Request'),
-        ),
+        child: _isSubmitting 
+            ? const Center(child: CircularProgressIndicator()) 
+            : FilledButton(
+                onPressed: () => _submitRequest(book),
+                child: const Text('Send Request'),
+              ),
       ),
     );
   }

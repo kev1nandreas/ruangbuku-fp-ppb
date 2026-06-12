@@ -48,4 +48,42 @@ class BookModel {
       condition: condition ?? this.condition,
     );
   }
+
+  factory BookModel.fromJson(Map<String, dynamic> json) {
+    BookStatus parseStatus(String status) {
+      if (status == 'private') return BookStatus.private;
+      if (status == 'need_verification') return BookStatus.publicPending;
+      if (status == 'approved') return BookStatus.publicApproved;
+      if (status == 'rejected') return BookStatus.publicRejected;
+      return BookStatus.private;
+    }
+
+    // Safety check for users array
+    bool isPublic = false;
+    String ownerId = '';
+    String ownerName = 'Unknown';
+    if (json['users'] != null && json['users'] is List && json['users'].isNotEmpty) {
+      final user = json['users'][0];
+      ownerId = user['id']?.toString() ?? '';
+      ownerName = user['name'] ?? 'Unknown';
+      if (user['pivot'] != null) {
+        isPublic = user['pivot']['isPublic'] == 1 || user['pivot']['isPublic'] == true;
+      }
+    }
+
+    return BookModel(
+      id: json['id']?.toString() ?? '',
+      isbn: json['isbn'] ?? '',
+      title: json['title'] ?? 'Unknown',
+      author: json['author'] ?? 'Unknown',
+      description: json['description'] ?? '',
+      isPublic: isPublic,
+      statusVerifikasi: parseStatus(json['statusVerifikasi'] ?? ''),
+      ownerId: ownerId,
+      ownerName: ownerName,
+      imageUrl: json['coverImageUrl'] ?? 'https://picsum.photos/200/300',
+      distance: '0 km away',
+      condition: 'Good',
+    );
+  }
 }

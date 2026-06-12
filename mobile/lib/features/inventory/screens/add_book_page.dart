@@ -66,39 +66,52 @@ class _AddBookPageState extends State<AddBookPage> {
     }
   }
 
-  void _submitBook() {
+  void _submitBook() async {
     final isbn = _isbnController.text.trim();
     final title = _titleController.text.trim();
     final author = _authorController.text.trim();
     final description = _descriptionController.text.trim();
 
-    if (title.isEmpty || author.isEmpty) {
+    if (title.isEmpty || author.isEmpty || isbn.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill in at least the Title and Author.')),
+        const SnackBar(content: Text('Please fill in ISBN, Title, and Author.')),
       );
       return;
     }
 
-    RuangBukuState.instance.addBook(
-      isbn.isEmpty ? 'N/A' : isbn,
-      title,
-      author,
-      description.isEmpty ? 'No description available.' : description,
-      _condition,
-      _isAvailableForLending,
-    );
+    // Call API
+    setState(() => _isLoading = true);
+    try {
+      await RuangBukuState.instance.addBook(
+        isbn,
+        title,
+        author,
+        description,
+        _condition,
+        _isAvailableForLending,
+      );
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          _isAvailableForLending 
-              ? '"$title" added and submitted for Admin Curation approval (F-01)!' 
-              : '"$title" added to your private collection!'
-        ),
-      ),
-    );
-
-    Navigator.pop(context);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              _isAvailableForLending 
+                  ? '"$title" added and submitted for Admin Curation approval (F-01)!' 
+                  : '"$title" added to your private collection!'
+            ),
+          ),
+        );
+        Navigator.pop(context, true); // Return true to trigger refresh
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString())),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   @override

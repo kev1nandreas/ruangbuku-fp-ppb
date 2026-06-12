@@ -3,6 +3,7 @@ import '../../../core/theme.dart';
 import '../../../core/state.dart';
 import '../screens/request_borrow_page.dart';
 import 'return_inspection_dialog.dart';
+import '../../auth/domain/auth_notifier.dart';
 
 /// Contextual call-to-action shown in the borrower book detail bottom sheet.
 /// Renders the right control for the current borrowing lifecycle state.
@@ -29,8 +30,10 @@ class BorrowActionSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final state = RuangBukuState.instance;
 
+    final currentUserId = AuthNotifier.instance.user?.id ?? '';
+
     // If own book
-    if (book.ownerId == 'user_alex') {
+    if (book.ownerId == currentUserId) {
       return const OutlinedButton(
         onPressed: null,
         child: Text('This is your own book'),

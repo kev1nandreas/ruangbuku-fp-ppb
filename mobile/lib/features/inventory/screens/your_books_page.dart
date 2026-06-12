@@ -2,12 +2,26 @@ import 'package:flutter/material.dart';
 import '../../../core/theme.dart';
 import '../../../core/state.dart';
 import '../../../core/widgets/empty_state_view.dart';
+import '../../auth/domain/auth_notifier.dart';
 import '../widgets/admin_curation_card.dart';
 import '../widgets/owner_book_card.dart';
 import 'add_book_page.dart';
 
-class YourBooksPage extends StatelessWidget {
+class YourBooksPage extends StatefulWidget {
   const YourBooksPage({super.key});
+
+  @override
+  State<YourBooksPage> createState() => _YourBooksPageState();
+}
+
+class _YourBooksPageState extends State<YourBooksPage> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      RuangBukuState.instance.fetchBooks();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -19,6 +33,10 @@ class YourBooksPage extends StatelessWidget {
       builder: (context, _) {
         final state = RuangBukuState.instance;
         final isAdmin = state.currentRole == UserRole.admin;
+
+        if (state.isLoading) {
+          return const Scaffold(body: Center(child: CircularProgressIndicator()));
+        }
 
         // If Admin: Curation Dashboard
         if (isAdmin) {
@@ -57,8 +75,9 @@ class YourBooksPage extends StatelessWidget {
         }
 
         // If Lender/Borrower: Your Owned Books Catalog
+        final currentUserId = AuthNotifier.instance.user?.id ?? '';
         final myBooks =
-            state.books.where((b) => b.ownerId == 'user_alex').toList();
+            state.books.where((b) => b.ownerId == currentUserId).toList();
 
         return Scaffold(
           appBar: AppBar(

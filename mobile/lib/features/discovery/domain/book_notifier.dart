@@ -88,6 +88,23 @@ class BookNotifier extends ChangeNotifier {
     ));
   }
 
+  /// Fetches books filtered by role and maps them into [BookModel]s.
+  /// Admins see pending public books; others see all accessible books.
+  Future<List<BookModel>> fetchBooks({required bool isAdmin}) async {
+    final data = isAdmin
+        ? await _repository.fetchBooks(
+            statusVerifikasi: 'need_verification', isPublic: true)
+        : await _repository.fetchBooks();
+    if (data == null) return [];
+    return data.map((e) => BookModel.fromJson(e)).toList();
+  }
+
+  Future<BookModel?> fetchBookDetail(String id) async {
+    final data = await _repository.fetchBookDetail(id);
+    if (data == null) return null;
+    return BookModel.fromJson(data);
+  }
+
   Future<Map<String, dynamic>?> createBook(Map<String, dynamic> payload) =>
       _repository.createBook(payload);
 

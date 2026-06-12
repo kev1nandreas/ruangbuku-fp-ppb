@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "471374277962",
+    "project_id": "ruangbuku-dfd1e",
+    "storage_bucket": "ruangbuku-dfd1e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:471374277962:android:567ff4a86766652ae0e5b3",
+        "android_client_info": {
+          "package_name": "com.ppb.ruangbuku"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDUUhJuyssD1xXFC1XcXDlTWFGRrl1H8JA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

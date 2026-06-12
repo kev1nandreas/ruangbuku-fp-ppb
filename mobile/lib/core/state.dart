@@ -1,195 +1,14 @@
 import 'package:flutter/material.dart';
-import 'services/book_service.dart';
-import 'services/borrow_service.dart';
-import 'services/auth_service.dart';
+import 'storage/secure_storage.dart';
+import '../features/discovery/data/models/book_model.dart';
+import '../features/discovery/domain/book_notifier.dart';
+import '../features/borrowing/data/models/borrow_model.dart';
+import '../features/borrowing/domain/borrow_notifier.dart';
+
+export '../features/discovery/data/models/book_model.dart';
+export '../features/borrowing/data/models/borrow_model.dart';
 
 enum UserRole { borrower, lender, admin }
-
-enum BookStatus { private, publicPending, publicApproved, publicRejected }
-
-enum BorrowStatus {
-  requested,
-  waitingDeposit,
-  depositUploaded,
-  depositVerified,
-  bookReceived,
-  returnedGood,
-  returnedDamaged,
-  completed,
-  cancelled
-}
-
-class BookModel {
-  final String id;
-  final String isbn;
-  final String title;
-  final String author;
-  final String description;
-  final bool isPublic;
-  BookStatus statusVerifikasi;
-  final String ownerId;
-  final String ownerName;
-  final String imageUrl;
-  final String distance;
-  String condition;
-
-  BookModel({
-    required this.id,
-    required this.isbn,
-    required this.title,
-    required this.author,
-    required this.description,
-    required this.isPublic,
-    required this.statusVerifikasi,
-    required this.ownerId,
-    required this.ownerName,
-    required this.imageUrl,
-    required this.distance,
-    required this.condition,
-  });
-
-  BookModel copyWith({
-    BookStatus? statusVerifikasi,
-    String? condition,
-  }) {
-    return BookModel(
-      id: id,
-      isbn: isbn,
-      title: title,
-      author: author,
-      description: description,
-      isPublic: isPublic,
-      statusVerifikasi: statusVerifikasi ?? this.statusVerifikasi,
-      ownerId: ownerId,
-      ownerName: ownerName,
-      imageUrl: imageUrl,
-      distance: distance,
-      condition: condition ?? this.condition,
-    );
-  }
-
-  factory BookModel.fromJson(Map<String, dynamic> json) {
-    BookStatus parseStatus(String status) {
-      if (status == 'private') return BookStatus.private;
-      if (status == 'need_verification') return BookStatus.publicPending;
-      if (status == 'approved') return BookStatus.publicApproved;
-      if (status == 'rejected') return BookStatus.publicRejected;
-      return BookStatus.private;
-    }
-    
-    // Safety check for users array
-    bool isPublic = false;
-    String ownerId = '';
-    String ownerName = 'Unknown';
-    if (json['users'] != null && json['users'] is List && json['users'].isNotEmpty) {
-      final user = json['users'][0];
-      ownerId = user['id']?.toString() ?? '';
-      ownerName = user['name'] ?? 'Unknown';
-      if (user['pivot'] != null) {
-        isPublic = user['pivot']['isPublic'] == 1 || user['pivot']['isPublic'] == true;
-      }
-    }
-
-    return BookModel(
-      id: json['id']?.toString() ?? '',
-      isbn: json['isbn'] ?? '',
-      title: json['title'] ?? 'Unknown',
-      author: json['author'] ?? 'Unknown',
-      description: json['description'] ?? '',
-      isPublic: isPublic,
-      statusVerifikasi: parseStatus(json['statusVerifikasi'] ?? ''),
-      ownerId: ownerId,
-      ownerName: ownerName,
-      imageUrl: json['coverImageUrl'] ?? 'https://picsum.photos/200/300', // Placeholder if null
-      distance: '0 km away',
-      condition: 'Good',
-    );
-  }
-}
-
-class DamageReportModel {
-  final String description;
-  final String photoUrl;
-  double deductionAmount;
-  String adminDecision;
-
-  DamageReportModel({
-    required this.description,
-    required this.photoUrl,
-    this.deductionAmount = 0.0,
-    this.adminDecision = '',
-  });
-}
-
-class BorrowModel {
-  final String id;
-  final String bookId;
-  final String bookTitle;
-  final String bookAuthor;
-  final String bookImageUrl;
-  final String borrowerId;
-  final String borrowerName;
-  final DateTime startDate;
-  final DateTime endDate;
-  BorrowStatus status;
-  final double depositAmount;
-  String? paymentProofUrl;
-  DamageReportModel? damageReport;
-  final DateTime createdAt;
-
-  BorrowModel({
-    required this.id,
-    required this.bookId,
-    required this.bookTitle,
-    required this.bookAuthor,
-    required this.bookImageUrl,
-    required this.borrowerId,
-    required this.borrowerName,
-    required this.startDate,
-    required this.endDate,
-    required this.status,
-    required this.depositAmount,
-    this.paymentProofUrl,
-    this.damageReport,
-    required this.createdAt,
-  });
-
-  factory BorrowModel.fromJson(Map<String, dynamic> json) {
-    BorrowStatus parseStatus(String st) {
-      switch (st) {
-        case 'menunggu_konfirmasi': return BorrowStatus.requested;
-        case 'menunggu_deposit': return BorrowStatus.waitingDeposit;
-        case 'deposit_dibayar': return BorrowStatus.depositUploaded;
-        case 'deposit_diverifikasi': return BorrowStatus.depositVerified;
-        case 'buku_diterima': return BorrowStatus.bookReceived;
-        case 'dikembalikan_baik': return BorrowStatus.returnedGood;
-        case 'dikembalikan_rusak': return BorrowStatus.returnedDamaged;
-        case 'selesai': return BorrowStatus.completed;
-        case 'ditolak': return BorrowStatus.cancelled;
-        case 'dibatalkan': return BorrowStatus.cancelled;
-        default: return BorrowStatus.requested;
-      }
-    }
-
-    final book = json['buku'] ?? {};
-
-    return BorrowModel(
-      id: json['id']?.toString() ?? '',
-      bookId: json['buku_id']?.toString() ?? '',
-      bookTitle: book['title'] ?? 'Unknown',
-      bookAuthor: book['author'] ?? 'Unknown',
-      bookImageUrl: book['coverImageUrl'] ?? 'https://picsum.photos/200/300',
-      borrowerId: json['user_id']?.toString() ?? '',
-      borrowerName: json['user']?['name'] ?? 'Unknown',
-      startDate: DateTime.tryParse(json['start_date'] ?? '') ?? DateTime.now(),
-      endDate: DateTime.tryParse(json['end_date'] ?? '') ?? DateTime.now(),
-      status: parseStatus(json['status'] ?? ''),
-      depositAmount: double.tryParse(json['deposit_amount']?.toString() ?? '50000') ?? 50000.0,
-      paymentProofUrl: json['bukti_deposit'],
-      createdAt: DateTime.tryParse(json['created_at'] ?? '') ?? DateTime.now(),
-    );
-  }
-}
 
 class NotificationModel {
   final String id;
@@ -222,14 +41,20 @@ class NotificationModel {
 class RuangBukuState extends ChangeNotifier {
   static final RuangBukuState instance = RuangBukuState._();
 
+  final _bookNotifier = BookNotifier.instance;
+  final _borrowNotifier = BorrowNotifier.instance;
+  final _storage = SecureStorage.instance;
+
   UserRole _currentRole = UserRole.borrower;
   List<BookModel> _books = [];
   List<BorrowModel> _borrowings = [];
-  List<NotificationModel> _notifications = [];
+  final List<NotificationModel> _notifications = [];
   bool _isLoading = false;
 
   RuangBukuState._() {
     _seedMockNotifications();
+    fetchBooks();
+    fetchBorrowings();
   }
 
   UserRole get currentRole => _currentRole;
@@ -237,6 +62,7 @@ class RuangBukuState extends ChangeNotifier {
   List<BorrowModel> get borrowings => _borrowings;
   List<NotificationModel> get notifications => _notifications;
   bool get isLoading => _isLoading;
+  bool get isLoadingBooks => _bookNotifier.isLoading;
 
   void changeRole(UserRole newRole) {
     _currentRole = newRole;
@@ -263,19 +89,7 @@ class RuangBukuState extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
     try {
-      final userId = await AuthService.getUserId();
-      final isAdmin = _currentRole == UserRole.admin;
-      
-      List<dynamic> data;
-      if (isAdmin) {
-        data = await BookService.getBooks(statusVerifikasi: 'need_verification', isPublic: true);
-      } else {
-        // As a borrower/lender, we want to see public books and our own books.
-        // For simplicity right now we'll just fetch all books or filter by user if lender.
-        data = await BookService.getBooks();
-      }
-      
-      _books = data.map((e) => BookModel.fromJson(e)).toList();
+      _books = await _bookNotifier.fetchBooks(isAdmin: _currentRole == UserRole.admin);
     } catch (e) {
       debugPrint('Error fetching books: $e');
     } finally {
@@ -288,8 +102,9 @@ class RuangBukuState extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
     try {
-      final data = await BorrowService.getBorrowings(asOwner: _currentRole == UserRole.lender);
-      _borrowings = data.map((e) => BorrowModel.fromJson(e)).toList();
+      _borrowings = await _borrowNotifier.fetchBorrowings(
+        asOwner: _currentRole == UserRole.lender,
+      );
     } catch (e) {
       debugPrint('Error fetching borrowings: $e');
     } finally {
@@ -299,9 +114,10 @@ class RuangBukuState extends ChangeNotifier {
   }
 
   // F-01: Book Registration
-  Future<void> addBook(String isbn, String title, String author, String description, String condition, bool isPublic) async {
+  Future<void> addBook(String isbn, String title, String author,
+      String description, String condition, bool isPublic) async {
     try {
-      await BookService.addBook({
+      await _bookNotifier.createBook({
         'isbn': isbn,
         'title': title,
         'author': author,
@@ -330,7 +146,11 @@ class RuangBukuState extends ChangeNotifier {
   // F-02: Book Borrowing Request
   Future<String?> requestBorrow(String bookId, DateTime start, DateTime end, String message) async {
     try {
-      await BorrowService.requestBorrow(bookId, start.toIso8601String().split('T')[0], end.toIso8601String().split('T')[0]);
+      await _borrowNotifier.requestBorrow(
+        bookId,
+        start.toIso8601String().split('T')[0],
+        end.toIso8601String().split('T')[0],
+      );
       await fetchBorrowings();
       return null;
     } catch (e) {
@@ -343,9 +163,9 @@ class RuangBukuState extends ChangeNotifier {
   Future<void> respondToBorrowRequest(String borrowId, bool approve) async {
     try {
       if (approve) {
-        await BorrowService.approveBorrow(borrowId);
+        await _borrowNotifier.approveBorrow(borrowId);
       } else {
-        await BorrowService.rejectBorrow(borrowId);
+        await _borrowNotifier.rejectBorrow(borrowId);
       }
       await fetchBorrowings();
     } catch (e) {
@@ -358,7 +178,7 @@ class RuangBukuState extends ChangeNotifier {
   Future<void> uploadProofOfDeposit(String borrowId) async {
     try {
       // Hardcode a mock proof URL for now since real file upload isn't hooked to UI
-      await BorrowService.uploadDepositProof(borrowId, 'https://picsum.photos/seed/receipt/400/600');
+      await _borrowNotifier.uploadDepositProof(borrowId, 'https://picsum.photos/seed/receipt/400/600');
       await fetchBorrowings();
     } catch (e) {
       debugPrint('Error uploading deposit proof: $e');
@@ -380,7 +200,7 @@ class RuangBukuState extends ChangeNotifier {
   // Borrower confirms book received
   Future<void> confirmBookReceived(String borrowId) async {
     try {
-      await BorrowService.confirmHandOver(borrowId);
+      await _borrowNotifier.confirmHandOver(borrowId);
       await fetchBorrowings();
     } catch (e) {
       debugPrint('Error confirming hand over: $e');
@@ -392,12 +212,12 @@ class RuangBukuState extends ChangeNotifier {
   Future<void> returnBook(String borrowId, {required bool isGoodCondition, String? damageDescription, String? damagePhotoUrl}) async {
     try {
       if (isGoodCondition) {
-        await BorrowService.confirmReturn(borrowId);
+        await _borrowNotifier.confirmReturn(borrowId);
       } else {
-        await BorrowService.reportDamage(
-          borrowId, 
-          damageDescription ?? 'Rusak', 
-          [damagePhotoUrl ?? 'https://picsum.photos/seed/damage/400/300']
+        await _borrowNotifier.reportDamage(
+          borrowId,
+          damageDescription ?? 'Rusak',
+          [damagePhotoUrl ?? 'https://picsum.photos/seed/damage/400/300'],
         );
       }
       await fetchBorrowings();
@@ -419,22 +239,29 @@ class RuangBukuState extends ChangeNotifier {
   }
 
   // Delete book from owner catalog
-  void deleteBook(String bookId) {
-    // Requires backend implementation
+  Future<void> deleteBook(String bookId) async {
+    if (!bookId.startsWith('book_')) {
+      await _bookNotifier.deleteBook(bookId);
+    }
     _books.removeWhere((b) => b.id == bookId);
     notifyListeners();
   }
 
   // Update book conditions
-  void updateBookCondition(String bookId, String condition, bool isPublic) {
-    // Requires backend implementation
+  Future<void> updateBookCondition(String bookId, String condition, bool isPublic) async {
+    if (!bookId.startsWith('book_')) {
+      await _bookNotifier.updateBook(bookId, {
+        'isPublic': isPublic,
+      });
+    }
+
     final index = _books.indexWhere((b) => b.id == bookId);
     if (index != -1) {
       final oldBook = _books[index];
-      final statusVerifikasi = (isPublic && oldBook.statusVerifikasi == BookStatus.private) 
-          ? BookStatus.publicPending 
+      final statusVerifikasi = (isPublic && oldBook.statusVerifikasi == BookStatus.private)
+          ? BookStatus.publicPending
           : oldBook.statusVerifikasi;
-      
+
       _books[index] = oldBook.copyWith(
         statusVerifikasi: statusVerifikasi,
         condition: condition,
@@ -442,4 +269,7 @@ class RuangBukuState extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  /// Returns the persisted current user id, or null when not logged in.
+  Future<String?> currentUserId() => _storage.getUserId();
 }

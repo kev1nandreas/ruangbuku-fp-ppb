@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../core/services/auth_service.dart';
-import '../../../main.dart'; 
+import '../domain/auth_notifier.dart';
+import '../../../main.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -18,7 +18,7 @@ class _LoginPageState extends State<LoginPage> {
   void _login() async {
     setState(() => _isLoading = true);
     try {
-      final success = await AuthService.login(
+      final success = await AuthNotifier.instance.login(
         _emailController.text,
         _passwordController.text,
       );

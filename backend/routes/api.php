@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BukuController;
+use App\Http\Controllers\DeviceTokenController;
 use App\Http\Controllers\GenreController;
 use App\Http\Controllers\PeminjamanController;
 use App\Http\Controllers\StorageController;
@@ -16,6 +17,10 @@ Route::prefix('v1')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::get('/me', [AuthController::class, 'me']);
+
+        // Push notifications (FCM device token registration)
+        Route::post('/device-token', [DeviceTokenController::class, 'store']);
+        Route::delete('/device-token', [DeviceTokenController::class, 'destroy']);
 
         // Genre
         Route::apiResource('/genres', GenreController::class);

@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import '../../../core/api/api_client.dart';
+import '../../../core/notifications/push_notification_service.dart';
 import '../data/models/login_request.dart';
 import '../data/models/user_model.dart';
 import '../data/repository/auth_repository.dart';
@@ -41,6 +42,11 @@ class AuthNotifier extends ChangeNotifier {
       _user = response.user;
       _status = AuthStatus.authenticated;
       notifyListeners();
+
+      // Register this device for push now that the auth token is stored.
+      // Fire-and-forget so the UI transitions immediately.
+      PushNotificationService.instance.registerDevice();
+
       return true;
     } on ApiException catch (e) {
       _errorMessage = e.message;
@@ -74,6 +80,10 @@ class AuthNotifier extends ChangeNotifier {
   }
 
   Future<void> logout() async {
+    // Unregister the device while the auth token is still valid, so the
+    // backend stops pushing to this device for the signed-out user.
+    await PushNotificationService.instance.unregisterDevice();
+
     await _repository.logout();
     _user = null;
     _status = AuthStatus.unauthenticated;

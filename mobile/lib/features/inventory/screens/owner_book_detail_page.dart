@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme.dart';
 import '../../../core/state.dart';
-import '../../../core/services/book_service.dart';
-import 'edit_book_page.dart';
+import '../../discovery/domain/book_notifier.dart';
 
 class OwnerBookDetailPage extends StatefulWidget {
   final String bookId;
@@ -26,10 +25,10 @@ class _OwnerBookDetailPageState extends State<OwnerBookDetailPage> {
   Future<void> _fetchBookDetail() async {
     setState(() => _isLoading = true);
     try {
-      final data = await BookService.getBookDetail(widget.bookId);
+      final book = await BookNotifier.instance.fetchBookDetail(widget.bookId);
       if (mounted) {
         setState(() {
-          _book = BookModel.fromJson(data);
+          _book = book;
         });
       }
     } catch (e) {

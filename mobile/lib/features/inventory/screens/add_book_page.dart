@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme.dart';
 import '../../../core/state.dart';
-import '../../../core/services/book_service.dart';
+import '../../discovery/domain/book_notifier.dart';
 import '../../../core/widgets/bottom_action_bar.dart';
 import '../widgets/condition_dropdown.dart';
 import '../widgets/lending_permission_switch.dart';
@@ -33,33 +33,36 @@ class _AddBookPageState extends State<AddBookPage> {
     super.dispose();
   }
 
-  void _simulateScan() async {
-    final isbn = _isbnController.text.trim();
+  void _lookupIsbn() async {
+    String isbn = _isbnController.text.trim();
     if (isbn.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter ISBN first.')),
-      );
-      return;
+      // Demo helper: if empty, search Sapiens
+      isbn = '9781471156267';
+      _isbnController.text = isbn;
     }
 
-    setState(() => _isLoading = true);
-    try {
-      final bookData = await BookService.checkIsbn(isbn);
-      if (mounted && bookData != null) {
-        setState(() {
-          _titleController.text = bookData['title'] ?? '';
-          _authorController.text = bookData['author'] ?? '';
-          _descriptionController.text = bookData['description'] ?? '';
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString())),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
+    setState(() {
+      _isLoading = true;
+    });
+
+    final details = await BookNotifier.instance.checkIsbn(isbn);
+
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+        if (details != null) {
+          _titleController.text = details['title']?.toString() ?? '';
+          _authorController.text = details['author']?.toString() ?? '';
+          _descriptionController.text = details['description']?.toString() ?? '';
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Detail buku berhasil dimuat dari API!')),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Buku tidak ditemukan di server/Google Books.')),
+          );
+        }
+      });
     }
   }
 
@@ -79,14 +82,15 @@ class _AddBookPageState extends State<AddBookPage> {
     // Call API
     setState(() => _isLoading = true);
     try {
-      await BookService.addBook({
-        'isbn': isbn,
-        'title': title,
-        'author': author,
-        'description': description.isEmpty ? null : description,
-        'isPublic': _isAvailableForLending,
-      });
-      
+      await RuangBukuState.instance.addBook(
+        isbn,
+        title,
+        author,
+        description,
+        _condition,
+        _isAvailableForLending,
+      );
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -158,7 +162,7 @@ class _AddBookPageState extends State<AddBookPage> {
                     borderRadius: RuangBukuRadius.borderRadiusLg,
                   ),
                   child: IconButton(
-                    onPressed: _isLoading ? null : _simulateScan,
+                    onPressed: _isLoading ? null : _lookupIsbn,
                     icon: _isLoading 
                         ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))
                         : const Icon(Icons.document_scanner_outlined, color: RuangBukuColors.primary),

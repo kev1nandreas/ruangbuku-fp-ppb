@@ -165,14 +165,16 @@ class _FindBookPageState extends State<FindBookPage> {
 
               // Results Grid
               Expanded(
-                child: filteredBooks.isEmpty
-                    ? Center(
-                        child: Text(
-                          'No books found matching the filters.',
-                          style: textTheme.bodyLarge?.copyWith(
-                              color: RuangBukuColors.textSecondary),
-                        ),
-                      )
+                child: state.isLoadingBooks
+                    ? const Center(child: CircularProgressIndicator())
+                    : filteredBooks.isEmpty
+                        ? Center(
+                            child: Text(
+                              'No books found matching the filters.',
+                              style: textTheme.bodyLarge?.copyWith(
+                                  color: RuangBukuColors.textSecondary),
+                            ),
+                          )
                     : GridView.builder(
                         padding: const EdgeInsets.symmetric(
                             horizontal: RuangBukuSpacing.marginMobile),

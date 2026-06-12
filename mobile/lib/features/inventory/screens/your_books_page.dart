@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme.dart';
 import '../../../core/state.dart';
-import '../../../core/services/book_service.dart';
-import '../../../core/services/auth_service.dart';
 import '../../../core/widgets/empty_state_view.dart';
 import '../../auth/domain/auth_notifier.dart';
 import '../widgets/admin_curation_card.dart';

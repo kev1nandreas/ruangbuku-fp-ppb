@@ -84,12 +84,54 @@ class BukuController extends Controller
 
     public function update(UpdateBukuRequest $request, Buku $buku)
     {
-        //
+        $validated = $request->validated();
+        $userId    = $request->user()->id;
+
+        // Verify user owns the book before updating
+        if (!$buku->users()->wherePivot('user_id', $userId)->exists()) {
+            return $this->error('Buku ini tidak berada di koleksi Anda', 403);
+        }
+
+        if (isset($validated['isPublic'])) {
+            $isPublic = $validated['isPublic'];
+            $buku->users()->updateExistingPivot($userId, ['isPublic' => $isPublic]);
+            
+            // If they are making it public and it was private, it needs verification
+            if ($isPublic && $buku->statusVerifikasi === 'private') {
+                $buku->update(['statusVerifikasi' => 'need_verification']);
+            } elseif (!$isPublic) {
+                // If they make it private, maybe we don't change verification status, or we revert it to private
+                $buku->update(['statusVerifikasi' => 'private']);
+            }
+        }
+
+        $buku->update(array_diff_key($validated, ['isPublic' => null, 'genre_ids' => null]));
+
+        if (isset($validated['genre_ids'])) {
+            $buku->genres()->sync($validated['genre_ids']);
+        }
+
+        return $this->success('Buku berhasil diperbarui', $buku->load('genres:id,name'));
     }
 
     public function destroy(Buku $buku)
     {
-        //
+        $userId = request()->user()->id;
+
+        // Verify user owns the book
+        if (!$buku->users()->wherePivot('user_id', $userId)->exists()) {
+            return $this->error('Buku ini tidak berada di koleksi Anda', 403);
+        }
+
+        // Detach the user from the book
+        $buku->users()->detach($userId);
+
+        // If no one owns the book anymore, delete it physically
+        if ($buku->users()->count() === 0) {
+            $buku->delete();
+        }
+
+        return $this->success('Buku berhasil dihapus dari koleksi Anda');
     }
 
     public function isbnCheck(string $id)

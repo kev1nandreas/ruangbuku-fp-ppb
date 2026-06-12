@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme.dart';
 import '../../../core/state.dart';
-import '../../../core/services/book_service.dart';
-import '../../../core/services/borrow_service.dart';
+import '../../discovery/domain/book_notifier.dart';
+import '../domain/borrow_notifier.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/book_summary_row.dart';
 import '../../../core/widgets/bottom_action_bar.dart';
@@ -40,10 +40,10 @@ class _RequestBorrowPageState extends State<RequestBorrowPage> {
   Future<void> _fetchBook() async {
     setState(() => _isLoadingBook = true);
     try {
-      final data = await BookService.getBookDetail(widget.bookId);
+      final book = await BookNotifier.instance.fetchBookDetail(widget.bookId);
       if (mounted) {
         setState(() {
-          _book = BookModel.fromJson(data);
+          _book = book;
         });
       }
     } catch (e) {
@@ -102,7 +102,7 @@ class _RequestBorrowPageState extends State<RequestBorrowPage> {
       final startDateStr = _formatDate(_pickupDate);
       final endDateStr = _formatDate(_returnDate);
       
-      await BorrowService.requestBorrow(widget.bookId, startDateStr, endDateStr);
+      await BorrowNotifier.instance.requestBorrow(widget.bookId, startDateStr, endDateStr);
       
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

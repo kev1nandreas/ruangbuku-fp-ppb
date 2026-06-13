@@ -87,10 +87,20 @@ class _SplashScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
+    return Scaffold(
       backgroundColor: RuangBukuColors.surface,
       body: Center(
-        child: CircularProgressIndicator(color: RuangBukuColors.primary),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset(
+              'assets/images/ruangbuku_logo.png',
+              width: 200,
+            ),
+            const SizedBox(height: 40),
+            const CircularProgressIndicator(color: RuangBukuColors.primary),
+          ],
+        ),
       ),
     );
   }

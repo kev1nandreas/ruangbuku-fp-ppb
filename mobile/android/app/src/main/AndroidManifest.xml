@@ -6,7 +6,7 @@
     <!-- Required on Android 13+ to show notifications. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <application
-        android:label="ruangbuku"
+        android:label="RuangBuku"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

@@ -60,6 +60,33 @@ dev_dependencies:
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
 
+  # Generates platform launcher icons and the native splash screen from the
+  # RuangBuku logo. Run after changing the source images:
+  #   dart run flutter_launcher_icons
+  #   dart run flutter_native_splash:create
+  flutter_launcher_icons: ^0.14.4
+  flutter_native_splash: ^2.4.6
+
+# App launcher icon configuration (RuangBuku logo).
+flutter_launcher_icons:
+  image_path: "assets/images/icon.png"
+  android: true
+  ios: true
+  remove_alpha_ios: true
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/images/icon_foreground.png"
+  web:
+    generate: true
+    image_path: "assets/images/icon.png"
+
+# Native splash screen shown while the engine starts (RuangBuku logo on white).
+flutter_native_splash:
+  color: "#FFFFFF"
+  image: "assets/images/icon_foreground.png"
+  android_12:
+    color: "#FFFFFF"
+    image: "assets/images/icon_foreground.png"
+
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
@@ -70,6 +97,9 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+
+  assets:
+    - assets/images/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

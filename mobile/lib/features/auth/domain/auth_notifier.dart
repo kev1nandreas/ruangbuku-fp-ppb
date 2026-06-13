@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import '../../../core/api/api_client.dart';
 import '../../../core/notifications/push_notification_service.dart';
 import '../data/models/login_request.dart';
+import '../data/models/register_request.dart';
 import '../data/models/user_model.dart';
 import '../data/repository/auth_repository.dart';
 
@@ -38,6 +39,47 @@ class AuthNotifier extends ChangeNotifier {
     try {
       final response = await _repository.login(
         LoginRequest(email: email, password: password),
+      );
+      _user = response.user;
+      _status = AuthStatus.authenticated;
+      notifyListeners();
+
+      // Register this device for push now that the auth token is stored.
+      // Fire-and-forget so the UI transitions immediately.
+      PushNotificationService.instance.registerDevice();
+
+      return true;
+    } on ApiException catch (e) {
+      _errorMessage = e.message;
+      _status = AuthStatus.error;
+      notifyListeners();
+      return false;
+    } catch (_) {
+      _errorMessage = 'Terjadi kesalahan. Silakan coba lagi.';
+      _status = AuthStatus.error;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> register(
+    String name,
+    String email,
+    String password,
+    String passwordConfirmation,
+  ) async {
+    _status = AuthStatus.loading;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final response = await _repository.register(
+        RegisterRequest(
+          name: name,
+          email: email,
+          password: password,
+          passwordConfirmation: passwordConfirmation,
+        ),
       );
       _user = response.user;
       _status = AuthStatus.authenticated;

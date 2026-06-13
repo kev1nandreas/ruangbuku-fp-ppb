@@ -4,6 +4,7 @@ import '../../../../core/api/api_constants.dart';
 import '../../../../core/storage/secure_storage.dart';
 import '../models/login_request.dart';
 import '../models/login_response.dart';
+import '../models/register_request.dart';
 import '../models/user_model.dart';
 
 class AuthRepository {
@@ -15,10 +16,19 @@ class AuthRepository {
 
   Future<LoginResponse> login(LoginRequest request) async {
     final data = await _api.post(ApiConstants.login, request.toJson());
-    final response = LoginResponse.fromJson(data);
+    return _persistSession(LoginResponse.fromJson(data));
+  }
 
-    // Persisting the session must not break a successful login. If secure
-    // storage is unavailable, the session still proceeds in-memory.
+  /// Registers a new account. The backend returns the same shape as login
+  /// (token + user), so the session is persisted and the user is signed in.
+  Future<LoginResponse> register(RegisterRequest request) async {
+    final data = await _api.post(ApiConstants.register, request.toJson());
+    return _persistSession(LoginResponse.fromJson(data));
+  }
+
+  /// Persists the auth session locally. Must not break a successful auth call:
+  /// if secure storage is unavailable, the session still proceeds in-memory.
+  Future<LoginResponse> _persistSession(LoginResponse response) async {
     try {
       await _storage.saveAuthData(
         token: response.token,

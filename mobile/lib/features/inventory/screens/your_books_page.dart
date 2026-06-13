@@ -55,14 +55,23 @@ class _YourBooksPageState extends State<YourBooksPage> {
                 ),
               ),
             ),
-            body: pendingBooks.isEmpty
-                ? const EmptyStateView(
-                    icon: Icons.check_circle_outline,
-                    title: 'All Caught Up!',
-                    message:
-                        'There are no books awaiting curation approval right now.',
+            body: RefreshIndicator(
+              onRefresh: () => state.fetchBooks(),
+              child: pendingBooks.isEmpty
+                ? ListView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    children: const [
+                      SizedBox(height: 120),
+                      EmptyStateView(
+                        icon: Icons.check_circle_outline,
+                        title: 'All Caught Up!',
+                        message:
+                            'There are no books awaiting curation approval right now.',
+                      ),
+                    ],
                   )
                 : ListView.separated(
+                    physics: const AlwaysScrollableScrollPhysics(),
                     padding:
                         const EdgeInsets.all(RuangBukuSpacing.marginMobile),
                     itemCount: pendingBooks.length,
@@ -71,6 +80,7 @@ class _YourBooksPageState extends State<YourBooksPage> {
                     itemBuilder: (context, index) =>
                         AdminCurationCard(book: pendingBooks[index]),
                   ),
+            ),
           );
         }
 
@@ -94,14 +104,23 @@ class _YourBooksPageState extends State<YourBooksPage> {
               ),
             ],
           ),
-          body: myBooks.isEmpty
-              ? const EmptyStateView(
-                  icon: Icons.library_books_outlined,
-                  title: 'Your library is empty',
-                  message:
-                      'You haven\'t added any books yet. Click the "+" button below to register a book (F-01)!',
+          body: RefreshIndicator(
+            onRefresh: () => state.fetchBooks(),
+            child: myBooks.isEmpty
+              ? ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  children: const [
+                    SizedBox(height: 120),
+                    EmptyStateView(
+                      icon: Icons.library_books_outlined,
+                      title: 'Your library is empty',
+                      message:
+                          'You haven\'t added any books yet. Click the "+" button below to register a book (F-01)!',
+                    ),
+                  ],
                 )
               : ListView.separated(
+                  physics: const AlwaysScrollableScrollPhysics(),
                   padding: const EdgeInsets.all(RuangBukuSpacing.marginMobile),
                   itemCount: myBooks.length,
                   separatorBuilder: (context, index) =>
@@ -117,6 +136,7 @@ class _YourBooksPageState extends State<YourBooksPage> {
                     );
                   },
                 ),
+          ),
           floatingActionButton: FloatingActionButton(
             onPressed: () {
               Navigator.push(

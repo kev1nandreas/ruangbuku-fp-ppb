@@ -28,13 +28,22 @@ class BorrowingListPage extends StatelessWidget {
               ),
             ),
           ),
-          body: (borrowings.isEmpty && incoming.isEmpty)
-              ? const EmptyStateView(
-                  icon: Icons.handshake_outlined,
-                  title: 'Belum Ada Transaksi',
-                  message: 'Anda belum memiliki transaksi peminjaman buku.',
+          body: RefreshIndicator(
+            onRefresh: () => state.fetchBorrowings(),
+            child: (borrowings.isEmpty && incoming.isEmpty)
+              ? ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  children: const [
+                    SizedBox(height: 120),
+                    EmptyStateView(
+                      icon: Icons.handshake_outlined,
+                      title: 'Belum Ada Transaksi',
+                      message: 'Anda belum memiliki transaksi peminjaman buku.',
+                    ),
+                  ],
                 )
               : ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
                   padding: const EdgeInsets.all(RuangBukuSpacing.marginMobile),
                   children: [
                     // Incoming requests on books this user owns. Shown to anyone
@@ -146,6 +155,7 @@ class BorrowingListPage extends StatelessWidget {
                     }),
                   ],
                 ),
+          ),
         );
       },
     );

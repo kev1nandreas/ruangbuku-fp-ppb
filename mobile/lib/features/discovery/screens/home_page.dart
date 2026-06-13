@@ -112,7 +112,15 @@ class _HomePageState extends State<HomePage> {
               ),
             ],
           ),
-          body: SingleChildScrollView(
+          body: RefreshIndicator(
+            onRefresh: () async {
+              await Future.wait([
+                state.fetchBooks(),
+                state.fetchBorrowings(),
+              ]);
+            },
+            child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.symmetric(vertical: RuangBukuSpacing.lg),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -247,6 +255,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                 const SizedBox(height: RuangBukuSpacing.xxl),
               ],
+            ),
             ),
           ),
         );

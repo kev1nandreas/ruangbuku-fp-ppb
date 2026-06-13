@@ -54,6 +54,14 @@ class BorrowModel {
   DamageReportModel? damageReport;
   final DateTime createdAt;
 
+  /// Per-step lifecycle timestamps, set by the backend at each transition.
+  /// Null until that step is reached.
+  final DateTime? verifiedAt;
+  final DateTime? depositReceivedAt;
+  final DateTime? handedOverAt;
+  final DateTime? returnedAt;
+  final DateTime? depositReturnedAt;
+
   /// Who the admin returned the deposit to once settled: 'borrower' or 'owner'.
   final String? depositReturnedTo;
   final String? depositProofUrl;
@@ -74,10 +82,23 @@ class BorrowModel {
     this.paymentProofUrl,
     this.damageReport,
     required this.createdAt,
+    this.verifiedAt,
+    this.depositReceivedAt,
+    this.handedOverAt,
+    this.returnedAt,
+    this.depositReturnedAt,
     this.depositReturnedTo,
     this.depositProofUrl,
     this.resolutionNote,
   });
+
+  /// Parses a nullable backend timestamp. Returns null when absent/invalid
+  /// (the step hasn't happened yet), unlike the required-date fields.
+  static DateTime? _parseDate(dynamic raw) {
+    final s = raw?.toString();
+    if (s == null || s.isEmpty) return null;
+    return DateTime.tryParse(s);
+  }
 
   factory BorrowModel.fromJson(Map<String, dynamic> json) {
     // Backend status strings (App\Models\Peminjaman constants).
@@ -126,6 +147,11 @@ class BorrowModel {
           ? DamageReportModel.fromJson(kerusakan)
           : null,
       createdAt: DateTime.tryParse(json['created_at'] ?? '') ?? DateTime.now(),
+      verifiedAt: _parseDate(json['verified_at']),
+      depositReceivedAt: _parseDate(json['deposit_received_at']),
+      handedOverAt: _parseDate(json['handed_over_at']),
+      returnedAt: _parseDate(json['returned_at']),
+      depositReturnedAt: _parseDate(json['deposit_returned_at']),
       depositReturnedTo: json['deposit_returned_to']?.toString(),
       depositProofUrl: json['deposit_proof_url']?.toString(),
       resolutionNote: json['resolution_note']?.toString(),

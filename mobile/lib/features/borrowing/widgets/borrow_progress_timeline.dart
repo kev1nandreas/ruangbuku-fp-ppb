@@ -1,15 +1,55 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme.dart';
 import '../../../core/state.dart';
+import '../data/models/borrow_model.dart';
 
 /// Vertical lifecycle timeline for a borrowing transaction.
 /// Renders the canonical happy-path steps with completed/current/pending
 /// styling derived from the borrow's current [BorrowStatus]. Terminal
 /// rejection/cancellation is surfaced as a distinct error step.
+///
+/// When [borrow] is provided, each step that already happened shows the
+/// backend timestamp recorded at that transition.
 class BorrowProgressTimeline extends StatelessWidget {
-  const BorrowProgressTimeline({super.key, required this.status});
+  const BorrowProgressTimeline({super.key, required this.status, this.borrow});
 
   final BorrowStatus status;
+  final BorrowModel? borrow;
+
+  /// Timestamp recorded for a given step, or null if not reached / unavailable.
+  DateTime? _timeFor(BorrowStatus step) {
+    final b = borrow;
+    if (b == null) return null;
+    switch (step) {
+      case BorrowStatus.requested:
+        return b.createdAt;
+      case BorrowStatus.waitingDeposit:
+        return b.verifiedAt;
+      case BorrowStatus.depositVerified:
+        return b.depositReceivedAt;
+      case BorrowStatus.bookReceived:
+        return b.handedOverAt;
+      case BorrowStatus.returnedGood:
+        return b.returnedAt;
+      case BorrowStatus.completed:
+        return b.depositReturnedAt;
+      // depositUploaded has no dedicated backend timestamp.
+      default:
+        return null;
+    }
+  }
+
+  /// e.g. "13 Jun 2026, 14:05".
+  static String _fmt(DateTime d) {
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
+      'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des',
+    ];
+    final local = d.toLocal();
+    final hh = local.hour.toString().padLeft(2, '0');
+    final mm = local.minute.toString().padLeft(2, '0');
+    return '${local.day} ${months[local.month - 1]} ${local.year}, $hh:$mm';
+  }
 
   /// Canonical happy-path order. Index used to compute completed vs pending.
   static const List<BorrowStatus> _flow = [
@@ -55,6 +95,7 @@ class BorrowProgressTimeline extends StatelessWidget {
             label: (isDamaged && _flow[i] == BorrowStatus.returnedGood)
                 ? 'Buku Dikembalikan (Rusak)'
                 : _labels[_flow[i]]!,
+            timestamp: _timeFor(_flow[i]),
             isFirst: i == 0,
             isLast: i == _flow.length - 1,
             state: _stateFor(i, currentIndex),
@@ -77,6 +118,7 @@ enum _StepState { completed, current, pending }
 class _TimelineStep extends StatelessWidget {
   const _TimelineStep({
     required this.label,
+    required this.timestamp,
     required this.isFirst,
     required this.isLast,
     required this.state,
@@ -85,6 +127,7 @@ class _TimelineStep extends StatelessWidget {
   });
 
   final String label;
+  final DateTime? timestamp;
   final bool isFirst;
   final bool isLast;
   final _StepState state;
@@ -141,23 +184,39 @@ class _TimelineStep extends StatelessWidget {
             ],
           ),
           const SizedBox(width: RuangBukuSpacing.md),
-          // Label.
-          Padding(
-            padding: EdgeInsets.only(
-              top: 2,
-              bottom: isLast ? 0 : RuangBukuSpacing.lg,
-            ),
-            child: Text(
-              label,
-              style: textTheme.bodyMedium?.copyWith(
-                fontWeight: state == _StepState.pending
-                    ? FontWeight.w400
-                    : FontWeight.w600,
-                color: state == _StepState.pending
-                    ? RuangBukuColors.textSecondary
-                    : (isError
-                        ? RuangBukuColors.error
-                        : RuangBukuColors.textPrimary),
+          // Label + timestamp.
+          Expanded(
+            child: Padding(
+              padding: EdgeInsets.only(
+                top: 2,
+                bottom: isLast ? 0 : RuangBukuSpacing.lg,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: textTheme.bodyMedium?.copyWith(
+                      fontWeight: state == _StepState.pending
+                          ? FontWeight.w400
+                          : FontWeight.w600,
+                      color: state == _StepState.pending
+                          ? RuangBukuColors.textSecondary
+                          : (isError
+                              ? RuangBukuColors.error
+                              : RuangBukuColors.textPrimary),
+                    ),
+                  ),
+                  if (timestamp != null && state != _StepState.pending) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      BorrowProgressTimeline._fmt(timestamp!),
+                      style: textTheme.bodySmall?.copyWith(
+                        color: RuangBukuColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ),
           ),

@@ -181,17 +181,26 @@ class _FindBookPageState extends State<FindBookPage> {
 
               // Results Grid
               Expanded(
-                child: state.isLoadingBooks
+                child: RefreshIndicator(
+                  onRefresh: () => state.fetchBooks(),
+                  child: state.isLoadingBooks
                     ? const Center(child: CircularProgressIndicator())
                     : filteredBooks.isEmpty
-                        ? Center(
-                            child: Text(
-                              'No books found matching the filters.',
-                              style: textTheme.bodyLarge?.copyWith(
-                                  color: RuangBukuColors.textSecondary),
-                            ),
+                        ? ListView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            children: [
+                              const SizedBox(height: RuangBukuSpacing.huge),
+                              Center(
+                                child: Text(
+                                  'No books found matching the filters.',
+                                  style: textTheme.bodyLarge?.copyWith(
+                                      color: RuangBukuColors.textSecondary),
+                                ),
+                              ),
+                            ],
                           )
                     : GridView.builder(
+                        physics: const AlwaysScrollableScrollPhysics(),
                         padding: const EdgeInsets.symmetric(
                             horizontal: RuangBukuSpacing.marginMobile),
                         gridDelegate:
@@ -214,6 +223,7 @@ class _FindBookPageState extends State<FindBookPage> {
                           );
                         },
                       ),
+                ),
               ),
             ],
           ),

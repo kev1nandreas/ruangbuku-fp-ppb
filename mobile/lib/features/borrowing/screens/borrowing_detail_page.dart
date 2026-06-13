@@ -142,7 +142,7 @@ class BorrowingDetailPage extends StatelessWidget {
                 const SizedBox(height: RuangBukuSpacing.md),
                 AppCard(
                   padding: const EdgeInsets.all(RuangBukuSpacing.md),
-                  child: BorrowProgressTimeline(status: b.status),
+                  child: BorrowProgressTimeline(status: b.status, borrow: b),
                 ),
 
                 // If there's a damage report

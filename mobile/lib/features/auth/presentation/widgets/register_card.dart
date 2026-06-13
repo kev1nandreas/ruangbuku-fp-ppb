@@ -96,6 +96,9 @@ class RegisterCard extends StatelessWidget {
                     .hasMatch(value.trim())) {
                   return 'Format email tidak valid';
                 }
+                if (value.trim().length > 50) {
+                  return 'Email maksimal 50 karakter';
+                }
                 return null;
               },
             ),
@@ -122,8 +125,11 @@ class RegisterCard extends StatelessWidget {
                 if (value == null || value.isEmpty) {
                   return 'Kata sandi tidak boleh kosong';
                 }
-                if (value.length < 6) {
-                  return 'Kata sandi minimal 6 karakter';
+                if (value.length < 8) {
+                  return 'Kata sandi minimal 8 karakter';
+                }
+                if (value.length > 50) {
+                  return 'Kata sandi maksimal 50 karakter';
                 }
                 return null;
               },

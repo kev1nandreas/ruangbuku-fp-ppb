@@ -17,6 +17,10 @@ return new class extends Migration
             $table->string('email', 50)->unique();
             $table->string('password', 255);
             $table->string('avatar_url', 512)->nullable()->after('email');
+
+            $table->unsignedBigInteger('role_id')->nullable()->after('password');
+            $table->foreign('role_id')->references('id')->on('roles')->nullOnDelete();
+            
             $table->rememberToken();
             $table->timestamps();
         });

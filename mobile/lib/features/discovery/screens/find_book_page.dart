@@ -4,6 +4,8 @@ import '../../../core/state.dart';
 import '../../../core/widgets/app_search_field.dart';
 import '../../../core/widgets/app_filter_chip.dart';
 import '../../auth/domain/auth_notifier.dart';
+import '../../notifications/screens/notification_page.dart';
+import '../../profile/screens/profile_page.dart';
 import '../widgets/book_grid_card.dart';
 
 class FindBookPage extends StatefulWidget {
@@ -74,8 +76,13 @@ class _FindBookPageState extends State<FindBookPage> {
         return Scaffold(
           appBar: AppBar(
             leading: IconButton(
-              icon: const Icon(Icons.menu),
-              onPressed: () {},
+              icon: const Icon(Icons.notifications_outlined),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const NotificationPage()),
+                );
+              },
             ),
             title: Text(
               'RuangBuku',
@@ -86,11 +93,19 @@ class _FindBookPageState extends State<FindBookPage> {
             actions: [
               Padding(
                 padding: const EdgeInsets.only(right: RuangBukuSpacing.lg),
-                child: CircleAvatar(
-                  radius: 18,
-                  backgroundImage: NetworkImage(
-                      'https://picsum.photos/seed/$currentUserId/100/100'),
-                  backgroundColor: RuangBukuColors.surfaceContainerHigh,
+                child: InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const ProfilePage()),
+                    );
+                  },
+                  child: CircleAvatar(
+                    radius: 18,
+                    backgroundImage: NetworkImage(
+                        'https://picsum.photos/seed/$currentUserId/100/100'),
+                    backgroundColor: RuangBukuColors.surfaceContainerHigh,
+                  ),
                 ),
               ),
             ],

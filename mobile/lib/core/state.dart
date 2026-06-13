@@ -60,7 +60,31 @@ class RuangBukuState extends ChangeNotifier {
   UserRole get currentRole => _currentRole;
   List<BookModel> get books => _books;
   List<BorrowModel> get borrowings => _borrowings;
-  List<NotificationModel> get notifications => _notifications;
+  List<NotificationModel> get notifications {
+    final dynamicNotifs = <NotificationModel>[];
+
+    // Add pending incoming borrowings as notifications
+    if (_currentRole == UserRole.lender) {
+      for (final b in _borrowings) {
+        if (b.status == BorrowStatus.requested) {
+          dynamicNotifs.add(NotificationModel(
+            id: 'borrow_${b.id}',
+            title: 'Borrow Request',
+            message: '${b.borrowerName} requested to borrow "${b.bookTitle}"',
+            time: '${b.createdAt.day}/${b.createdAt.month}/${b.createdAt.year}',
+            role: UserRole.lender,
+            icon: Icons.book,
+            iconColor: Colors.blue,
+            borrowId: b.id,
+            bookId: b.bookId,
+            isPending: true,
+          ));
+        }
+      }
+    }
+
+    return [..._notifications, ...dynamicNotifs];
+  }
   bool get isLoading => _isLoading;
   bool get isLoadingBooks => _bookNotifier.isLoading;
 

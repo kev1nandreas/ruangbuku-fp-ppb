@@ -4,6 +4,7 @@ import '../../../core/state.dart';
 import '../../../core/widgets/empty_state_view.dart';
 import '../widgets/notification_card.dart';
 import '../widgets/dispute_resolution_dialog.dart';
+import '../../../l10n/app_localizations.dart';
 
 class NotificationPage extends StatelessWidget {
   const NotificationPage({super.key});
@@ -17,6 +18,7 @@ class NotificationPage extends StatelessWidget {
       listenable: RuangBukuState.instance,
       builder: (context, _) {
         final state = RuangBukuState.instance;
+        final l10n = AppLocalizations.of(context);
 
         // Filter notifications based on active role
         final roleNotifications =
@@ -25,17 +27,17 @@ class NotificationPage extends StatelessWidget {
         return Scaffold(
           appBar: AppBar(
             title: Text(
-              'Notifications',
+              l10n?.notificationsTitle ?? 'Notifications',
               style: textTheme.headlineMedium?.copyWith(
                 fontWeight: FontWeight.w700,
               ),
             ),
           ),
           body: roleNotifications.isEmpty
-              ? const EmptyStateView(
+              ? EmptyStateView(
                   icon: Icons.notifications_off_outlined,
-                  title: 'No Notifications',
-                  message: 'You have no notifications in your current role.',
+                  title: l10n?.noNotifications ?? 'No Notifications',
+                  message: l10n?.noNotificationsCurrentRole ?? 'You have no notifications in your current role.',
                 )
               : ListView.separated(
                   padding: const EdgeInsets.all(RuangBukuSpacing.marginMobile),
@@ -52,6 +54,7 @@ class NotificationPage extends StatelessWidget {
 
   Widget _buildNotification(
       BuildContext context, RuangBukuState state, NotificationModel notif) {
+    final l10n = AppLocalizations.of(context);
     final isActionable = notif.borrowId != null && notif.isPending;
     final role = state.currentRole;
 
@@ -62,16 +65,16 @@ class NotificationPage extends StatelessWidget {
         message: notif.message,
         time: notif.time,
         footer: NotificationActions(
-          declineLabel: 'Decline',
-          confirmLabel: 'Accept',
+          declineLabel: l10n?.declineLabel ?? 'Decline',
+          confirmLabel: l10n?.acceptLabel ?? 'Accept',
           onDecline: () {
             state.respondToBorrowRequest(notif.borrowId!, false);
-            _snack(context, 'Borrow request declined.');
+            _snack(context, l10n?.borrowRequestDeclined ?? 'Borrow request declined.');
           },
           onConfirm: () {
             state.respondToBorrowRequest(notif.borrowId!, true);
             _snack(context,
-                'Borrow request accepted (F-02)! Deep-link to WA simulated.');
+                l10n?.borrowRequestAccepted ?? 'Borrow request accepted (F-02)! Deep-link to WA simulated.');
           },
         ),
       );
@@ -83,16 +86,16 @@ class NotificationPage extends StatelessWidget {
       return NotificationCard.fromModel(
         notif,
         footer: NotificationActions(
-          declineLabel: 'Reject Payment',
-          confirmLabel: 'Verify Payment',
+          declineLabel: l10n?.rejectPayment ?? 'Reject Payment',
+          confirmLabel: l10n?.verifyPayment ?? 'Verify Payment',
           onDecline: () {
             state.verifyDepositPayment(notif.borrowId!, false);
-            _snack(context, 'Payment rejected.');
+            _snack(context, l10n?.paymentRejected ?? 'Payment rejected.');
           },
           onConfirm: () {
             state.verifyDepositPayment(notif.borrowId!, true);
             _snack(context,
-                'Payment verified! Deposit status changed to PAID (F-02).');
+                l10n?.paymentVerified ?? 'Payment verified! Deposit status changed to PAID (F-02).');
           },
         ),
       );
@@ -106,14 +109,14 @@ class NotificationPage extends StatelessWidget {
       return NotificationCard.fromModel(
         notif,
         extraInfo:
-            'Reported Damage: ${borrowing.damageReport?.description ?? "N/A"}',
+            l10n?.reportedDamageLabel(borrowing.damageReport?.description ?? "N/A") ?? 'Reported Damage: ${borrowing.damageReport?.description ?? "N/A"}',
         footer: FilledButton(
           style: FilledButton.styleFrom(
             minimumSize: const Size(double.infinity, 36),
             backgroundColor: RuangBukuColors.primary,
           ),
           onPressed: () => showDisputeResolutionDialog(context, borrowing),
-          child: const Text('Resolve Dispute & Refund'),
+          child: Text(l10n?.resolveDisputeRefund ?? 'Resolve Dispute & Refund'),
         ),
       );
     }

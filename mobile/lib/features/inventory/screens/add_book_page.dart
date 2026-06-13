@@ -5,6 +5,7 @@ import '../../discovery/domain/book_notifier.dart';
 import '../../../core/widgets/bottom_action_bar.dart';
 import '../widgets/condition_dropdown.dart';
 import '../widgets/lending_permission_switch.dart';
+import '../../../l10n/app_localizations.dart';
 
 class AddBookPage extends StatefulWidget {
   const AddBookPage({super.key});
@@ -47,6 +48,8 @@ class _AddBookPageState extends State<AddBookPage> {
 
     final details = await BookNotifier.instance.checkIsbn(isbn);
 
+    final l10n = AppLocalizations.of(context);
+
     if (mounted) {
       setState(() {
         _isLoading = false;
@@ -55,11 +58,11 @@ class _AddBookPageState extends State<AddBookPage> {
           _authorController.text = details['author']?.toString() ?? '';
           _descriptionController.text = details['description']?.toString() ?? '';
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Detail buku berhasil dimuat dari API!')),
+            SnackBar(content: Text(l10n?.bookDetailsLoaded ?? 'Detail buku berhasil dimuat dari API!')),
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Buku tidak ditemukan di server/Google Books.')),
+            SnackBar(content: Text(l10n?.bookNotFoundInServer ?? 'Buku tidak ditemukan di server/Google Books.')),
           );
         }
       });
@@ -72,9 +75,11 @@ class _AddBookPageState extends State<AddBookPage> {
     final author = _authorController.text.trim();
     final description = _descriptionController.text.trim();
 
+    final l10n = AppLocalizations.of(context);
+
     if (title.isEmpty || author.isEmpty || isbn.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill in ISBN, Title, and Author.')),
+        SnackBar(content: Text(l10n?.fillInRequiredFields ?? 'Please fill in ISBN, Title, and Author.')),
       );
       return;
     }
@@ -96,8 +101,8 @@ class _AddBookPageState extends State<AddBookPage> {
           SnackBar(
             content: Text(
               _isAvailableForLending 
-                  ? '"$title" added and submitted for Admin Curation approval (F-01)!' 
-                  : '"$title" added to your private collection!'
+                  ? (l10n?.bookAddedForCuration(title) ?? '"$title" added and submitted for Admin Curation approval (F-01)!')
+                  : (l10n?.bookAddedPrivate(title) ?? '"$title" added to your private collection!')
             ),
           ),
         );
@@ -118,6 +123,7 @@ class _AddBookPageState extends State<AddBookPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -126,7 +132,7 @@ class _AddBookPageState extends State<AddBookPage> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Add a Book',
+          l10n?.addABook ?? 'Add a Book',
           style: textTheme.headlineSmall?.copyWith(
             fontWeight: FontWeight.w600,
           ),
@@ -138,7 +144,7 @@ class _AddBookPageState extends State<AddBookPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Add by ISBN',
+              l10n?.addByIsbn ?? 'Add by ISBN',
               style: textTheme.titleLarge,
             ),
             const SizedBox(height: RuangBukuSpacing.md),
@@ -148,9 +154,9 @@ class _AddBookPageState extends State<AddBookPage> {
                 Expanded(
                   child: TextField(
                     controller: _isbnController,
-                    decoration: const InputDecoration(
-                      labelText: 'ISBN Number',
-                      hintText: 'e.g., 9781471156267',
+                    decoration: InputDecoration(
+                      labelText: l10n?.isbnNumber ?? 'ISBN Number',
+                      hintText: l10n?.isbnHint ?? 'e.g., 9781471156267',
                     ),
                   ),
                 ),
@@ -173,39 +179,39 @@ class _AddBookPageState extends State<AddBookPage> {
             const SizedBox(height: RuangBukuSpacing.xl),
 
             Text(
-              'Book Details',
+              l10n?.bookDetails ?? 'Book Details',
               style: textTheme.titleLarge,
             ),
             const SizedBox(height: RuangBukuSpacing.md),
             TextField(
               controller: _titleController,
-              decoration: const InputDecoration(
-                labelText: 'Title',
-                hintText: 'Enter book title',
+              decoration: InputDecoration(
+                labelText: l10n?.bookTitleLabel ?? 'Title',
+                hintText: l10n?.enterBookTitle ?? 'Enter book title',
               ),
             ),
             const SizedBox(height: RuangBukuSpacing.lg),
             TextField(
               controller: _authorController,
-              decoration: const InputDecoration(
-                labelText: 'Author',
-                hintText: 'Enter author name',
+              decoration: InputDecoration(
+                labelText: l10n?.authorLabel ?? 'Author',
+                hintText: l10n?.enterAuthorName ?? 'Enter author name',
               ),
             ),
             const SizedBox(height: RuangBukuSpacing.lg),
             TextField(
               controller: _descriptionController,
               maxLines: 3,
-              decoration: const InputDecoration(
-                labelText: 'Description',
-                hintText: 'Enter synopsis or short description',
+              decoration: InputDecoration(
+                labelText: l10n?.descriptionLabel ?? 'Description',
+                hintText: l10n?.enterDescription ?? 'Enter synopsis or short description',
                 alignLabelWithHint: true,
               ),
             ),
             const SizedBox(height: RuangBukuSpacing.xl),
 
             Text(
-              'Your Copy',
+              l10n?.yourCopy ?? 'Your Copy',
               style: textTheme.titleLarge,
             ),
             const SizedBox(height: RuangBukuSpacing.md),
@@ -228,7 +234,7 @@ class _AddBookPageState extends State<AddBookPage> {
       bottomSheet: BottomActionBar(
         child: FilledButton(
           onPressed: _submitBook,
-          child: const Text('Add Book to Library'),
+          child: Text(l10n?.addBookToLibrary ?? 'Add Book to Library'),
         ),
       ),
     );

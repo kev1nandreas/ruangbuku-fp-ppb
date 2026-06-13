@@ -6,6 +6,7 @@ import '../../auth/domain/auth_notifier.dart';
 import '../widgets/admin_curation_card.dart';
 import '../widgets/owner_book_card.dart';
 import 'add_book_page.dart';
+import '../../../l10n/app_localizations.dart';
 
 class YourBooksPage extends StatefulWidget {
   const YourBooksPage({super.key});
@@ -27,6 +28,7 @@ class _YourBooksPageState extends State<YourBooksPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
+    final l10n = AppLocalizations.of(context);
 
     return ListenableBuilder(
       listenable: RuangBukuState.instance,
@@ -49,7 +51,7 @@ class _YourBooksPageState extends State<YourBooksPage> {
           return Scaffold(
             appBar: AppBar(
               title: Text(
-                'Admin Curation',
+                l10n?.adminCuration ?? 'Admin Curation',
                 style: textTheme.headlineMedium?.copyWith(
                   fontWeight: FontWeight.w700,
                 ),
@@ -60,13 +62,12 @@ class _YourBooksPageState extends State<YourBooksPage> {
               child: pendingBooks.isEmpty
                 ? ListView(
                     physics: const AlwaysScrollableScrollPhysics(),
-                    children: const [
-                      SizedBox(height: 120),
+                    children: [
+                      const SizedBox(height: 120),
                       EmptyStateView(
                         icon: Icons.check_circle_outline,
-                        title: 'All Caught Up!',
-                        message:
-                            'There are no books awaiting curation approval right now.',
+                        title: l10n?.allCaughtUp ?? 'All Caught Up!',
+                        message: l10n?.noBooksAwaitingCuration ?? 'There are no books awaiting curation approval right now.',
                       ),
                     ],
                   )
@@ -92,7 +93,7 @@ class _YourBooksPageState extends State<YourBooksPage> {
         return Scaffold(
           appBar: AppBar(
             title: Text(
-              'Your Books',
+              l10n?.yourBooks ?? 'Your Books',
               style: textTheme.headlineMedium?.copyWith(
                 fontWeight: FontWeight.w700,
               ),
@@ -109,13 +110,12 @@ class _YourBooksPageState extends State<YourBooksPage> {
             child: myBooks.isEmpty
               ? ListView(
                   physics: const AlwaysScrollableScrollPhysics(),
-                  children: const [
-                    SizedBox(height: 120),
+                  children: [
+                    const SizedBox(height: 120),
                     EmptyStateView(
                       icon: Icons.library_books_outlined,
-                      title: 'Your library is empty',
-                      message:
-                          'You haven\'t added any books yet. Click the "+" button below to register a book (F-01)!',
+                      title: l10n?.yourLibraryEmpty ?? 'Your library is empty',
+                      message: l10n?.haventAddedBooks ?? 'You haven\'t added any books yet. Click the "+" button below to register a book (F-01)!',
                     ),
                   ],
                 )
@@ -131,7 +131,7 @@ class _YourBooksPageState extends State<YourBooksPage> {
                       bookId: bk.id,
                       title: bk.title,
                       author: bk.author,
-                      status: _statusText(state, bk),
+                      status: _statusText(state, bk, l10n),
                       imageUrl: bk.imageUrl,
                     );
                   },
@@ -151,19 +151,19 @@ class _YourBooksPageState extends State<YourBooksPage> {
     );
   }
 
-  String _statusText(RuangBukuState state, BookModel book) {
+  String _statusText(RuangBukuState state, BookModel book, AppLocalizations? l10n) {
     if (book.statusVerifikasi == BookStatus.publicPending) {
-      return 'Pending Approval';
+      return l10n?.pendingApproval ?? 'Pending Approval';
     } else if (book.statusVerifikasi == BookStatus.publicRejected) {
-      return 'Rejected';
+      return l10n?.rejected ?? 'Rejected';
     } else if (book.statusVerifikasi == BookStatus.private) {
-      return 'Private';
+      return l10n?.privateBook ?? 'Private';
     }
 
     final hasActiveBorrow = state.borrowings.any((b) =>
         b.bookId == book.id &&
         b.status != BorrowStatus.completed &&
         b.status != BorrowStatus.cancelled);
-    return hasActiveBorrow ? 'On Loan' : 'Available';
+    return hasActiveBorrow ? (l10n?.onLoan ?? 'On Loan') : (l10n?.available ?? 'Available');
   }
 }

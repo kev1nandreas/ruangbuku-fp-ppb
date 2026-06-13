@@ -12,6 +12,8 @@ import 'features/discovery/screens/find_book_page.dart';
 import 'features/inventory/screens/your_books_page.dart';
 import 'features/borrowing/screens/borrowing_list_page.dart';
 import 'features/profile/screens/profile_page.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'l10n/app_localizations.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -53,31 +55,47 @@ class RuangBukuApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'RuangBuku',
-      debugShowCheckedModeBanner: false,
-      theme: RuangBukuTheme.lightTheme.copyWith(
-        extensions: [RuangBukuSemanticColors.standard],
-      ),
-      home: ListenableBuilder(
-        listenable: AuthNotifier.instance,
-        builder: (context, _) {
-          final status = AuthNotifier.instance.status;
+    return ListenableBuilder(
+      listenable: RuangBukuState.instance,
+      builder: (context, _) {
+        return MaterialApp(
+          title: 'RuangBuku',
+          debugShowCheckedModeBanner: false,
+          theme: RuangBukuTheme.lightTheme.copyWith(
+            extensions: [RuangBukuSemanticColors.standard],
+          ),
+          locale: RuangBukuState.instance.currentLocale,
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [
+            Locale('id'),
+            Locale('en'),
+          ],
+          home: ListenableBuilder(
+            listenable: AuthNotifier.instance,
+            builder: (context, _) {
+              final status = AuthNotifier.instance.status;
 
-          // Only the one-time startup auth check shows the splash. A `loading`
-          // status during a login attempt must keep the LoginScreen mounted so
-          // it can show its in-button spinner and surface error messages.
-          if (status == AuthStatus.initial) {
-            return const _SplashScreen();
-          }
+              // Only the one-time startup auth check shows the splash. A `loading`
+              // status during a login attempt must keep the LoginScreen mounted so
+              // it can show its in-button spinner and surface error messages.
+              if (status == AuthStatus.initial) {
+                return const _SplashScreen();
+              }
 
-          if (status == AuthStatus.authenticated) {
-            return const MainScaffold();
-          }
+              if (status == AuthStatus.authenticated) {
+                return const MainScaffold();
+              }
 
-          return const LoginScreen();
-        },
-      ),
+              return const LoginScreen();
+            },
+          ),
+        );
+      },
     );
   }
 }
@@ -140,6 +158,7 @@ class _MainScaffoldState extends State<MainScaffold> {
       builder: (context, _) {
         final state = RuangBukuState.instance;
         final isAdmin = state.currentRole == UserRole.admin;
+        final l10n = AppLocalizations.of(context);
 
         return Scaffold(
           body: _pages[_currentIndex],
@@ -151,32 +170,32 @@ class _MainScaffoldState extends State<MainScaffold> {
               });
             },
             items: [
-              const BottomNavigationBarItem(
-                icon: Icon(Icons.home_outlined),
-                activeIcon: Icon(Icons.home),
-                label: 'Home',
+              BottomNavigationBarItem(
+                icon: const Icon(Icons.home_outlined),
+                activeIcon: const Icon(Icons.home),
+                label: l10n?.home ?? 'Home',
               ),
-              const BottomNavigationBarItem(
-                icon: Icon(Icons.search),
-                activeIcon: Icon(Icons.search),
-                label: 'Find Book',
+              BottomNavigationBarItem(
+                icon: const Icon(Icons.search),
+                activeIcon: const Icon(Icons.search),
+                label: l10n?.findBook ?? 'Find Book',
               ),
               BottomNavigationBarItem(
                 icon: Icon(
                   isAdmin ? Icons.gavel_outlined : Icons.library_books_outlined,
                 ),
                 activeIcon: Icon(isAdmin ? Icons.gavel : Icons.library_books),
-                label: isAdmin ? 'Curation' : 'Your Books',
+                label: isAdmin ? (l10n?.curation ?? 'Curation') : (l10n?.yourBooks ?? 'Your Books'),
               ),
-              const BottomNavigationBarItem(
-                icon: Icon(Icons.handshake_outlined),
-                activeIcon: Icon(Icons.handshake),
-                label: 'Borrowing',
+              BottomNavigationBarItem(
+                icon: const Icon(Icons.handshake_outlined),
+                activeIcon: const Icon(Icons.handshake),
+                label: l10n?.borrowing ?? 'Borrowing',
               ),
-              const BottomNavigationBarItem(
-                icon: Icon(Icons.person_outline),
-                activeIcon: Icon(Icons.person),
-                label: 'Profile',
+              BottomNavigationBarItem(
+                icon: const Icon(Icons.person_outline),
+                activeIcon: const Icon(Icons.person),
+                label: l10n?.profile ?? 'Profile',
               ),
             ],
           ),

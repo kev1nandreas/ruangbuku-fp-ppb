@@ -7,6 +7,10 @@ import '../widgets/profile_stats_row.dart';
 import '../widgets/profile_menu_tile.dart';
 import '../widgets/logout_dialog.dart';
 import 'payment_page.dart';
+import 'settings_page.dart';
+import '../../../l10n/app_localizations.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:url_launcher/link.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -52,6 +56,7 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
+    final l10n = AppLocalizations.of(context);
 
     return ListenableBuilder(
       listenable: Listenable.merge([
@@ -81,17 +86,11 @@ class _ProfilePageState extends State<ProfilePage> {
         return Scaffold(
           appBar: AppBar(
             title: Text(
-              'Profile',
+              l10n?.profile ?? 'Profile',
               style: textTheme.headlineMedium?.copyWith(
                 fontWeight: FontWeight.w700,
               ),
             ),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.settings_outlined),
-                onPressed: () {},
-              ),
-            ],
           ),
           body: RefreshIndicator(
             onRefresh: () async {
@@ -118,13 +117,13 @@ class _ProfilePageState extends State<ProfilePage> {
                   // Menu Options
                   ProfileMenuTile(
                     icon: Icons.person_outline,
-                    title: 'Edit Profile',
+                    title: l10n?.editProfile ?? 'Edit Profile',
                     onTap: () {},
                   ),
                   const Divider(height: 1),
                   ProfileMenuTile(
                     icon: Icons.payment_outlined,
-                    title: 'Payment Details',
+                    title: l10n?.paymentDetails ?? 'Payment Details',
                     onTap: () {
                       Navigator.push(
                         context,
@@ -134,17 +133,60 @@ class _ProfilePageState extends State<ProfilePage> {
                       );
                     },
                   ),
-                  const Divider(height: 1),
-                  ProfileMenuTile(
-                    icon: Icons.history,
-                    title: 'Borrowing History',
-                    onTap: () {},
-                  ),
+
                   const Divider(height: 1),
                   ProfileMenuTile(
                     icon: Icons.help_outline,
-                    title: 'Help & Support',
-                    onTap: () {},
+                    title: l10n?.helpSupport ?? 'Help & Support',
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: Text(l10n?.helpSupport ?? 'Help & Support'),
+                          content: Text(l10n?.contactSupport ?? 'Choose how you would like to contact us:'),
+                          actionsAlignment: MainAxisAlignment.center,
+                          actions: [
+                            Link(
+                              uri: Uri.parse('mailto:admin@support.ruangbuku.com'),
+                              target: LinkTarget.blank,
+                              builder: (context, followLink) => TextButton.icon(
+                                icon: const Icon(Icons.email_outlined),
+                                label: Text(l10n?.emailContact ?? 'Email'),
+                                onPressed: () {
+                                  if (followLink != null) followLink();
+                                  Navigator.pop(context);
+                                },
+                              ),
+                            ),
+                            Link(
+                              uri: Uri.parse('https://wa.me/628112345678'),
+                              target: LinkTarget.blank,
+                              builder: (context, followLink) => TextButton.icon(
+                                icon: const Icon(Icons.message_outlined),
+                                label: Text(l10n?.whatsappContact ?? 'WhatsApp'),
+                                onPressed: () {
+                                  if (followLink != null) followLink();
+                                  Navigator.pop(context);
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                  const Divider(height: 1),
+                  ProfileMenuTile(
+                    icon: Icons.settings_outlined,
+                    title: AppLocalizations.of(context)?.settings ?? 'Settings',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const SettingsPage(),
+                        ),
+                      );
+                    },
                   ),
 
                   const SizedBox(height: RuangBukuSpacing.xxl),
@@ -162,7 +204,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                     onPressed: _confirmLogout,
                     icon: const Icon(Icons.logout),
-                    label: const Text('Keluar'),
+                    label: Text(l10n?.logout ?? 'Keluar'),
                   ),
                   const SizedBox(height: RuangBukuSpacing.xxl),
                 ],

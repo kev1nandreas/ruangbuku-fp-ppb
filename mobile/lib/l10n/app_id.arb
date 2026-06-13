@@ -1,0 +1,345 @@
+{
+    "@@locale": "id",
+    "ruangBuku": "RuangBuku",
+    "@ruangBuku": {
+        "description": "App Name (must not be translated)"
+    },
+    "home": "Beranda",
+    "findBook": "Cari Buku",
+    "curation": "Kurasi",
+    "yourBooks": "Buku Anda",
+    "borrowing": "Peminjaman",
+    "profile": "Profil",
+    "settings": "Pengaturan",
+    "language": "Bahasa",
+    "indonesia": "Indonesia",
+    "english": "Inggris",
+    "authHeaderTagline": "Berbagi buku, memperluas wawasan.",
+    "login": "Masuk",
+    "loginSubtitle": "Silakan masuk untuk melanjutkan",
+    "email": "Email",
+    "emailHint": "Masukkan email Anda",
+    "emailEmptyError": "Email tidak boleh kosong",
+    "emailInvalidError": "Format email tidak valid",
+    "password": "Kata Sandi",
+    "passwordHint": "Masukkan kata sandi Anda",
+    "passwordEmptyError": "Kata sandi tidak boleh kosong",
+    "passwordLengthError": "Kata sandi minimal 8 karakter",
+    "noAccountPrompt": "Belum punya akun? ",
+    "register": "Daftar",
+    "registerSubtitle": "Buat akun untuk mulai meminjam buku",
+    "name": "Nama",
+    "nameHint": "Masukkan nama Anda",
+    "nameEmptyError": "Nama tidak boleh kosong",
+    "nameLengthError": "Nama minimal 3 karakter",
+    "confirmPassword": "Konfirmasi Kata Sandi",
+    "confirmPasswordHint": "Masukkan ulang kata sandi Anda",
+    "confirmPasswordEmptyError": "Konfirmasi kata sandi tidak boleh kosong",
+    "confirmPasswordMatchError": "Konfirmasi kata sandi tidak cocok",
+    "hasAccountPrompt": "Sudah punya akun? ",
+    "editProfile": "Edit Profil",
+    "paymentDetails": "Rincian Pembayaran",
+    "helpSupport": "Bantuan & Dukungan",
+    "contactSupport": "Pilih cara untuk menghubungi kami:",
+    "emailContact": "Email",
+    "whatsappContact": "WhatsApp",
+    "logout": "Keluar",
+    "logoutConfirmation": "Apakah Anda yakin ingin keluar?",
+    "cancel": "Batal",
+    "paymentInfo": "Informasi Pembayaran",
+    "paymentDesc": "Gunakan detail berikut untuk memverifikasi pembayaran deposit atau mentransfer dana.",
+    "bankTransfer": "Transfer Bank",
+    "eWallet": "E-Wallet",
+    "owned": "Dimiliki",
+    "borrowed": "Dipinjam",
+    "lent": "Dipinjamkan",
+    "addNewMethod": "Tambah Metode Baru",
+    "logoutTitle": "Keluar dari Akun",
+    "logoutDesc": "Apakah Anda yakin ingin keluar? Anda perlu masuk kembali untuk mengakses akun.",
+    "goodMorning": "Selamat pagi,",
+    "findNextRead": "Temukan bacaan Anda selanjutnya dari perpustakaan komunitas Anda.",
+    "searchBooks": "Cari buku atau tetangga...",
+    "popularNearYou": "Populer di Sekitar Anda",
+    "seeAll": "Lihat semua",
+    "recentlyAdded": "Baru Ditambahkan",
+    "noBooksFound": "Tidak ada buku yang cocok dengan \"{query}\"",
+    "@noBooksFound": {
+        "placeholders": {
+            "query": {
+                "type": "String"
+            }
+        }
+    },
+    "allCategories": "Semua Kategori",
+    "availableNow": "Tersedia Sekarang",
+    "within5km": "Dalam 5km",
+    "booksFound": "{count} Buku Ditemukan",
+    "@booksFound": {
+        "placeholders": {
+            "count": {
+                "type": "String"
+            }
+        }
+    },
+    "sortDistance": "Urutkan Jarak",
+    "onLoan": "Dipinjam",
+    "available": "Tersedia",
+    "kmAway": "{distance} km jauhnya",
+    "@kmAway": {
+        "placeholders": {
+            "distance": {
+                "type": "String"
+            }
+        }
+    },
+    "yourBooks": "Buku Anda",
+    "pendingApproval": "Menunggu Persetujuan",
+    "edit": "Edit",
+    "delete": "Hapus",
+    "addBook": "Tambah Buku",
+    "addedBy": "Ditambahkan oleh {name}",
+    "@addedBy": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "adminCuration": "Kurasi Admin",
+    "allCaughtUp": "Semua Selesai!",
+    "noBooksAwaitingCuration": "Tidak ada buku yang menunggu persetujuan kurasi saat ini.",
+    "yourLibraryEmpty": "Perpustakaan Anda kosong",
+    "haventAddedBooks": "Anda belum menambahkan buku apa pun. Klik tombol \"+\" di bawah ini untuk mendaftarkan buku (F-01)!",
+    "rejected": "Ditolak",
+    "privateBook": "Privat",
+    "deleteConfirmTitle": "Apakah Anda ingin menghapus buku Anda?",
+    "deleteConfirmMsg": "Silakan masukkan \"{title}\" untuk mengonfirmasi.",
+    "@deleteConfirmMsg": {
+        "placeholders": {
+            "title": {
+                "type": "String"
+            }
+        }
+    },
+    "cancel": "Batal",
+    "bookRemoved": "Buku dihapus dari perpustakaan",
+    "borrowings": "Peminjaman",
+    "noTransactions": "Belum Ada Transaksi",
+    "noTransactionsMsg": "Anda belum memiliki transaksi peminjaman buku.",
+    "incomingRequests": "Permintaan Masuk",
+    "yourTransactions": "Transaksi Anda",
+    "borrowerName": "Peminjam: {name}",
+    "@borrowerName": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "ownerName": "Pemilik: {name}",
+    "@ownerName": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "statusRequested": "Menunggu Konfirmasi",
+    "statusWaitingDeposit": "Menunggu Deposit",
+    "statusDepositUploaded": "Verifikasi Deposit",
+    "statusDepositVerified": "Deposit Terverifikasi",
+    "statusBookReceived": "Buku Diterima",
+    "statusReturnedGood": "Dikembalikan Baik",
+    "statusReturnedDamaged": "Dikembalikan Rusak",
+    "statusCompleted": "Selesai",
+    "statusCancelled": "Dibatalkan/Ditolak",
+    "requestAccepted": "Permintaan diterima.",
+    "requestRejected": "Permintaan ditolak.",
+    "failed": "Gagal: {error}",
+    "@failed": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "reject": "Tolak",
+    "accept": "Terima",
+    "myBookDetails": "Detail Buku Saya",
+    "errorLoadingBookDetails": "Gagal memuat detail buku: {error}",
+    "@errorLoadingBookDetails": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "bookNotFound": "Buku tidak ditemukan",
+    "condition": "Kondisi",
+    "lendingStatus": "Status Peminjaman",
+    "privateCollection": "Koleksi Privat",
+    "borrowHistory": "Riwayat Peminjaman",
+    "deleteNotSupported": "Fitur hapus belum didukung oleh backend",
+    "removeBook": "Hapus Buku dari Perpustakaan",
+    "bookDetailsLoaded": "Detail buku berhasil dimuat dari API!",
+    "bookNotFoundInServer": "Buku tidak ditemukan di server/Google Books.",
+    "fillInRequiredFields": "Harap isi ISBN, Judul, dan Penulis.",
+    "bookAddedForCuration": "\"{title}\" berhasil ditambahkan dan diajukan untuk persetujuan Kurasi Admin (F-01)!",
+    "@bookAddedForCuration": {
+        "placeholders": {
+            "title": {
+                "type": "String"
+            }
+        }
+    },
+    "bookAddedPrivate": "\"{title}\" ditambahkan ke koleksi privat Anda!",
+    "@bookAddedPrivate": {
+        "placeholders": {
+            "title": {
+                "type": "String"
+            }
+        }
+    },
+    "addABook": "Tambah Buku",
+    "addByIsbn": "Tambah dengan ISBN",
+    "isbnNumber": "Nomor ISBN",
+    "isbnHint": "contoh: 9781471156267",
+    "bookDetails": "Detail Buku",
+    "bookTitleLabel": "Judul",
+    "enterBookTitle": "Masukkan judul buku",
+    "authorLabel": "Penulis",
+    "enterAuthorName": "Masukkan nama penulis",
+    "descriptionLabel": "Deskripsi",
+    "enterDescription": "Masukkan sinopsis atau deskripsi singkat",
+    "yourCopy": "Salinan Anda",
+    "addBookToLibrary": "Tambahkan Buku ke Perpustakaan",
+    "borrowingDetailsTitle": "Detail Peminjaman",
+    "transactionNotFound": "Transaksi tidak ditemukan",
+    "transactionInfo": "Informasi Transaksi",
+    "borrowerLabel": "Peminjam",
+    "ownerLabel": "Pemilik Buku",
+    "borrowingDate": "Tanggal Peminjaman",
+    "depositAmountLabel": "Nominal Deposit",
+    "borrowingProgress": "Progres Peminjaman",
+    "damageReportLabel": "Laporan Kerusakan",
+    "depositDeduction": "Potongan Deposit: Rp {amount}",
+    "@depositDeduction": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "waitingOwnerApproval": "Menunggu persetujuan pemilik buku.",
+    "approvedUploadDeposit": "Disetujui! Unggah bukti deposit untuk melanjutkan.",
+    "uploadDepositProof": "Unggah Bukti Deposit (Rp 50.000)",
+    "depositSent": "Bukti deposit terkirim.",
+    "viewDepositProof": "Lihat Bukti Deposit",
+    "waitingAdminVerification": "Menunggu Verifikasi Admin",
+    "depositVerifiedTakeBook": "Deposit terverifikasi. Ambil buku, lalu konfirmasi.",
+    "confirmBookReceived": "Konfirmasi Buku Diterima",
+    "bookConfirmedReceived": "Buku dikonfirmasi diterima.",
+    "youHoldBook": "Anda memegang buku ini. Koordinasi pengembalian dengan pemilik.",
+    "currentlyBorrowed": "Sedang Dipinjam",
+    "bookReturnedGoodWaitingDeposit": "Buku dikembalikan baik. Menunggu pengembalian deposit.",
+    "waitingDepositReturn": "Menunggu Pengembalian Deposit",
+    "reportedDamagedWaitingAdmin": "Dilaporkan rusak. Menunggu penyelesaian admin.",
+    "disputeOpened": "Sengketa Dibuka",
+    "borrowerActions": "Tindakan Peminjam",
+    "ownerActions": "Tindakan Pemilik",
+    "borrowerHoldsBook": "Peminjam sedang memegang buku. Saat dikembalikan, konfirmasi kondisinya.",
+    "confirmReturn": "Konfirmasi Pengembalian",
+    "depositConfirmed": "Deposit dikonfirmasi.",
+    "confirmDepositAdmin": "Konfirmasi Deposit",
+    "depositReturnedToBorrower": "Deposit dikembalikan ke peminjam.",
+    "returnDepositToBorrower": "Kembalikan Deposit ke Peminjam",
+    "settleDamageDispute": "Selesaikan Sengketa Kerusakan",
+    "adminActions": "Tindakan Admin",
+    "bookNotFound": "Buku tidak ditemukan.",
+    "failedLoadBook": "Gagal memuat detail buku. Periksa koneksi Anda.",
+    "retry": "Coba lagi",
+    "ownerLabelName": "Pemilik: {name}",
+    "@ownerLabelName": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "reviewsCount": "({count} Ulasan)",
+    "@reviewsCount": {
+        "placeholders": {
+            "count": {
+                "type": "String"
+            }
+        }
+    },
+    "copyCondition": "Salinan: {condition}",
+    "@copyCondition": {
+        "placeholders": {
+            "condition": {
+                "type": "String"
+            }
+        }
+    },
+    "synopsis": "Sinopsis",
+    "thisIsYourOwnBook": "Ini adalah buku Anda sendiri",
+    "bookCurrentlyOnLoan": "Buku sedang dipinjam",
+    "finishActiveBorrowing": "Selesaikan peminjaman aktif Anda sebelum meminta yang lain.",
+    "borrowBook": "Pinjam Buku",
+    "waitingForLenderApproval": "Menunggu persetujuan Pemilik...",
+    "requestedStatus": "Diminta",
+    "lenderApprovedPayDeposit": "Pemilik menyetujui! Silakan bayar deposit.",
+    "uploadDepositProofRp": "Unggah Bukti Deposit (Rp. 50.000)",
+    "depositProofSubmitted": "Bukti deposit dikirim.",
+    "depositVerifiedMeetOwner": "Deposit terverifikasi. Temui pemilik dan ambil buku.",
+    "bookStatusUpdatedBorrowed": "Status buku diperbarui: Sedang Dipinjam.",
+    "youHaveThisBook": "Anda memegang buku ini. Koordinasikan pengembalian; pemilik akan mengonfirmasi kondisinya.",
+    "onLoanText": "Sedang Dipinjam",
+    "returnedGoodWaitingRefund": "Dikembalikan Baik - Menunggu Pengembalian Dana",
+    "returnedDamagedDisputeOpen": "Dikembalikan Rusak - Sengketa Terbuka",
+    "errorLoadingBookName": "Gagal memuat buku: {e}",
+    "@errorLoadingBookName": {
+        "placeholders": {
+            "e": {
+                "type": "String"
+            }
+        }
+    },
+    "selectBothDates": "Harap pilih tanggal Pengambilan dan Pengembalian.",
+    "returnDateAfterPickup": "Tanggal pengembalian harus setelah tanggal pengambilan.",
+    "borrowRequestSubmitted": "Permintaan peminjaman berhasil dikirim!",
+    "requestFailed": "Permintaan Gagal",
+    "okText": "OK",
+    "selectDateText": "Pilih tanggal",
+    "requestToBorrow": "Ajukan Peminjaman",
+    "lenderLabel": "Pemilik",
+    "pickupDate": "Tanggal Pengambilan",
+    "returnDate": "Tanggal Pengembalian",
+    "messageToLender": "Pesan untuk Pemilik (Opsional)",
+    "messageToLenderHint": "Hai, saya ingin meminjam buku ini...",
+    "sendRequest": "Kirim Permintaan",
+    "notificationsTitle": "Notifikasi",
+    "noNotifications": "Tidak Ada Notifikasi",
+    "noNotificationsCurrentRole": "Anda tidak memiliki notifikasi pada peran Anda saat ini.",
+    "declineLabel": "Tolak",
+    "acceptLabel": "Terima",
+    "borrowRequestDeclined": "Permintaan peminjaman ditolak.",
+    "borrowRequestAccepted": "Permintaan peminjaman diterima (F-02)! Deep-link ke WA disimulasikan.",
+    "rejectPayment": "Tolak Pembayaran",
+    "verifyPayment": "Verifikasi Pembayaran",
+    "paymentRejected": "Pembayaran ditolak.",
+    "paymentVerified": "Pembayaran terverifikasi! Status deposit berubah menjadi DIBAYAR (F-02).",
+    "reportedDamageLabel": "Laporan Kerusakan: {description}",
+    "@reportedDamageLabel": {
+        "placeholders": {
+            "description": {
+                "type": "String"
+            }
+        }
+    },
+    "resolveDisputeRefund": "Selesaikan Sengketa & Kembalikan Dana",
+    "goodAfternoonSiang": "Selamat siang,",
+    "goodAfternoonSore": "Selamat sore,",
+    "goodEvening": "Selamat malam,"
+}

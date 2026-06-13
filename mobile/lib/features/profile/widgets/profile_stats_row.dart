@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme.dart';
+import '../../../l10n/app_localizations.dart';
 
 /// The three-up stat row (Books Owned / Borrowed / Lent) on the profile page.
 class ProfileStatsRow extends StatelessWidget {
@@ -17,6 +18,7 @@ class ProfileStatsRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
 
     return Container(
       padding: const EdgeInsets.symmetric(vertical: RuangBukuSpacing.lg),
@@ -31,11 +33,11 @@ class ProfileStatsRow extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          _stat(context, '$ownedCount', 'Books Owned'),
+          _stat(context, '$ownedCount', l10n?.owned ?? 'Books Owned'),
           _divider(),
-          _stat(context, '$borrowedCount', 'Borrowed'),
+          _stat(context, '$borrowedCount', l10n?.borrowed ?? 'Borrowed'),
           _divider(),
-          _stat(context, '$lentCount', 'Lent'),
+          _stat(context, '$lentCount', l10n?.lent ?? 'Lent'),
         ],
       ),
     );

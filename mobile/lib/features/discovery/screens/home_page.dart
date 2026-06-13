@@ -7,6 +7,7 @@ import '../../notifications/screens/notification_page.dart';
 import '../../profile/screens/profile_page.dart';
 import '../widgets/popular_book_card.dart';
 import '../widgets/recent_book_card.dart';
+import '../../../l10n/app_localizations.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -32,10 +33,24 @@ class _HomePageState extends State<HomePage> {
         b.status != BorrowStatus.cancelled);
   }
 
+  String _getGreeting(AppLocalizations? l10n) {
+    final hour = DateTime.now().hour;
+    if (hour < 12) {
+      return l10n?.goodMorning ?? 'Good morning,';
+    } else if (hour < 15) {
+      return l10n?.goodAfternoonSiang ?? 'Good afternoon,';
+    } else if (hour < 18) {
+      return l10n?.goodAfternoonSore ?? 'Good afternoon,';
+    } else {
+      return l10n?.goodEvening ?? 'Good evening,';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
+    final l10n = AppLocalizations.of(context);
 
     return ListenableBuilder(
       listenable: RuangBukuState.instance,
@@ -132,11 +147,11 @@ class _HomePageState extends State<HomePage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Good morning, $greetingName',
+                      Text('${_getGreeting(l10n)} $greetingName',
                           style: textTheme.displayMedium),
                       const SizedBox(height: RuangBukuSpacing.sm),
                       Text(
-                        'Find your next read from your community library.',
+                        l10n?.findNextRead ?? 'Find your next read from your community library.',
                         style: textTheme.bodyLarge?.copyWith(
                           color: RuangBukuColors.textSecondary,
                         ),
@@ -144,6 +159,7 @@ class _HomePageState extends State<HomePage> {
                       const SizedBox(height: RuangBukuSpacing.xl),
                       AppSearchField(
                         controller: _searchController,
+                        hintText: l10n?.searchBooks ?? 'Search books or neighbors...',
                         onChanged: (val) =>
                             setState(() => _searchQuery = val),
                         onClear: () {
@@ -170,14 +186,14 @@ class _HomePageState extends State<HomePage> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('Popular Near You',
+                        Text(l10n?.popularNearYou ?? 'Popular Near You',
                             style: textTheme.headlineSmall),
                         TextButton(
                           onPressed: () {},
                           style: TextButton.styleFrom(
                             foregroundColor: RuangBukuColors.accent,
                           ),
-                          child: const Text('See all'),
+                          child: Text(l10n?.seeAll ?? 'See all'),
                         ),
                       ],
                     ),
@@ -210,7 +226,7 @@ class _HomePageState extends State<HomePage> {
                 Padding(
                   padding: const EdgeInsets.symmetric(
                       horizontal: RuangBukuSpacing.marginMobile),
-                  child: Text('Recently Added', style: textTheme.headlineSmall),
+                  child: Text(l10n?.recentlyAdded ?? 'Recently Added', style: textTheme.headlineSmall),
                 ),
                 const SizedBox(height: RuangBukuSpacing.md),
 
@@ -224,7 +240,7 @@ class _HomePageState extends State<HomePage> {
                     padding: const EdgeInsets.all(RuangBukuSpacing.marginMobile),
                     child: Center(
                       child: Text(
-                        'No books found matching "$_searchQuery"',
+                        l10n?.noBooksFound(_searchQuery) ?? 'No books found matching "$_searchQuery"',
                         style: textTheme.bodyLarge?.copyWith(
                             color: RuangBukuColors.textSecondary),
                       ),

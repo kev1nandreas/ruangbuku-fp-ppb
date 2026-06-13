@@ -3,6 +3,7 @@ import '../../../core/theme.dart';
 import '../../../core/state.dart';
 import '../../../core/widgets/empty_state_view.dart';
 import 'borrowing_detail_page.dart';
+import '../../../l10n/app_localizations.dart';
 
 class BorrowingListPage extends StatelessWidget {
   const BorrowingListPage({super.key});
@@ -11,6 +12,7 @@ class BorrowingListPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
+    final l10n = AppLocalizations.of(context);
 
     return ListenableBuilder(
       listenable: RuangBukuState.instance,
@@ -22,7 +24,7 @@ class BorrowingListPage extends StatelessWidget {
         return Scaffold(
           appBar: AppBar(
             title: Text(
-              'Peminjaman',
+              l10n?.borrowings ?? 'Peminjaman',
               style: textTheme.headlineMedium?.copyWith(
                 fontWeight: FontWeight.w700,
               ),
@@ -33,12 +35,12 @@ class BorrowingListPage extends StatelessWidget {
             child: (borrowings.isEmpty && incoming.isEmpty)
               ? ListView(
                   physics: const AlwaysScrollableScrollPhysics(),
-                  children: const [
-                    SizedBox(height: 120),
+                  children: [
+                    const SizedBox(height: 120),
                     EmptyStateView(
                       icon: Icons.handshake_outlined,
-                      title: 'Belum Ada Transaksi',
-                      message: 'Anda belum memiliki transaksi peminjaman buku.',
+                      title: l10n?.noTransactions ?? 'Belum Ada Transaksi',
+                      message: l10n?.noTransactionsMsg ?? 'Anda belum memiliki transaksi peminjaman buku.',
                     ),
                   ],
                 )
@@ -49,7 +51,7 @@ class BorrowingListPage extends StatelessWidget {
                     // Incoming requests on books this user owns. Shown to anyone
                     // who owns a book, independent of the role toggle.
                     if (incoming.isNotEmpty) ...[
-                      Text('Permintaan Masuk',
+                      Text(l10n?.incomingRequests ?? 'Permintaan Masuk',
                           style: textTheme.titleMedium
                               ?.copyWith(fontWeight: FontWeight.bold)),
                       const SizedBox(height: RuangBukuSpacing.md),
@@ -59,7 +61,7 @@ class BorrowingListPage extends StatelessWidget {
                             child: _IncomingRequestCard(borrowing: b),
                           )),
                       const SizedBox(height: RuangBukuSpacing.lg),
-                      Text('Transaksi Anda',
+                      Text(l10n?.yourTransactions ?? 'Transaksi Anda',
                           style: textTheme.titleMedium
                               ?.copyWith(fontWeight: FontWeight.bold)),
                       const SizedBox(height: RuangBukuSpacing.md),
@@ -98,7 +100,7 @@ class BorrowingListPage extends StatelessWidget {
                                 width: 50,
                                 height: 75,
                                 fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => Container(
+                                errorBuilder: (context, error, stackTrace) => Container(
                                   width: 50,
                                   height: 75,
                                   color: Colors.grey[300],
@@ -121,7 +123,7 @@ class BorrowingListPage extends StatelessWidget {
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    isLender ? 'Peminjam: ${b.borrowerName}' : 'Pemilik: ${b.borrowerName}', // We don't have ownerName in borrow model easily accessible, let's just use borrowerName or generic info. Actually, if it's borrower view, we might not have the owner name in BorrowModel. Wait, BorrowModel has 'borrowerName'. Let's just use 'Peminjam'.
+                                    isLender ? (l10n?.borrowerName(b.borrowerName) ?? 'Peminjam: ${b.borrowerName}') : (l10n?.ownerName(b.borrowerName) ?? 'Pemilik: ${b.borrowerName}'),
                                     style: textTheme.bodyMedium?.copyWith(
                                       color: RuangBukuColors.textSecondary,
                                     ),
@@ -132,11 +134,11 @@ class BorrowingListPage extends StatelessWidget {
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                     decoration: BoxDecoration(
-                                      color: _getStatusColor(b.status).withOpacity(0.1),
+                                      color: _getStatusColor(b.status).withValues(alpha: 0.1),
                                       borderRadius: BorderRadius.circular(4),
                                     ),
                                     child: Text(
-                                      _getStatusText(b.status),
+                                      _getStatusText(b.status, l10n),
                                       style: textTheme.labelSmall?.copyWith(
                                         color: _getStatusColor(b.status),
                                         fontWeight: FontWeight.bold,
@@ -161,17 +163,17 @@ class BorrowingListPage extends StatelessWidget {
     );
   }
 
-  String _getStatusText(BorrowStatus status) {
+  String _getStatusText(BorrowStatus status, AppLocalizations? l10n) {
     switch (status) {
-      case BorrowStatus.requested: return 'Menunggu Konfirmasi';
-      case BorrowStatus.waitingDeposit: return 'Menunggu Deposit';
-      case BorrowStatus.depositUploaded: return 'Verifikasi Deposit';
-      case BorrowStatus.depositVerified: return 'Deposit Terverifikasi';
-      case BorrowStatus.bookReceived: return 'Buku Diterima';
-      case BorrowStatus.returnedGood: return 'Dikembalikan Baik';
-      case BorrowStatus.returnedDamaged: return 'Dikembalikan Rusak';
-      case BorrowStatus.completed: return 'Selesai';
-      case BorrowStatus.cancelled: return 'Dibatalkan/Ditolak';
+      case BorrowStatus.requested: return l10n?.statusRequested ?? 'Menunggu Konfirmasi';
+      case BorrowStatus.waitingDeposit: return l10n?.statusWaitingDeposit ?? 'Menunggu Deposit';
+      case BorrowStatus.depositUploaded: return l10n?.statusDepositUploaded ?? 'Verifikasi Deposit';
+      case BorrowStatus.depositVerified: return l10n?.statusDepositVerified ?? 'Deposit Terverifikasi';
+      case BorrowStatus.bookReceived: return l10n?.statusBookReceived ?? 'Buku Diterima';
+      case BorrowStatus.returnedGood: return l10n?.statusReturnedGood ?? 'Dikembalikan Baik';
+      case BorrowStatus.returnedDamaged: return l10n?.statusReturnedDamaged ?? 'Dikembalikan Rusak';
+      case BorrowStatus.completed: return l10n?.statusCompleted ?? 'Selesai';
+      case BorrowStatus.cancelled: return l10n?.statusCancelled ?? 'Dibatalkan/Ditolak';
     }
   }
 
@@ -211,13 +213,14 @@ class _IncomingRequestCardState extends State<_IncomingRequestCard> {
     final b = widget.borrowing;
     final messenger = ScaffoldMessenger.of(context);
     setState(() => _busy = true);
+    final l10n = AppLocalizations.of(context);
     try {
       await RuangBukuState.instance.respondToBorrowRequest(b.id, approve);
       messenger.showSnackBar(SnackBar(
-        content: Text(approve ? 'Permintaan diterima.' : 'Permintaan ditolak.'),
+        content: Text(approve ? (l10n?.requestAccepted ?? 'Permintaan diterima.') : (l10n?.requestRejected ?? 'Permintaan ditolak.')),
       ));
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text('Gagal: $e')));
+      messenger.showSnackBar(SnackBar(content: Text(l10n?.failed(e.toString()) ?? 'Gagal: $e')));
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -226,6 +229,7 @@ class _IncomingRequestCardState extends State<_IncomingRequestCard> {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
     final b = widget.borrowing;
 
     String fmt(DateTime d) =>
@@ -269,7 +273,7 @@ class _IncomingRequestCardState extends State<_IncomingRequestCard> {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis),
                     const SizedBox(height: 4),
-                    Text('Peminjam: ${b.borrowerName}',
+                    Text(l10n?.borrowerName(b.borrowerName) ?? 'Peminjam: ${b.borrowerName}',
                         style: textTheme.bodyMedium
                             ?.copyWith(color: RuangBukuColors.textSecondary)),
                     Text('${fmt(b.startDate)} - ${fmt(b.endDate)}',
@@ -293,14 +297,14 @@ class _IncomingRequestCardState extends State<_IncomingRequestCard> {
                       side: const BorderSide(color: RuangBukuColors.error),
                     ),
                     onPressed: () => _respond(false),
-                    child: const Text('Tolak'),
+                    child: Text(l10n?.reject ?? 'Tolak'),
                   ),
                 ),
                 const SizedBox(width: RuangBukuSpacing.md),
                 Expanded(
                   child: FilledButton(
                     onPressed: () => _respond(true),
-                    child: const Text('Terima'),
+                    child: Text(l10n?.accept ?? 'Terima'),
                   ),
                 ),
               ],

@@ -79,7 +79,9 @@ class BukuController extends Controller
 
     public function show(Buku $buku)
     {
-        //
+        $buku->load(['genres:id,name', 'users:id,name']);
+
+        return $this->success('Detail buku berhasil dimuat', $buku);
     }
 
     public function update(UpdateBukuRequest $request, Buku $buku)

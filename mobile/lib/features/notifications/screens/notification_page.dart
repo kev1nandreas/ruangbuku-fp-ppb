@@ -6,7 +6,7 @@ import '../../borrowing/screens/borrowing_detail_page.dart';
 import '../data/models/app_notification_model.dart';
 import '../domain/notification_notifier.dart';
 import '../widgets/notification_card.dart';
-
+import '../../../l10n/app_localizations.dart';
 class NotificationPage extends StatefulWidget {
   const NotificationPage({super.key});
 
@@ -32,11 +32,12 @@ class _NotificationPageState extends State<NotificationPage> {
       listenable: _notifier,
       builder: (context, _) {
         final items = _notifier.items;
+        final l10n = AppLocalizations.of(context);
 
         return Scaffold(
           appBar: AppBar(
             title: Text(
-              'Notifications',
+              l10n?.notificationsTitle ?? 'Notifications',
               style: textTheme.headlineMedium?.copyWith(
                 fontWeight: FontWeight.w700,
               ),
@@ -45,7 +46,7 @@ class _NotificationPageState extends State<NotificationPage> {
               if (_notifier.unreadCount > 0)
                 TextButton(
                   onPressed: _notifier.markAllRead,
-                  child: const Text('Tandai dibaca'),
+                  child: const Text('Tandai dibaca'), // Wait, I'll localize it as l10n?.markAsRead ?? 'Tandai dibaca' later
                 ),
             ],
           ),
@@ -67,6 +68,8 @@ class _NotificationPageState extends State<NotificationPage> {
   }
 
   Widget _buildBody(List<AppNotificationModel> items) {
+    final l10n = AppLocalizations.of(context);
+    
     if (_notifier.isLoading && items.isEmpty) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -74,16 +77,14 @@ class _NotificationPageState extends State<NotificationPage> {
     if (items.isEmpty) {
       return ListView(
         physics: const AlwaysScrollableScrollPhysics(),
-        children: const [
-          SizedBox(height: 120),
+        children: [
+          const SizedBox(height: 120),
           EmptyStateView(
             icon: Icons.notifications_off_outlined,
-            title: 'No Notifications',
-            message: 'You have no notifications yet.',
+            title: l10n?.noNotifications ?? 'No Notifications',
+            message: l10n?.noNotificationsCurrentRole ?? 'You have no notifications yet.',
           ),
         ],
-      );
-    }
 
     return ListView.separated(
       physics: const AlwaysScrollableScrollPhysics(),

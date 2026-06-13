@@ -1,0 +1,345 @@
+{
+    "@@locale": "en",
+    "ruangBuku": "RuangBuku",
+    "@ruangBuku": {
+        "description": "App Name (must not be translated)"
+    },
+    "home": "Home",
+    "findBook": "Find Book",
+    "curation": "Curation",
+    "yourBooks": "Your Books",
+    "borrowing": "Borrowing",
+    "profile": "Profile",
+    "settings": "Settings",
+    "language": "Language",
+    "indonesia": "Indonesian",
+    "english": "English",
+    "authHeaderTagline": "Share books, expand your horizons.",
+    "login": "Login",
+    "loginSubtitle": "Please login to continue",
+    "email": "Email",
+    "emailHint": "Enter your email",
+    "emailEmptyError": "Email cannot be empty",
+    "emailInvalidError": "Invalid email format",
+    "password": "Password",
+    "passwordHint": "Enter your password",
+    "passwordEmptyError": "Password cannot be empty",
+    "passwordLengthError": "Password must be at least 8 characters",
+    "noAccountPrompt": "Don't have an account? ",
+    "register": "Register",
+    "registerSubtitle": "Create an account to start borrowing books",
+    "name": "Name",
+    "nameHint": "Enter your name",
+    "nameEmptyError": "Name cannot be empty",
+    "nameLengthError": "Name must be at least 3 characters",
+    "confirmPassword": "Confirm Password",
+    "confirmPasswordHint": "Re-enter your password",
+    "confirmPasswordEmptyError": "Confirm password cannot be empty",
+    "confirmPasswordMatchError": "Passwords do not match",
+    "hasAccountPrompt": "Already have an account? ",
+    "editProfile": "Edit Profile",
+    "paymentDetails": "Payment Details",
+    "helpSupport": "Help & Support",
+    "contactSupport": "Choose how you would like to contact us:",
+    "emailContact": "Email",
+    "whatsappContact": "WhatsApp",
+    "logout": "Logout",
+    "logoutConfirmation": "Are you sure you want to log out?",
+    "cancel": "Cancel",
+    "paymentInfo": "Payment Information",
+    "paymentDesc": "Use the following details to verify deposit payments or transfer funds.",
+    "bankTransfer": "Bank Transfer",
+    "eWallet": "E-Wallet",
+    "owned": "Owned",
+    "borrowed": "Borrowed",
+    "lent": "Lent",
+    "addNewMethod": "Add New Method",
+    "logoutTitle": "Logout from Account",
+    "logoutDesc": "Are you sure you want to log out? You will need to log in again to access your account.",
+    "goodMorning": "Good morning,",
+    "findNextRead": "Find your next read from your community library.",
+    "searchBooks": "Search books or neighbors...",
+    "popularNearYou": "Popular Near You",
+    "seeAll": "See all",
+    "recentlyAdded": "Recently Added",
+    "noBooksFound": "No books found matching \"{query}\"",
+    "@noBooksFound": {
+        "placeholders": {
+            "query": {
+                "type": "String"
+            }
+        }
+    },
+    "allCategories": "All Categories",
+    "availableNow": "Available Now",
+    "within5km": "Within 5km",
+    "booksFound": "{count} Books Found",
+    "@booksFound": {
+        "placeholders": {
+            "count": {
+                "type": "String"
+            }
+        }
+    },
+    "sortDistance": "Sort by Distance",
+    "onLoan": "On Loan",
+    "available": "Available",
+    "kmAway": "{distance} km away",
+    "@kmAway": {
+        "placeholders": {
+            "distance": {
+                "type": "String"
+            }
+        }
+    },
+    "yourBooks": "Your Books",
+    "pendingApproval": "Pending Approval",
+    "edit": "Edit",
+    "delete": "Delete",
+    "addBook": "Add Book",
+    "addedBy": "Added by {name}",
+    "@addedBy": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "adminCuration": "Admin Curation",
+    "allCaughtUp": "All Caught Up!",
+    "noBooksAwaitingCuration": "There are no books awaiting curation approval right now.",
+    "yourLibraryEmpty": "Your library is empty",
+    "haventAddedBooks": "You haven't added any books yet. Click the \"+\" button below to register a book (F-01)!",
+    "rejected": "Rejected",
+    "privateBook": "Private",
+    "deleteConfirmTitle": "Do you want to delete your book?",
+    "deleteConfirmMsg": "Please enter \"{title}\" to confirm.",
+    "@deleteConfirmMsg": {
+        "placeholders": {
+            "title": {
+                "type": "String"
+            }
+        }
+    },
+    "cancel": "Cancel",
+    "bookRemoved": "Book removed from library",
+    "borrowings": "Borrowings",
+    "noTransactions": "No Transactions Yet",
+    "noTransactionsMsg": "You have no book borrowing transactions.",
+    "incomingRequests": "Incoming Requests",
+    "yourTransactions": "Your Transactions",
+    "borrowerName": "Borrower: {name}",
+    "@borrowerName": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "ownerName": "Owner: {name}",
+    "@ownerName": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "statusRequested": "Awaiting Confirmation",
+    "statusWaitingDeposit": "Awaiting Deposit",
+    "statusDepositUploaded": "Verifying Deposit",
+    "statusDepositVerified": "Deposit Verified",
+    "statusBookReceived": "Book Received",
+    "statusReturnedGood": "Returned in Good Condition",
+    "statusReturnedDamaged": "Returned Damaged",
+    "statusCompleted": "Completed",
+    "statusCancelled": "Cancelled/Rejected",
+    "requestAccepted": "Request accepted.",
+    "requestRejected": "Request rejected.",
+    "failed": "Failed: {error}",
+    "@failed": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "reject": "Reject",
+    "accept": "Accept",
+    "myBookDetails": "My Book Details",
+    "errorLoadingBookDetails": "Error loading book details: {error}",
+    "@errorLoadingBookDetails": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "bookNotFound": "Book not found",
+    "condition": "Condition",
+    "lendingStatus": "Lending Status",
+    "privateCollection": "Private Collection",
+    "borrowHistory": "Borrow History",
+    "deleteNotSupported": "Delete feature not supported by backend yet",
+    "removeBook": "Remove Book from Library",
+    "bookDetailsLoaded": "Book details successfully loaded from API!",
+    "bookNotFoundInServer": "Book not found on server/Google Books.",
+    "fillInRequiredFields": "Please fill in ISBN, Title, and Author.",
+    "bookAddedForCuration": "\"{title}\" added and submitted for Admin Curation approval (F-01)!",
+    "@bookAddedForCuration": {
+        "placeholders": {
+            "title": {
+                "type": "String"
+            }
+        }
+    },
+    "bookAddedPrivate": "\"{title}\" added to your private collection!",
+    "@bookAddedPrivate": {
+        "placeholders": {
+            "title": {
+                "type": "String"
+            }
+        }
+    },
+    "addABook": "Add a Book",
+    "addByIsbn": "Add by ISBN",
+    "isbnNumber": "ISBN Number",
+    "isbnHint": "e.g., 9781471156267",
+    "bookDetails": "Book Details",
+    "bookTitleLabel": "Title",
+    "enterBookTitle": "Enter book title",
+    "authorLabel": "Author",
+    "enterAuthorName": "Enter author name",
+    "descriptionLabel": "Description",
+    "enterDescription": "Enter synopsis or short description",
+    "yourCopy": "Your Copy",
+    "addBookToLibrary": "Add Book to Library",
+    "borrowingDetailsTitle": "Borrowing Details",
+    "transactionNotFound": "Transaction not found",
+    "transactionInfo": "Transaction Information",
+    "borrowerLabel": "Borrower",
+    "ownerLabel": "Book Owner",
+    "borrowingDate": "Borrowing Date",
+    "depositAmountLabel": "Deposit Amount",
+    "borrowingProgress": "Borrowing Progress",
+    "damageReportLabel": "Damage Report",
+    "depositDeduction": "Deposit Deduction: Rp {amount}",
+    "@depositDeduction": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "waitingOwnerApproval": "Awaiting book owner's approval.",
+    "approvedUploadDeposit": "Approved! Upload deposit proof to continue.",
+    "uploadDepositProof": "Upload Deposit Proof (Rp 50.000)",
+    "depositSent": "Deposit proof sent.",
+    "viewDepositProof": "View Deposit Proof",
+    "waitingAdminVerification": "Awaiting Admin Verification",
+    "depositVerifiedTakeBook": "Deposit verified. Take the book, then confirm.",
+    "confirmBookReceived": "Confirm Book Received",
+    "bookConfirmedReceived": "Book confirmed received.",
+    "youHoldBook": "You are holding this book. Coordinate return with owner.",
+    "currentlyBorrowed": "Currently Borrowed",
+    "bookReturnedGoodWaitingDeposit": "Book returned in good condition. Awaiting deposit return.",
+    "waitingDepositReturn": "Awaiting Deposit Return",
+    "reportedDamagedWaitingAdmin": "Reported damaged. Awaiting admin settlement.",
+    "disputeOpened": "Dispute Opened",
+    "borrowerActions": "Borrower Actions",
+    "ownerActions": "Owner Actions",
+    "borrowerHoldsBook": "Borrower is holding the book. Upon return, confirm its condition.",
+    "confirmReturn": "Confirm Return",
+    "depositConfirmed": "Deposit confirmed.",
+    "confirmDepositAdmin": "Confirm Deposit",
+    "depositReturnedToBorrower": "Deposit returned to borrower.",
+    "returnDepositToBorrower": "Return Deposit to Borrower",
+    "settleDamageDispute": "Settle Damage Dispute",
+    "adminActions": "Admin Actions",
+    "bookNotFound": "Book not found.",
+    "failedLoadBook": "Failed to load book detail. Check your connection.",
+    "retry": "Retry",
+    "ownerLabelName": "Owner: {name}",
+    "@ownerLabelName": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "reviewsCount": "({count} Reviews)",
+    "@reviewsCount": {
+        "placeholders": {
+            "count": {
+                "type": "String"
+            }
+        }
+    },
+    "copyCondition": "Copy: {condition}",
+    "@copyCondition": {
+        "placeholders": {
+            "condition": {
+                "type": "String"
+            }
+        }
+    },
+    "synopsis": "Synopsis",
+    "thisIsYourOwnBook": "This is your own book",
+    "bookCurrentlyOnLoan": "Book Currently on Loan",
+    "finishActiveBorrowing": "Finish your active borrowing before requesting another.",
+    "borrowBook": "Borrow Book",
+    "waitingForLenderApproval": "Waiting for Lender approval...",
+    "requestedStatus": "Requested",
+    "lenderApprovedPayDeposit": "Lender approved! Please pay the deposit.",
+    "uploadDepositProofRp": "Upload Deposit Proof (Rp. 50,000)",
+    "depositProofSubmitted": "Deposit proof submitted.",
+    "depositVerifiedMeetOwner": "Deposit verified. Meet owner and pick up book.",
+    "bookStatusUpdatedBorrowed": "Book status updated: Sedang Dipinjam.",
+    "youHaveThisBook": "You have this book. Coordinate the return; the owner confirms its condition.",
+    "onLoanText": "On Loan",
+    "returnedGoodWaitingRefund": "Returned Good - Waiting Refund",
+    "returnedDamagedDisputeOpen": "Returned Damaged - Dispute Open",
+    "errorLoadingBookName": "Error loading book: {e}",
+    "@errorLoadingBookName": {
+        "placeholders": {
+            "e": {
+                "type": "String"
+            }
+        }
+    },
+    "selectBothDates": "Please select both Pickup and Return dates.",
+    "returnDateAfterPickup": "Return date must be after pickup date.",
+    "borrowRequestSubmitted": "Borrowing request submitted successfully!",
+    "requestFailed": "Request Failed",
+    "okText": "OK",
+    "selectDateText": "Select date",
+    "requestToBorrow": "Request to Borrow",
+    "lenderLabel": "Lender",
+    "pickupDate": "Pickup Date",
+    "returnDate": "Return Date",
+    "messageToLender": "Message to Lender (Optional)",
+    "messageToLenderHint": "Hi, I would love to borrow this book...",
+    "sendRequest": "Send Request",
+    "notificationsTitle": "Notifications",
+    "noNotifications": "No Notifications",
+    "noNotificationsCurrentRole": "You have no notifications in your current role.",
+    "declineLabel": "Decline",
+    "acceptLabel": "Accept",
+    "borrowRequestDeclined": "Borrow request declined.",
+    "borrowRequestAccepted": "Borrow request accepted (F-02)! Deep-link to WA simulated.",
+    "rejectPayment": "Reject Payment",
+    "verifyPayment": "Verify Payment",
+    "paymentRejected": "Payment rejected.",
+    "paymentVerified": "Payment verified! Deposit status changed to PAID (F-02).",
+    "reportedDamageLabel": "Reported Damage: {description}",
+    "@reportedDamageLabel": {
+        "placeholders": {
+            "description": {
+                "type": "String"
+            }
+        }
+    },
+    "resolveDisputeRefund": "Resolve Dispute & Refund",
+    "goodAfternoonSiang": "Good afternoon,",
+    "goodAfternoonSore": "Good afternoon,",
+    "goodEvening": "Good evening,"
+}

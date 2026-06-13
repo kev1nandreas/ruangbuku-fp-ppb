@@ -5,6 +5,7 @@ import '../../../core/widgets/bottom_action_bar.dart';
 import '../../auth/domain/auth_notifier.dart';
 import '../../discovery/domain/book_notifier.dart';
 import '../widgets/borrow_action_section.dart';
+import '../../../l10n/app_localizations.dart';
 
 class BorrowerBookDetailPage extends StatefulWidget {
   final String bookId;
@@ -53,6 +54,7 @@ class _BorrowerBookDetailPageState extends State<BorrowerBookDetailPage> {
       if (detail != null) {
         _book = detail;
       } else if (_book == null) {
+        // Will be replaced in UI by l10n
         _error = 'Failed to load book detail. Check your connection.';
       }
     });
@@ -62,6 +64,7 @@ class _BorrowerBookDetailPageState extends State<BorrowerBookDetailPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -70,7 +73,7 @@ class _BorrowerBookDetailPageState extends State<BorrowerBookDetailPage> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Book Details',
+          l10n?.bookDetails ?? 'Book Details',
           style: textTheme.headlineSmall?.copyWith(
             fontWeight: FontWeight.w600,
           ),
@@ -87,6 +90,8 @@ class _BorrowerBookDetailPageState extends State<BorrowerBookDetailPage> {
   }
 
   Widget _buildBody(BuildContext context, TextTheme textTheme) {
+    final l10n = AppLocalizations.of(context);
+
     if (_book == null && _isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -99,7 +104,7 @@ class _BorrowerBookDetailPageState extends State<BorrowerBookDetailPage> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                _error ?? 'Book not found.',
+                _error != null ? (l10n?.failedLoadBook ?? _error!) : (l10n?.bookNotFound ?? 'Book not found.'),
                 textAlign: TextAlign.center,
                 style: textTheme.bodyLarge
                     ?.copyWith(color: RuangBukuColors.textSecondary),
@@ -113,7 +118,7 @@ class _BorrowerBookDetailPageState extends State<BorrowerBookDetailPage> {
                   });
                   _loadDetail();
                 },
-                child: const Text('Retry'),
+                child: Text(l10n?.retry ?? 'Retry'),
               ),
             ],
           ),
@@ -179,7 +184,7 @@ class _BorrowerBookDetailPageState extends State<BorrowerBookDetailPage> {
                         ),
                       ),
                       Text(
-                        'Owner: ${book.ownerName}',
+                        l10n?.ownerLabelName(book.ownerName) ?? 'Owner: ${book.ownerName}',
                         style: textTheme.bodySmall?.copyWith(
                           fontWeight: FontWeight.w600,
                         ),
@@ -199,7 +204,7 @@ class _BorrowerBookDetailPageState extends State<BorrowerBookDetailPage> {
                       ),
                       const SizedBox(width: RuangBukuSpacing.md),
                       Text(
-                        '(128 Reviews)',
+                        l10n?.reviewsCount('128') ?? '(128 Reviews)',
                         style: textTheme.bodyMedium?.copyWith(
                           color: RuangBukuColors.textSecondary,
                         ),
@@ -213,7 +218,7 @@ class _BorrowerBookDetailPageState extends State<BorrowerBookDetailPage> {
                           borderRadius: RuangBukuRadius.borderRadiusMd,
                         ),
                         child: Text(
-                          'Copy: ${book.condition}',
+                          l10n?.copyCondition(book.condition) ?? 'Copy: ${book.condition}',
                           style: textTheme.bodySmall
                               ?.copyWith(fontWeight: FontWeight.w600),
                         ),
@@ -223,7 +228,7 @@ class _BorrowerBookDetailPageState extends State<BorrowerBookDetailPage> {
                   const SizedBox(height: RuangBukuSpacing.xxl),
 
                   // Synopsis
-                  Text('Synopsis', style: textTheme.headlineSmall),
+                  Text(l10n?.synopsis ?? 'Synopsis', style: textTheme.headlineSmall),
                   const SizedBox(height: RuangBukuSpacing.md),
                   Text(
                     book.description,

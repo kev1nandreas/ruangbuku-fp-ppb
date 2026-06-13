@@ -11,6 +11,8 @@ import 'edit_profile_page.dart';
 import 'help_support_page.dart';
 import 'settings_page.dart';
 import '../../borrowing/screens/borrowing_list_page.dart';
+import 'settings_page.dart';
+import '../../../l10n/app_localizations.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -56,6 +58,7 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
+    final l10n = AppLocalizations.of(context);
 
     return ListenableBuilder(
       listenable: Listenable.merge([
@@ -85,7 +88,7 @@ class _ProfilePageState extends State<ProfilePage> {
         return Scaffold(
           appBar: AppBar(
             title: Text(
-              'Profile',
+              l10n?.profile ?? 'Profile',
               style: textTheme.headlineMedium?.copyWith(
                 fontWeight: FontWeight.w700,
               ),
@@ -129,7 +132,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   // Menu Options
                   ProfileMenuTile(
                     icon: Icons.person_outline,
-                    title: 'Edit Profile',
+                    title: l10n?.editProfile ?? 'Edit Profile',
                     onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -140,7 +143,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   const Divider(height: 1),
                   ProfileMenuTile(
                     icon: Icons.payment_outlined,
-                    title: 'Payment Details',
+                    title: l10n?.paymentDetails ?? 'Payment Details',
                     onTap: () {
                       Navigator.push(
                         context,
@@ -153,7 +156,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   const Divider(height: 1),
                   ProfileMenuTile(
                     icon: Icons.history,
-                    title: 'Borrowing History',
+                    title: l10n?.borrowings ?? 'Borrowing History',
                     onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -164,13 +167,26 @@ class _ProfilePageState extends State<ProfilePage> {
                   const Divider(height: 1),
                   ProfileMenuTile(
                     icon: Icons.help_outline,
-                    title: 'Help & Support',
+                    title: l10n?.helpSupport ?? 'Help & Support',
                     onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (_) => const HelpSupportPage(),
                       ),
                     ),
+                  ),
+                  const Divider(height: 1),
+                  ProfileMenuTile(
+                    icon: Icons.settings_outlined,
+                    title: l10n?.settings ?? 'Settings',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const SettingsPage(),
+                        ),
+                      );
+                    },
                   ),
 
                   const SizedBox(height: RuangBukuSpacing.xxl),
@@ -188,7 +204,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                     onPressed: _confirmLogout,
                     icon: const Icon(Icons.logout),
-                    label: const Text('Keluar'),
+                    label: Text(l10n?.logout ?? 'Keluar'),
                   ),
                   const SizedBox(height: RuangBukuSpacing.xxl),
                 ],

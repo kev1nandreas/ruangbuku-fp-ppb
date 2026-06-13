@@ -3,6 +3,7 @@ import '../../../core/theme.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/status_badge.dart';
 import '../../borrowing/screens/borrower_book_detail_page.dart';
+import '../../../l10n/app_localizations.dart';
 
 /// Horizontal list card used in the "Recently Added" section.
 class RecentBookCard extends StatelessWidget {
@@ -30,6 +31,7 @@ class RecentBookCard extends StatelessWidget {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
     final semanticColors = theme.extension<RuangBukuSemanticColors>()!;
+    final l10n = AppLocalizations.of(context);
 
     return AppCard(
       onTap: () {
@@ -72,7 +74,7 @@ class RecentBookCard extends StatelessWidget {
                     ),
                     const SizedBox(width: RuangBukuSpacing.sm),
                     StatusBadge(
-                      label: isAvailable ? 'Available' : 'On Loan',
+                      label: isAvailable ? (l10n?.available ?? 'Available') : (l10n?.onLoan ?? 'On Loan'),
                       color: isAvailable
                           ? semanticColors.success
                           : RuangBukuColors.textSecondary,
@@ -99,7 +101,7 @@ class RecentBookCard extends StatelessWidget {
                       backgroundColor: RuangBukuColors.surfaceContainerHigh,
                     ),
                     const SizedBox(width: RuangBukuSpacing.sm),
-                    Text('Added by $addedBy', style: textTheme.bodySmall),
+                    Text(l10n?.addedBy(addedBy) ?? 'Added by $addedBy', style: textTheme.bodySmall),
                   ],
                 ),
               ],

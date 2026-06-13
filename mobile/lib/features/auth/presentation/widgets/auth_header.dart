@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme.dart';
+import '../../../../l10n/app_localizations.dart';
 
 /// Branded header for the auth screens: app icon, name and tagline.
 class AuthHeader extends StatelessWidget {
@@ -7,6 +8,7 @@ class AuthHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Column(
       children: [
         Container(
@@ -25,7 +27,7 @@ class AuthHeader extends StatelessWidget {
         ),
         const SizedBox(height: RuangBukuSpacing.lg),
         Text(
-          'RuangBuku',
+          l10n?.ruangBuku ?? 'RuangBuku',
           style: RuangBukuTypography.displayLargeMobile.copyWith(
             color: RuangBukuColors.textDeep,
           ),
@@ -33,7 +35,7 @@ class AuthHeader extends StatelessWidget {
         ),
         const SizedBox(height: RuangBukuSpacing.sm),
         Text(
-          'Berbagi buku, memperluas wawasan.',
+          l10n?.authHeaderTagline ?? 'Berbagi buku, memperluas wawasan.',
           style: RuangBukuTypography.bodyMedium.copyWith(
             color: RuangBukuColors.textSecondary,
           ),

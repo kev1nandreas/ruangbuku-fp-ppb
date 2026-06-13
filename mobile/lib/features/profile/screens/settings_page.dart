@@ -1,20 +1,31 @@
 import 'package:flutter/material.dart';
 import '../../../core/preferences_notifier.dart';
 import '../../../core/theme.dart';
+import '../../../l10n/app_localizations.dart';
+import '../../../core/state.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
+    final l10n = AppLocalizations.of(context);
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Pengaturan'),
+        title: Text(l10n?.settings ?? 'Pengaturan'),
       ),
       body: ListenableBuilder(
-        listenable: PreferencesNotifier.instance,
+        listenable: Listenable.merge([
+          PreferencesNotifier.instance,
+          RuangBukuState.instance,
+        ]),
         builder: (context, _) {
           final prefs = PreferencesNotifier.instance;
+          final state = RuangBukuState.instance;
+          final currentLang = state.currentLocale.languageCode;
           
           return ListView(
             padding: const EdgeInsets.symmetric(vertical: RuangBukuSpacing.md),
@@ -48,26 +59,22 @@ class SettingsPage extends StatelessWidget {
               ),
               ListTile(
                 leading: const Icon(Icons.language_outlined),
-                title: const Text('Bahasa (Language)'),
+                title: Text(l10n?.language ?? 'Bahasa (Language)'),
                 trailing: DropdownButton<String>(
-                  value: prefs.language,
+                  value: currentLang,
                   onChanged: (String? newValue) {
                     if (newValue != null) {
-                      prefs.setLanguage(newValue);
-                      // TODO: Implement actual translation logic when localization-interaction branch is merged.
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Perubahan bahasa akan aktif setelah fitur localization digabungkan.')),
-                      );
+                      state.setLocale(Locale(newValue));
                     }
                   },
-                  items: const [
+                  items: [
                     DropdownMenuItem(
                       value: 'id',
-                      child: Text('Indonesia'),
+                      child: Text(l10n?.indonesia ?? 'Indonesia'),
                     ),
                     DropdownMenuItem(
                       value: 'en',
-                      child: Text('English'),
+                      child: Text(l10n?.english ?? 'English'),
                     ),
                   ],
                 ),

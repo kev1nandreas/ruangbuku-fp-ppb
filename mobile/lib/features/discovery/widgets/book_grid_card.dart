@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../core/theme.dart';
 import '../../../core/widgets/status_badge.dart';
 import '../../borrowing/screens/borrower_book_detail_page.dart';
+import '../../../l10n/app_localizations.dart';
 
 /// Grid cell used on the Find Book results grid: cover with an overlaid status
 /// badge plus title/author/distance below.
@@ -41,6 +42,7 @@ class BookGridCard extends StatelessWidget {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
     final semanticColors = theme.extension<RuangBukuSemanticColors>()!;
+    final l10n = AppLocalizations.of(context);
 
     return GestureDetector(
       onTap: () {
@@ -99,7 +101,7 @@ class BookGridCard extends StatelessWidget {
                     top: RuangBukuSpacing.sm,
                     right: RuangBukuSpacing.sm,
                     child: StatusBadge(
-                      label: isAvailable ? 'Available' : 'On Loan',
+                      label: isAvailable ? (l10n?.available ?? 'Available') : (l10n?.onLoan ?? 'On Loan'),
                       color: isAvailable
                           ? RuangBukuColors.textDeep
                           : RuangBukuColors.textSecondary,

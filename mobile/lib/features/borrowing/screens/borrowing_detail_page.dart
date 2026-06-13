@@ -7,6 +7,7 @@ import '../../notifications/widgets/dispute_resolution_dialog.dart';
 import '../widgets/borrow_progress_timeline.dart';
 import '../widgets/return_inspection_dialog.dart';
 import '../widgets/deposit_proof.dart';
+import '../../../l10n/app_localizations.dart';
 
 class BorrowingDetailPage extends StatelessWidget {
   final String borrowingId;
@@ -22,13 +23,14 @@ class BorrowingDetailPage extends StatelessWidget {
       listenable: RuangBukuState.instance,
       builder: (context, _) {
         final state = RuangBukuState.instance;
+        final l10n = AppLocalizations.of(context);
         
         // Find the borrowing model
         final index = state.borrowings.indexWhere((b) => b.id == borrowingId);
         if (index == -1) {
           return Scaffold(
-            appBar: AppBar(title: const Text('Detail Peminjaman')),
-            body: const Center(child: Text('Transaksi tidak ditemukan')),
+            appBar: AppBar(title: Text(l10n?.borrowingDetailsTitle ?? 'Detail Peminjaman')),
+            body: Center(child: Text(l10n?.transactionNotFound ?? 'Transaksi tidak ditemukan')),
           );
         }
         
@@ -38,7 +40,7 @@ class BorrowingDetailPage extends StatelessWidget {
         return Scaffold(
           appBar: AppBar(
             title: Text(
-              'Detail Peminjaman',
+              l10n?.borrowingDetailsTitle ?? 'Detail Peminjaman',
               style: textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w600),
             ),
           ),
@@ -59,7 +61,7 @@ class BorrowingDetailPage extends StatelessWidget {
                           width: 80,
                           height: 120,
                           fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => Container(
+                          errorBuilder: (context, error, stackTrace) => Container(
                             width: 80,
                             height: 120,
                             color: Colors.grey[300],
@@ -85,11 +87,11 @@ class BorrowingDetailPage extends StatelessWidget {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                               decoration: BoxDecoration(
-                                color: _getStatusColor(b.status).withOpacity(0.1),
+                                color: _getStatusColor(b.status).withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: Text(
-                                _getStatusText(b.status),
+                                _getStatusText(b.status, l10n),
                                 style: textTheme.labelLarge?.copyWith(
                                   color: _getStatusColor(b.status),
                                   fontWeight: FontWeight.bold,
@@ -105,7 +107,7 @@ class BorrowingDetailPage extends StatelessWidget {
                 const SizedBox(height: RuangBukuSpacing.xl),
 
                 // Transaction Details
-                Text('Informasi Transaksi', style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                Text(l10n?.transactionInfo ?? 'Informasi Transaksi', style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
                 const SizedBox(height: RuangBukuSpacing.md),
                 AppCard(
                   padding: const EdgeInsets.all(RuangBukuSpacing.md),
@@ -113,21 +115,21 @@ class BorrowingDetailPage extends StatelessWidget {
                     children: [
                       _buildDetailRow(
                         context, 
-                        label: isLender ? 'Peminjam' : 'Pemilik Buku', 
+                        label: isLender ? (l10n?.borrowerLabel ?? 'Peminjam') : (l10n?.ownerLabel ?? 'Pemilik Buku'), 
                         value: b.borrowerName, // Usually borrowerName is the only one in the model.
                         icon: Icons.person_outline
                       ),
                       const Divider(),
                       _buildDetailRow(
                         context, 
-                        label: 'Tanggal Peminjaman', 
+                        label: l10n?.borrowingDate ?? 'Tanggal Peminjaman', 
                         value: '${_formatDate(b.startDate)} - ${_formatDate(b.endDate)}',
                         icon: Icons.calendar_today_outlined
                       ),
                       const Divider(),
                       _buildDetailRow(
                         context, 
-                        label: 'Nominal Deposit', 
+                        label: l10n?.depositAmountLabel ?? 'Nominal Deposit', 
                         value: 'Rp ${b.depositAmount.toStringAsFixed(0)}',
                         icon: Icons.payments_outlined
                       ),
@@ -138,7 +140,7 @@ class BorrowingDetailPage extends StatelessWidget {
                 const SizedBox(height: RuangBukuSpacing.xl),
 
                 // Lifecycle progress timeline.
-                Text('Progres Peminjaman', style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                Text(l10n?.borrowingProgress ?? 'Progres Peminjaman', style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
                 const SizedBox(height: RuangBukuSpacing.md),
                 AppCard(
                   padding: const EdgeInsets.all(RuangBukuSpacing.md),
@@ -148,17 +150,17 @@ class BorrowingDetailPage extends StatelessWidget {
                 // If there's a damage report
                 if (b.damageReport != null) ...[
                   const SizedBox(height: RuangBukuSpacing.xl),
-                  Text('Laporan Kerusakan', style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                  Text(l10n?.damageReportLabel ?? 'Laporan Kerusakan', style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
                   const SizedBox(height: RuangBukuSpacing.md),
                   AppCard(
                     padding: const EdgeInsets.all(RuangBukuSpacing.md),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Deskripsi: ${b.damageReport!.description}', style: textTheme.bodyMedium),
+                        Text('${l10n?.descriptionLabel ?? "Deskripsi"}: ${b.damageReport!.description}', style: textTheme.bodyMedium),
                         const SizedBox(height: RuangBukuSpacing.sm),
                         if (b.damageReport!.deductionAmount > 0)
-                          Text('Potongan Deposit: Rp ${b.damageReport!.deductionAmount.toStringAsFixed(0)}',
+                          Text(l10n?.depositDeduction(b.damageReport!.deductionAmount.toStringAsFixed(0)) ?? 'Potongan Deposit: Rp ${b.damageReport!.deductionAmount.toStringAsFixed(0)}',
                             style: textTheme.bodyMedium?.copyWith(color: RuangBukuColors.error, fontWeight: FontWeight.bold)),
                       ],
                     ),
@@ -189,6 +191,7 @@ class BorrowingDetailPage extends StatelessWidget {
 
     final state = RuangBukuState.instance;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
 
     Future<void> run(Future<void> Function() action, String okMsg) async {
       final messenger = ScaffoldMessenger.of(context);
@@ -196,7 +199,7 @@ class BorrowingDetailPage extends StatelessWidget {
         await action();
         messenger.showSnackBar(SnackBar(content: Text(okMsg)));
       } catch (e) {
-        messenger.showSnackBar(SnackBar(content: Text('Gagal: $e')));
+        messenger.showSnackBar(SnackBar(content: Text(l10n?.failed(e.toString()) ?? 'Gagal: $e')));
       }
     }
 
@@ -204,20 +207,20 @@ class BorrowingDetailPage extends StatelessWidget {
     Widget control;
     switch (b.status) {
       case BorrowStatus.requested:
-        message = 'Menunggu persetujuan pemilik buku.';
-        control = const OutlinedButton(
-            onPressed: null, child: Text('Menunggu Konfirmasi'));
+        message = l10n?.waitingOwnerApproval ?? 'Menunggu persetujuan pemilik buku.';
+        control = OutlinedButton(
+            onPressed: null, child: Text(l10n?.statusRequested ?? 'Menunggu Konfirmasi'));
         break;
       case BorrowStatus.waitingDeposit:
-        message = 'Disetujui! Unggah bukti deposit untuk melanjutkan.';
+        message = l10n?.approvedUploadDeposit ?? 'Disetujui! Unggah bukti deposit untuk melanjutkan.';
         control = FilledButton.icon(
           icon: const Icon(Icons.upload_file_outlined),
           onPressed: () => pickAndUploadDepositProof(context, b.id),
-          label: const Text('Unggah Bukti Deposit (Rp 50.000)'),
+          label: Text(l10n?.uploadDepositProof ?? 'Unggah Bukti Deposit (Rp 50.000)'),
         );
         break;
       case BorrowStatus.depositUploaded:
-        message = 'Bukti deposit terkirim.';
+        message = l10n?.depositSent ?? 'Bukti deposit terkirim.';
         control = Column(
           children: [
             if (b.paymentProofUrl != null && b.paymentProofUrl!.isNotEmpty)
@@ -227,41 +230,40 @@ class BorrowingDetailPage extends StatelessWidget {
                   icon: const Icon(Icons.receipt_long_outlined),
                   onPressed: () =>
                       showDepositProofViewer(context, b.paymentProofUrl!),
-                  label: const Text('Lihat Bukti Deposit'),
+                  label: Text(l10n?.viewDepositProof ?? 'Lihat Bukti Deposit'),
                 ),
               ),
             const SizedBox(height: RuangBukuSpacing.sm),
-            const OutlinedButton(
-                onPressed: null, child: Text('Menunggu Verifikasi Admin')),
+            OutlinedButton(
+                onPressed: null, child: Text(l10n?.waitingAdminVerification ?? 'Menunggu Verifikasi Admin')),
           ],
         );
         break;
       case BorrowStatus.depositVerified:
-        message = 'Deposit terverifikasi. Ambil buku, lalu konfirmasi.';
+        message = l10n?.depositVerifiedTakeBook ?? 'Deposit terverifikasi. Ambil buku, lalu konfirmasi.';
         control = FilledButton.icon(
           icon: const Icon(Icons.check_circle_outline),
           onPressed: () => run(
             () => state.confirmBookReceived(b.id),
-            'Buku dikonfirmasi diterima.',
+            l10n?.bookConfirmedReceived ?? 'Buku dikonfirmasi diterima.',
           ),
-          label: const Text('Konfirmasi Buku Diterima'),
+          label: Text(l10n?.confirmBookReceived ?? 'Konfirmasi Buku Diterima'),
         );
         break;
       case BorrowStatus.bookReceived:
-        message =
-            'Anda memegang buku ini. Koordinasi pengembalian dengan pemilik.';
+        message = l10n?.youHoldBook ?? 'Anda memegang buku ini. Koordinasi pengembalian dengan pemilik.';
         control =
-            const OutlinedButton(onPressed: null, child: Text('Sedang Dipinjam'));
+            OutlinedButton(onPressed: null, child: Text(l10n?.currentlyBorrowed ?? 'Sedang Dipinjam'));
         break;
       case BorrowStatus.returnedGood:
-        message = 'Buku dikembalikan baik. Menunggu pengembalian deposit.';
-        control = const OutlinedButton(
-            onPressed: null, child: Text('Menunggu Pengembalian Deposit'));
+        message = l10n?.bookReturnedGoodWaitingDeposit ?? 'Buku dikembalikan baik. Menunggu pengembalian deposit.';
+        control = OutlinedButton(
+            onPressed: null, child: Text(l10n?.waitingDepositReturn ?? 'Menunggu Pengembalian Deposit'));
         break;
       case BorrowStatus.returnedDamaged:
-        message = 'Dilaporkan rusak. Menunggu penyelesaian admin.';
-        control = const OutlinedButton(
-            onPressed: null, child: Text('Sengketa Dibuka'));
+        message = l10n?.reportedDamagedWaitingAdmin ?? 'Dilaporkan rusak. Menunggu penyelesaian admin.';
+        control = OutlinedButton(
+            onPressed: null, child: Text(l10n?.disputeOpened ?? 'Sengketa Dibuka'));
         break;
       case BorrowStatus.completed:
       case BorrowStatus.cancelled:
@@ -270,7 +272,7 @@ class BorrowingDetailPage extends StatelessWidget {
 
     return [
       const SizedBox(height: RuangBukuSpacing.xl),
-      Text('Tindakan Peminjam',
+      Text(l10n?.borrowerActions ?? 'Tindakan Peminjam',
           style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
       const SizedBox(height: RuangBukuSpacing.sm),
       Text(message,
@@ -290,14 +292,15 @@ class BorrowingDetailPage extends StatelessWidget {
     if (!isOwnerView || b.status != BorrowStatus.bookReceived) return const [];
 
     final textTheme = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
 
     return [
       const SizedBox(height: RuangBukuSpacing.xl),
-      Text('Tindakan Pemilik',
+      Text(l10n?.ownerActions ?? 'Tindakan Pemilik',
           style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
       const SizedBox(height: RuangBukuSpacing.sm),
       Text(
-        'Peminjam sedang memegang buku. Saat dikembalikan, konfirmasi kondisinya.',
+        l10n?.borrowerHoldsBook ?? 'Peminjam sedang memegang buku. Saat dikembalikan, konfirmasi kondisinya.',
         style: textTheme.bodySmall?.copyWith(color: RuangBukuColors.textSecondary),
       ),
       const SizedBox(height: RuangBukuSpacing.md),
@@ -306,7 +309,7 @@ class BorrowingDetailPage extends StatelessWidget {
         child: FilledButton.icon(
           icon: const Icon(Icons.fact_check_outlined),
           onPressed: () => showReturnInspectionDialog(context, b),
-          label: const Text('Konfirmasi Pengembalian'),
+          label: Text(l10n?.confirmReturn ?? 'Konfirmasi Pengembalian'),
         ),
       ),
     ];
@@ -321,6 +324,7 @@ class BorrowingDetailPage extends StatelessWidget {
 
     final state = RuangBukuState.instance;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
 
     Future<void> run(Future<void> Function() action, String okMsg) async {
       final messenger = ScaffoldMessenger.of(context);
@@ -328,7 +332,7 @@ class BorrowingDetailPage extends StatelessWidget {
         await action();
         messenger.showSnackBar(SnackBar(content: Text(okMsg)));
       } catch (e) {
-        messenger.showSnackBar(SnackBar(content: Text('Gagal: $e')));
+        messenger.showSnackBar(SnackBar(content: Text(l10n?.failed(e.toString()) ?? 'Gagal: $e')));
       }
     }
 
@@ -344,7 +348,7 @@ class BorrowingDetailPage extends StatelessWidget {
                   icon: const Icon(Icons.receipt_long_outlined),
                   onPressed: () =>
                       showDepositProofViewer(context, b.paymentProofUrl!),
-                  label: const Text('Lihat Bukti Deposit'),
+                  label: Text(l10n?.viewDepositProof ?? 'Lihat Bukti Deposit'),
                 ),
               ),
             const SizedBox(height: RuangBukuSpacing.sm),
@@ -354,9 +358,9 @@ class BorrowingDetailPage extends StatelessWidget {
                 icon: const Icon(Icons.verified_outlined),
                 onPressed: () => run(
                   () => state.verifyDepositPayment(b.id, true),
-                  'Deposit dikonfirmasi.',
+                  l10n?.depositConfirmed ?? 'Deposit dikonfirmasi.',
                 ),
-                label: const Text('Konfirmasi Deposit'),
+                label: Text(l10n?.confirmDepositAdmin ?? 'Konfirmasi Deposit'),
               ),
             ),
           ],
@@ -367,9 +371,9 @@ class BorrowingDetailPage extends StatelessWidget {
           icon: const Icon(Icons.assignment_return_outlined),
           onPressed: () => run(
             () => state.returnDeposit(b.id),
-            'Deposit dikembalikan ke peminjam.',
+            l10n?.depositReturnedToBorrower ?? 'Deposit dikembalikan ke peminjam.',
           ),
-          label: const Text('Kembalikan Deposit ke Peminjam'),
+          label: Text(l10n?.returnDepositToBorrower ?? 'Kembalikan Deposit ke Peminjam'),
         );
         break;
       case BorrowStatus.returnedDamaged:
@@ -377,7 +381,7 @@ class BorrowingDetailPage extends StatelessWidget {
           style: FilledButton.styleFrom(backgroundColor: RuangBukuColors.error),
           icon: const Icon(Icons.gavel_outlined),
           onPressed: () => showDisputeResolutionDialog(context, b),
-          label: const Text('Selesaikan Sengketa Kerusakan'),
+          label: Text(l10n?.settleDamageDispute ?? 'Selesaikan Sengketa Kerusakan'),
         );
         break;
       default:
@@ -388,7 +392,7 @@ class BorrowingDetailPage extends StatelessWidget {
 
     return [
       const SizedBox(height: RuangBukuSpacing.xl),
-      Text('Tindakan Admin',
+      Text(l10n?.adminActions ?? 'Tindakan Admin',
           style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
       const SizedBox(height: RuangBukuSpacing.md),
       SizedBox(width: double.infinity, child: control),
@@ -426,17 +430,17 @@ class BorrowingDetailPage extends StatelessWidget {
     return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
   }
 
-  String _getStatusText(BorrowStatus status) {
+  String _getStatusText(BorrowStatus status, AppLocalizations? l10n) {
     switch (status) {
-      case BorrowStatus.requested: return 'Menunggu Konfirmasi';
-      case BorrowStatus.waitingDeposit: return 'Menunggu Deposit';
-      case BorrowStatus.depositUploaded: return 'Verifikasi Deposit';
-      case BorrowStatus.depositVerified: return 'Deposit Terverifikasi';
-      case BorrowStatus.bookReceived: return 'Buku Diterima';
-      case BorrowStatus.returnedGood: return 'Dikembalikan Baik';
-      case BorrowStatus.returnedDamaged: return 'Dikembalikan Rusak';
-      case BorrowStatus.completed: return 'Selesai';
-      case BorrowStatus.cancelled: return 'Dibatalkan/Ditolak';
+      case BorrowStatus.requested: return l10n?.statusRequested ?? 'Menunggu Konfirmasi';
+      case BorrowStatus.waitingDeposit: return l10n?.statusWaitingDeposit ?? 'Menunggu Deposit';
+      case BorrowStatus.depositUploaded: return l10n?.statusDepositUploaded ?? 'Verifikasi Deposit';
+      case BorrowStatus.depositVerified: return l10n?.statusDepositVerified ?? 'Deposit Terverifikasi';
+      case BorrowStatus.bookReceived: return l10n?.statusBookReceived ?? 'Buku Diterima';
+      case BorrowStatus.returnedGood: return l10n?.statusReturnedGood ?? 'Dikembalikan Baik';
+      case BorrowStatus.returnedDamaged: return l10n?.statusReturnedDamaged ?? 'Dikembalikan Rusak';
+      case BorrowStatus.completed: return l10n?.statusCompleted ?? 'Selesai';
+      case BorrowStatus.cancelled: return l10n?.statusCancelled ?? 'Dibatalkan/Ditolak';
     }
   }
 

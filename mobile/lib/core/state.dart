@@ -56,12 +56,21 @@ class RuangBukuState extends ChangeNotifier {
   List<BorrowModel> _ownerBorrowings = [];
   final List<NotificationModel> _notifications = [];
   bool _isLoading = false;
+  
+  Locale _currentLocale = const Locale('id');
 
   RuangBukuState._() {
     _seedMockNotifications();
     fetchGenres();
     fetchBooks();
     fetchBorrowings();
+  }
+
+  Locale get currentLocale => _currentLocale;
+
+  void setLocale(Locale newLocale) {
+    _currentLocale = newLocale;
+    notifyListeners();
   }
 
   UserRole get currentRole => _currentRole;

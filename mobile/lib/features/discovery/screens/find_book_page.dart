@@ -7,6 +7,7 @@ import '../../auth/domain/auth_notifier.dart';
 import '../../notifications/screens/notification_page.dart';
 import '../../profile/screens/profile_page.dart';
 import '../widgets/book_grid_card.dart';
+import '../../../l10n/app_localizations.dart';
 
 class FindBookPage extends StatefulWidget {
   const FindBookPage({super.key});
@@ -113,6 +114,7 @@ class _FindBookPageState extends State<FindBookPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
+    final l10n = AppLocalizations.of(context);
 
     return ListenableBuilder(
       listenable: RuangBukuState.instance,
@@ -218,6 +220,7 @@ class _FindBookPageState extends State<FindBookPage> {
                   children: [
                     AppSearchField(
                       controller: _searchController,
+                      hintText: l10n?.searchBooks ?? 'Search books or neighbors...',
                       onChanged: (val) => setState(() => _searchQuery = val),
                       onClear: () {
                         _searchController.clear();
@@ -234,7 +237,7 @@ class _FindBookPageState extends State<FindBookPage> {
                       child: Row(
                         children: [
                           AppFilterChip(
-                            label: 'All Categories',
+                            label: l10n?.allCategories ?? 'All Categories',
                             isSelected:
                                 !_filterAvailableOnly && !_filterWithin5km && _selectedGenres.isEmpty,
                             onTap: () => setState(() {
@@ -245,14 +248,14 @@ class _FindBookPageState extends State<FindBookPage> {
                           ),
                           const SizedBox(width: RuangBukuSpacing.sm),
                           AppFilterChip(
-                            label: 'Available Now',
+                            label: l10n?.availableNow ?? 'Available Now',
                             isSelected: _filterAvailableOnly,
                             onTap: () => setState(() =>
                                 _filterAvailableOnly = !_filterAvailableOnly),
                           ),
                           const SizedBox(width: RuangBukuSpacing.sm),
                           AppFilterChip(
-                            label: 'Within 5km',
+                            label: l10n?.within5km ?? 'Within 5km',
                             isSelected: _filterWithin5km,
                             onTap: () => setState(
                                 () => _filterWithin5km = !_filterWithin5km),
@@ -264,7 +267,7 @@ class _FindBookPageState extends State<FindBookPage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('${filteredBooks.length} Books Found',
+                        Text(l10n?.booksFound(filteredBooks.length.toString()) ?? '${filteredBooks.length} Books Found',
                             style: textTheme.headlineSmall),
                         PopupMenuButton<String>(
                           onSelected: (value) {
@@ -275,20 +278,22 @@ class _FindBookPageState extends State<FindBookPage> {
                           child: Row(
                             children: [
                               Text(
-                                _sortOption == 'distance' ? 'Sort by Distance' : 'Sort by Title',
+                                _sortOption == 'distance' 
+                                  ? (l10n?.sortDistance ?? 'Sort by Distance') 
+                                  : 'Sort by Title',
                                 style: textTheme.labelLarge,
                               ),
                               const Icon(Icons.keyboard_arrow_down, size: 20),
                             ],
                           ),
                           itemBuilder: (context) => [
-                            const PopupMenuItem(
+                            PopupMenuItem(
                               value: 'distance',
-                              child: Text('Distance (Nearest)'),
+                              child: Text(l10n?.sortDistance ?? 'Sort by Distance'),
                             ),
                             const PopupMenuItem(
                               value: 'title',
-                              child: Text('Title (A-Z)'),
+                              child: Text('Sort by Title'),
                             ),
                           ],
                         ),
@@ -311,7 +316,7 @@ class _FindBookPageState extends State<FindBookPage> {
                               const SizedBox(height: RuangBukuSpacing.huge),
                               Center(
                                 child: Text(
-                                  'No books found matching the filters.',
+                                  l10n?.noBooksFound(_searchQuery) ?? 'No books found matching the filters.',
                                   style: textTheme.bodyLarge?.copyWith(
                                       color: RuangBukuColors.textSecondary),
                                 ),

@@ -1,9 +1,7 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import '../../../core/state.dart';
-import '../../../core/storage/storage_repository.dart';
 import '../../../core/theme.dart';
+import '../../../core/widgets/image_picker_helper.dart';
 
 /// Lets the borrower choose camera or gallery, pick/take an image, upload it to
 /// MinIO, then attach the returned URL to the borrow as the deposit proof.
@@ -13,25 +11,11 @@ Future<bool> pickAndUploadDepositProof(
   String borrowId,
 ) async {
   final messenger = ScaffoldMessenger.of(context);
-  final picker = ImagePicker();
-
-  final source = await _chooseImageSource(context);
-  if (source == null) return false;
-
-  final XFile? picked = await picker.pickImage(
-    source: source,
-    imageQuality: 85,
-    maxWidth: 1600,
-  );
-  if (picked == null) return false;
-
-  messenger.showSnackBar(
-    const SnackBar(content: Text('Mengunggah bukti deposit...')),
-  );
 
   try {
-    final url = await StorageRepository.instance
-        .uploadFile(File(picked.path), folder: 'deposits');
+    final url = await pickAndUploadImage(context, folder: 'deposits');
+    if (url == null) return false;
+
     await RuangBukuState.instance.uploadProofOfDeposit(borrowId, url);
     messenger.showSnackBar(
       const SnackBar(content: Text('Bukti deposit terkirim, menunggu konfirmasi admin.')),
@@ -41,32 +25,6 @@ Future<bool> pickAndUploadDepositProof(
     messenger.showSnackBar(SnackBar(content: Text('Gagal mengunggah: $e')));
     return false;
   }
-}
-
-/// Bottom sheet asking the user to take a photo or pick from the gallery.
-Future<ImageSource?> _chooseImageSource(BuildContext context) {
-  return showModalBottomSheet<ImageSource>(
-    context: context,
-    builder: (context) {
-      return SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.photo_camera_outlined),
-              title: const Text('Ambil Foto'),
-              onTap: () => Navigator.pop(context, ImageSource.camera),
-            ),
-            ListTile(
-              leading: const Icon(Icons.photo_library_outlined),
-              title: const Text('Pilih dari Galeri'),
-              onTap: () => Navigator.pop(context, ImageSource.gallery),
-            ),
-          ],
-        ),
-      );
-    },
-  );
 }
 
 /// Full-screen viewer for an uploaded deposit proof image. Usable by both the

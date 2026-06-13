@@ -29,15 +29,16 @@ class ProfileHeader extends StatelessWidget {
     final email = user?.email ?? '—';
     final roleName = user?.primaryRoleName;
     final avatarSeed = user?.id ?? 'guest';
+    final avatarUrl = (user?.avatarUrl?.isNotEmpty ?? false)
+        ? user!.avatarUrl!
+        : 'https://picsum.photos/seed/$avatarSeed/100/100';
 
     return Center(
       child: Column(
         children: [
           CircleAvatar(
             radius: 48,
-            backgroundImage: NetworkImage(
-              'https://picsum.photos/seed/$avatarSeed/100/100',
-            ),
+            backgroundImage: NetworkImage(avatarUrl),
           ),
           const SizedBox(height: RuangBukuSpacing.lg),
           Text(name, style: textTheme.headlineSmall),

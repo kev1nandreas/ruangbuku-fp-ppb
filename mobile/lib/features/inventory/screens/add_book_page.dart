@@ -3,6 +3,7 @@ import '../../../core/theme.dart';
 import '../../../core/state.dart';
 import '../../discovery/domain/book_notifier.dart';
 import '../../../core/widgets/bottom_action_bar.dart';
+import '../../../core/widgets/image_picker_helper.dart';
 import '../widgets/condition_dropdown.dart';
 import '../widgets/lending_permission_switch.dart';
 
@@ -23,6 +24,8 @@ class _AddBookPageState extends State<AddBookPage> {
   
   String _condition = 'Like New';
   bool _isAvailableForLending = true;
+  String? _coverImageUrl;
+  bool _isUploadingCover = false;
 
   @override
   void dispose() {
@@ -66,6 +69,24 @@ class _AddBookPageState extends State<AddBookPage> {
     }
   }
 
+  void _pickCover() async {
+    setState(() => _isUploadingCover = true);
+    try {
+      final url = await pickAndUploadImage(context, folder: 'covers');
+      if (url != null && mounted) {
+        setState(() => _coverImageUrl = url);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal mengunggah sampul: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isUploadingCover = false);
+    }
+  }
+
   void _submitBook() async {
     final isbn = _isbnController.text.trim();
     final title = _titleController.text.trim();
@@ -89,6 +110,7 @@ class _AddBookPageState extends State<AddBookPage> {
         description,
         _condition,
         _isAvailableForLending,
+        coverImageUrl: _coverImageUrl,
       );
 
       if (mounted) {
@@ -173,6 +195,18 @@ class _AddBookPageState extends State<AddBookPage> {
             const SizedBox(height: RuangBukuSpacing.xl),
 
             Text(
+              'Cover Photo',
+              style: textTheme.titleLarge,
+            ),
+            const SizedBox(height: RuangBukuSpacing.md),
+            _CoverPicker(
+              imageUrl: _coverImageUrl,
+              isUploading: _isUploadingCover,
+              onTap: _isUploadingCover ? null : _pickCover,
+            ),
+            const SizedBox(height: RuangBukuSpacing.xl),
+
+            Text(
               'Book Details',
               style: textTheme.titleLarge,
             ),
@@ -230,6 +264,70 @@ class _AddBookPageState extends State<AddBookPage> {
           onPressed: _submitBook,
           child: const Text('Add Book to Library'),
         ),
+      ),
+    );
+  }
+}
+
+/// Tappable cover-photo box: shows a placeholder when empty, a spinner while
+/// uploading, and the uploaded image (with an edit hint) once set.
+class _CoverPicker extends StatelessWidget {
+  const _CoverPicker({
+    required this.imageUrl,
+    required this.isUploading,
+    required this.onTap,
+  });
+
+  final String? imageUrl;
+  final bool isUploading;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: 180,
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: RuangBukuColors.surfaceContainerLow,
+          borderRadius: RuangBukuRadius.borderRadiusLg,
+          border: Border.all(color: RuangBukuColors.outlineVariant),
+          image: (imageUrl != null && !isUploading)
+              ? DecorationImage(
+                  image: NetworkImage(imageUrl!),
+                  fit: BoxFit.cover,
+                )
+              : null,
+        ),
+        child: isUploading
+            ? const Center(child: CircularProgressIndicator())
+            : imageUrl == null
+                ? const Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.add_a_photo_outlined,
+                          size: 36, color: RuangBukuColors.primary),
+                      SizedBox(height: RuangBukuSpacing.sm),
+                      Text('Tambah foto sampul'),
+                    ],
+                  )
+                : Align(
+                    alignment: Alignment.bottomRight,
+                    child: Container(
+                      margin: const EdgeInsets.all(RuangBukuSpacing.sm),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.black54,
+                        borderRadius: RuangBukuRadius.borderRadiusSm,
+                      ),
+                      child: const Text(
+                        'Ubah',
+                        style: TextStyle(color: Colors.white, fontSize: 12),
+                      ),
+                    ),
+                  ),
       ),
     );
   }

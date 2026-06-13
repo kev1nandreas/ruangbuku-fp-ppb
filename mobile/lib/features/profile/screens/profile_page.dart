@@ -7,6 +7,9 @@ import '../widgets/profile_stats_row.dart';
 import '../widgets/profile_menu_tile.dart';
 import '../widgets/logout_dialog.dart';
 import 'payment_page.dart';
+import 'edit_profile_page.dart';
+import 'help_support_page.dart';
+import '../../borrowing/screens/borrowing_list_page.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -119,7 +122,12 @@ class _ProfilePageState extends State<ProfilePage> {
                   ProfileMenuTile(
                     icon: Icons.person_outline,
                     title: 'Edit Profile',
-                    onTap: () {},
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const EditProfilePage(),
+                      ),
+                    ),
                   ),
                   const Divider(height: 1),
                   ProfileMenuTile(
@@ -138,13 +146,23 @@ class _ProfilePageState extends State<ProfilePage> {
                   ProfileMenuTile(
                     icon: Icons.history,
                     title: 'Borrowing History',
-                    onTap: () {},
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const BorrowingListPage(),
+                      ),
+                    ),
                   ),
                   const Divider(height: 1),
                   ProfileMenuTile(
                     icon: Icons.help_outline,
                     title: 'Help & Support',
-                    onTap: () {},
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const HelpSupportPage(),
+                      ),
+                    ),
                   ),
 
                   const SizedBox(height: RuangBukuSpacing.xxl),

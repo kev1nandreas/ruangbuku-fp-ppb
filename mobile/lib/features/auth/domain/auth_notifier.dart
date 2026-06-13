@@ -121,6 +121,28 @@ class AuthNotifier extends ChangeNotifier {
     }
   }
 
+  /// Updates the profile (name and/or avatar) and refreshes the cached user.
+  /// Returns true on success.
+  Future<bool> updateProfile({String? name, String? avatarUrl}) async {
+    _isProfileLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      _user = await _repository.updateProfile(name: name, avatarUrl: avatarUrl);
+      return true;
+    } on ApiException catch (e) {
+      _errorMessage = e.message;
+      return false;
+    } catch (_) {
+      _errorMessage = 'Gagal memperbarui profil.';
+      return false;
+    } finally {
+      _isProfileLoading = false;
+      notifyListeners();
+    }
+  }
+
   Future<void> logout() async {
     // Unregister the device while the auth token is still valid, so the
     // backend stops pushing to this device for the signed-out user.

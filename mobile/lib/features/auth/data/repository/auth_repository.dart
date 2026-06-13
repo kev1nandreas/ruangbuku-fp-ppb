@@ -50,6 +50,20 @@ class AuthRepository {
     return UserModel.fromJson(data['data'] as Map<String, dynamic>);
   }
 
+  /// Updates the authenticated user's profile (name and/or avatar URL).
+  Future<UserModel> updateProfile({String? name, String? avatarUrl}) async {
+    final token = await _storage.getToken();
+    final data = await _api.put(
+      ApiConstants.profile,
+      {
+        if (name != null) 'name': name,
+        if (avatarUrl != null) 'avatar_url': avatarUrl,
+      },
+      bearerToken: token,
+    );
+    return UserModel.fromJson(data['data'] as Map<String, dynamic>);
+  }
+
   Future<void> logout() async {
     final token = await _storage.getToken();
 

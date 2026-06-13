@@ -7,6 +7,7 @@ class ApiConstants {
   static const String login = '/login';
   static const String register = '/register';
   static const String me = '/me';
+  static const String profile = '/profile';
   static const String logout = '/logout';
   static const String deviceToken = '/device-token';
   static const String notifications = '/notifications';

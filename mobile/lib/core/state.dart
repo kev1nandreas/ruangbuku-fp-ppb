@@ -159,7 +159,8 @@ class RuangBukuState extends ChangeNotifier {
 
   // F-01: Book Registration
   Future<void> addBook(String isbn, String title, String author,
-      String description, String condition, bool isPublic) async {
+      String description, String condition, bool isPublic,
+      {String? coverImageUrl}) async {
     try {
       await _bookNotifier.createBook({
         'isbn': isbn,
@@ -168,6 +169,8 @@ class RuangBukuState extends ChangeNotifier {
         'description': description,
         'isPublic': isPublic,
         'condition': condition,
+        if (coverImageUrl != null && coverImageUrl.isNotEmpty)
+          'coverImageUrl': coverImageUrl,
       });
       await fetchBooks();
     } catch (e) {

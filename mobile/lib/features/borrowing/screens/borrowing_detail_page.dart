@@ -2,6 +2,11 @@ import 'package:flutter/material.dart';
 import '../../../core/theme.dart';
 import '../../../core/state.dart';
 import '../../../core/widgets/app_card.dart';
+import '../../auth/domain/auth_notifier.dart';
+import '../../notifications/widgets/dispute_resolution_dialog.dart';
+import '../widgets/borrow_progress_timeline.dart';
+import '../widgets/return_inspection_dialog.dart';
+import '../widgets/deposit_proof.dart';
 
 class BorrowingDetailPage extends StatelessWidget {
   final String borrowingId;
@@ -130,6 +135,16 @@ class BorrowingDetailPage extends StatelessWidget {
                   ),
                 ),
                 
+                const SizedBox(height: RuangBukuSpacing.xl),
+
+                // Lifecycle progress timeline.
+                Text('Progres Peminjaman', style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                const SizedBox(height: RuangBukuSpacing.md),
+                AppCard(
+                  padding: const EdgeInsets.all(RuangBukuSpacing.md),
+                  child: BorrowProgressTimeline(status: b.status),
+                ),
+
                 // If there's a damage report
                 if (b.damageReport != null) ...[
                   const SizedBox(height: RuangBukuSpacing.xl),
@@ -143,18 +158,241 @@ class BorrowingDetailPage extends StatelessWidget {
                         Text('Deskripsi: ${b.damageReport!.description}', style: textTheme.bodyMedium),
                         const SizedBox(height: RuangBukuSpacing.sm),
                         if (b.damageReport!.deductionAmount > 0)
-                          Text('Potongan Deposit: Rp ${b.damageReport!.deductionAmount.toStringAsFixed(0)}', 
+                          Text('Potongan Deposit: Rp ${b.damageReport!.deductionAmount.toStringAsFixed(0)}',
                             style: textTheme.bodyMedium?.copyWith(color: RuangBukuColors.error, fontWeight: FontWeight.bold)),
                       ],
                     ),
                   ),
                 ],
+
+                // Borrower lifecycle actions (upload deposit / confirm receipt).
+                ..._buildBorrowerActions(context, b),
+
+                // Owner lifecycle actions (confirm return / report damage).
+                ..._buildOwnerActions(context, b),
+
+                // Admin-only settlement actions (deposit + dispute).
+                ..._buildAdminActions(context, b),
               ],
             ),
           ),
         );
       },
     );
+  }
+
+  /// Borrower controls: upload the deposit proof after approval, then confirm
+  /// the book was handed over. Shown only to the borrower of this borrow.
+  List<Widget> _buildBorrowerActions(BuildContext context, BorrowModel b) {
+    final currentUserId = AuthNotifier.instance.user?.id ?? '';
+    if (b.borrowerId != currentUserId) return const [];
+
+    final state = RuangBukuState.instance;
+    final textTheme = Theme.of(context).textTheme;
+
+    Future<void> run(Future<void> Function() action, String okMsg) async {
+      final messenger = ScaffoldMessenger.of(context);
+      try {
+        await action();
+        messenger.showSnackBar(SnackBar(content: Text(okMsg)));
+      } catch (e) {
+        messenger.showSnackBar(SnackBar(content: Text('Gagal: $e')));
+      }
+    }
+
+    String message;
+    Widget control;
+    switch (b.status) {
+      case BorrowStatus.requested:
+        message = 'Menunggu persetujuan pemilik buku.';
+        control = const OutlinedButton(
+            onPressed: null, child: Text('Menunggu Konfirmasi'));
+        break;
+      case BorrowStatus.waitingDeposit:
+        message = 'Disetujui! Unggah bukti deposit untuk melanjutkan.';
+        control = FilledButton.icon(
+          icon: const Icon(Icons.upload_file_outlined),
+          onPressed: () => pickAndUploadDepositProof(context, b.id),
+          label: const Text('Unggah Bukti Deposit (Rp 50.000)'),
+        );
+        break;
+      case BorrowStatus.depositUploaded:
+        message = 'Bukti deposit terkirim.';
+        control = Column(
+          children: [
+            if (b.paymentProofUrl != null && b.paymentProofUrl!.isNotEmpty)
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  icon: const Icon(Icons.receipt_long_outlined),
+                  onPressed: () =>
+                      showDepositProofViewer(context, b.paymentProofUrl!),
+                  label: const Text('Lihat Bukti Deposit'),
+                ),
+              ),
+            const SizedBox(height: RuangBukuSpacing.sm),
+            const OutlinedButton(
+                onPressed: null, child: Text('Menunggu Verifikasi Admin')),
+          ],
+        );
+        break;
+      case BorrowStatus.depositVerified:
+        message = 'Deposit terverifikasi. Ambil buku, lalu konfirmasi.';
+        control = FilledButton.icon(
+          icon: const Icon(Icons.check_circle_outline),
+          onPressed: () => run(
+            () => state.confirmBookReceived(b.id),
+            'Buku dikonfirmasi diterima.',
+          ),
+          label: const Text('Konfirmasi Buku Diterima'),
+        );
+        break;
+      case BorrowStatus.bookReceived:
+        message =
+            'Anda memegang buku ini. Koordinasi pengembalian dengan pemilik.';
+        control =
+            const OutlinedButton(onPressed: null, child: Text('Sedang Dipinjam'));
+        break;
+      case BorrowStatus.returnedGood:
+        message = 'Buku dikembalikan baik. Menunggu pengembalian deposit.';
+        control = const OutlinedButton(
+            onPressed: null, child: Text('Menunggu Pengembalian Deposit'));
+        break;
+      case BorrowStatus.returnedDamaged:
+        message = 'Dilaporkan rusak. Menunggu penyelesaian admin.';
+        control = const OutlinedButton(
+            onPressed: null, child: Text('Sengketa Dibuka'));
+        break;
+      case BorrowStatus.completed:
+      case BorrowStatus.cancelled:
+        return const [];
+    }
+
+    return [
+      const SizedBox(height: RuangBukuSpacing.xl),
+      Text('Tindakan Peminjam',
+          style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+      const SizedBox(height: RuangBukuSpacing.sm),
+      Text(message,
+          style: textTheme.bodySmall
+              ?.copyWith(color: RuangBukuColors.textSecondary)),
+      const SizedBox(height: RuangBukuSpacing.md),
+      SizedBox(width: double.infinity, child: control),
+    ];
+  }
+
+  /// Owner controls for the in-hand stage: confirm a clean return or report
+  /// damage. Both backend routes (`confirm-return`, `report-damage`) are
+  /// owner-gated, so this is shown only when the user views as the lender.
+  List<Widget> _buildOwnerActions(BuildContext context, BorrowModel b) {
+    final state = RuangBukuState.instance;
+    final isOwnerView = state.currentRole == UserRole.lender;
+    if (!isOwnerView || b.status != BorrowStatus.bookReceived) return const [];
+
+    final textTheme = Theme.of(context).textTheme;
+
+    return [
+      const SizedBox(height: RuangBukuSpacing.xl),
+      Text('Tindakan Pemilik',
+          style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+      const SizedBox(height: RuangBukuSpacing.sm),
+      Text(
+        'Peminjam sedang memegang buku. Saat dikembalikan, konfirmasi kondisinya.',
+        style: textTheme.bodySmall?.copyWith(color: RuangBukuColors.textSecondary),
+      ),
+      const SizedBox(height: RuangBukuSpacing.md),
+      SizedBox(
+        width: double.infinity,
+        child: FilledButton.icon(
+          icon: const Icon(Icons.fact_check_outlined),
+          onPressed: () => showReturnInspectionDialog(context, b),
+          label: const Text('Konfirmasi Pengembalian'),
+        ),
+      ),
+    ];
+  }
+
+  /// Admin controls for deposit confirmation and dispute settlement.
+  /// Gated by the real account role (`admin`), not the UI role toggle, since
+  /// the backend protects these routes with `role:admin`.
+  List<Widget> _buildAdminActions(BuildContext context, BorrowModel b) {
+    final isAdmin = AuthNotifier.instance.user?.primaryRoleName == 'admin';
+    if (!isAdmin) return const [];
+
+    final state = RuangBukuState.instance;
+    final textTheme = Theme.of(context).textTheme;
+
+    Future<void> run(Future<void> Function() action, String okMsg) async {
+      final messenger = ScaffoldMessenger.of(context);
+      try {
+        await action();
+        messenger.showSnackBar(SnackBar(content: Text(okMsg)));
+      } catch (e) {
+        messenger.showSnackBar(SnackBar(content: Text('Gagal: $e')));
+      }
+    }
+
+    Widget? control;
+    switch (b.status) {
+      case BorrowStatus.depositUploaded:
+        control = Column(
+          children: [
+            if (b.paymentProofUrl != null && b.paymentProofUrl!.isNotEmpty)
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  icon: const Icon(Icons.receipt_long_outlined),
+                  onPressed: () =>
+                      showDepositProofViewer(context, b.paymentProofUrl!),
+                  label: const Text('Lihat Bukti Deposit'),
+                ),
+              ),
+            const SizedBox(height: RuangBukuSpacing.sm),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                icon: const Icon(Icons.verified_outlined),
+                onPressed: () => run(
+                  () => state.verifyDepositPayment(b.id, true),
+                  'Deposit dikonfirmasi.',
+                ),
+                label: const Text('Konfirmasi Deposit'),
+              ),
+            ),
+          ],
+        );
+        break;
+      case BorrowStatus.returnedGood:
+        control = FilledButton.icon(
+          icon: const Icon(Icons.assignment_return_outlined),
+          onPressed: () => run(
+            () => state.returnDeposit(b.id),
+            'Deposit dikembalikan ke peminjam.',
+          ),
+          label: const Text('Kembalikan Deposit ke Peminjam'),
+        );
+        break;
+      case BorrowStatus.returnedDamaged:
+        control = FilledButton.icon(
+          style: FilledButton.styleFrom(backgroundColor: RuangBukuColors.error),
+          icon: const Icon(Icons.gavel_outlined),
+          onPressed: () => showDisputeResolutionDialog(context, b),
+          label: const Text('Selesaikan Sengketa Kerusakan'),
+        );
+        break;
+      default:
+        control = null;
+    }
+
+    if (control == null) return const [];
+
+    return [
+      const SizedBox(height: RuangBukuSpacing.xl),
+      Text('Tindakan Admin',
+          style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+      const SizedBox(height: RuangBukuSpacing.md),
+      SizedBox(width: double.infinity, child: control),
+    ];
   }
 
   Widget _buildDetailRow(BuildContext context, {required String label, required String value, required IconData icon}) {

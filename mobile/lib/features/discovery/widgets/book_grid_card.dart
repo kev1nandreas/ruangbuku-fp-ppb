@@ -23,6 +23,19 @@ class BookGridCard extends StatelessWidget {
   final String imageUrl;
   final bool isAvailable;
 
+  Widget _coverFallback() {
+    return const ColoredBox(
+      color: RuangBukuColors.surfaceContainerHigh,
+      child: Center(
+        child: Icon(
+          Icons.menu_book_outlined,
+          size: 40,
+          color: RuangBukuColors.textSecondary,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -59,7 +72,28 @@ class BookGridCard extends StatelessWidget {
                     borderRadius: const BorderRadius.vertical(
                       top: Radius.circular(16),
                     ),
-                    child: Image.network(imageUrl, fit: BoxFit.cover),
+                    child: (imageUrl.isEmpty)
+                        ? _coverFallback()
+                        : Image.network(
+                            imageUrl,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stack) =>
+                                _coverFallback(),
+                            loadingBuilder: (context, child, progress) {
+                              if (progress == null) return child;
+                              return const ColoredBox(
+                                color: RuangBukuColors.surfaceContainerHigh,
+                                child: Center(
+                                  child: SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: CircularProgressIndicator(
+                                        strokeWidth: 2),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
                   ),
                   Positioned(
                     top: RuangBukuSpacing.sm,

@@ -48,6 +48,10 @@ class RuangBukuState extends ChangeNotifier {
   UserRole _currentRole = UserRole.borrower;
   List<BookModel> _books = [];
   List<BorrowModel> _borrowings = [];
+  // Borrows on books this user OWNS (incoming side), fetched independently of
+  // the role toggle: any user can own a book and must be able to accept/reject
+  // requests on it regardless of which role view is active.
+  List<BorrowModel> _ownerBorrowings = [];
   final List<NotificationModel> _notifications = [];
   bool _isLoading = false;
 
@@ -60,6 +64,12 @@ class RuangBukuState extends ChangeNotifier {
   UserRole get currentRole => _currentRole;
   List<BookModel> get books => _books;
   List<BorrowModel> get borrowings => _borrowings;
+  List<BorrowModel> get ownerBorrowings => _ownerBorrowings;
+
+  /// Incoming requests awaiting this owner's approval.
+  List<BorrowModel> get incomingRequests => _ownerBorrowings
+      .where((b) => b.status == BorrowStatus.requested)
+      .toList();
   List<NotificationModel> get notifications {
     final dynamicNotifs = <NotificationModel>[];
 
@@ -126,9 +136,19 @@ class RuangBukuState extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
     try {
+      // Borrows where this user is the borrower (or, for admins, all borrows).
       _borrowings = await _borrowNotifier.fetchBorrowings(
         asOwner: _currentRole == UserRole.lender,
       );
+      // Always refresh the owner-side list too, independent of the role
+      // toggle, so incoming requests on owned books are never hidden.
+      // Admins already get every borrow above, so skip the extra call.
+      if (_currentRole != UserRole.admin) {
+        _ownerBorrowings =
+            await _borrowNotifier.fetchBorrowings(asOwner: true);
+      } else {
+        _ownerBorrowings = _borrowings;
+      }
     } catch (e) {
       debugPrint('Error fetching borrowings: $e');
     } finally {
@@ -198,11 +218,11 @@ class RuangBukuState extends ChangeNotifier {
     }
   }
 
-  // Borrower uploads payment proof
-  Future<void> uploadProofOfDeposit(String borrowId) async {
+  // Borrower uploads payment proof. [proofUrl] is the public MinIO URL returned
+  // by StorageRepository after the image has been uploaded.
+  Future<void> uploadProofOfDeposit(String borrowId, String proofUrl) async {
     try {
-      // Hardcode a mock proof URL for now since real file upload isn't hooked to UI
-      await _borrowNotifier.uploadDepositProof(borrowId, 'https://picsum.photos/seed/receipt/400/600');
+      await _borrowNotifier.uploadDepositProof(borrowId, proofUrl);
       await fetchBorrowings();
     } catch (e) {
       debugPrint('Error uploading deposit proof: $e');
@@ -210,14 +230,18 @@ class RuangBukuState extends ChangeNotifier {
     }
   }
 
-  // Admin verifies payment
-  void verifyDepositPayment(String borrowId, bool isValid) {
-    // Requires backend implementation
-    final index = _borrowings.indexWhere((b) => b.id == borrowId);
-    if (index != -1) {
-      final borrowing = _borrowings[index];
-      borrowing.status = isValid ? BorrowStatus.depositVerified : BorrowStatus.waitingDeposit;
-      notifyListeners();
+  // Admin verifies payment (confirm-deposit route, admin only)
+  Future<void> verifyDepositPayment(String borrowId, bool isValid) async {
+    try {
+      // Backend only supports confirming a submitted deposit. Rejecting is a
+      // no-op (the borrower can re-submit while status stays waiting_deposit).
+      if (isValid) {
+        await _borrowNotifier.confirmDeposit(borrowId);
+      }
+      await fetchBorrowings();
+    } catch (e) {
+      debugPrint('Error confirming deposit: $e');
+      rethrow;
     }
   }
 
@@ -251,14 +275,33 @@ class RuangBukuState extends ChangeNotifier {
     }
   }
 
-  // Admin resolves refund or dispute
-  void resolveRefundOrDispute(String borrowId, {double deduction = 0.0, String note = ''}) {
-    // Requires backend implementation
-    final index = _borrowings.indexWhere((b) => b.id == borrowId);
-    if (index != -1) {
-      final borrowing = _borrowings[index];
-      borrowing.status = BorrowStatus.completed;
-      notifyListeners();
+  // Admin returns deposit to borrower for a cleanly-returned book
+  // (return-deposit route, admin only).
+  Future<void> returnDeposit(String borrowId, {String? note, String? proofUrl}) async {
+    try {
+      await _borrowNotifier.returnDeposit(borrowId, note: note, proofUrl: proofUrl);
+      await fetchBorrowings();
+    } catch (e) {
+      debugPrint('Error returning deposit: $e');
+      rethrow;
+    }
+  }
+
+  // Admin settles a damage dispute (resolve-damage route, admin only).
+  // [toOwner] true => deposit goes to owner, false => back to borrower.
+  Future<void> resolveDamage(String borrowId,
+      {required bool toOwner, required String note, String? proofUrl}) async {
+    try {
+      await _borrowNotifier.resolveDamage(
+        borrowId,
+        resolution: toOwner ? 'owner' : 'borrower',
+        note: note,
+        proofUrl: proofUrl,
+      );
+      await fetchBorrowings();
+    } catch (e) {
+      debugPrint('Error resolving damage: $e');
+      rethrow;
     }
   }
 

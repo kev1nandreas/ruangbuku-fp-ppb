@@ -93,7 +93,49 @@ class BorrowRepository {
     final token = await _storage.getToken();
     await _api.post(
       '/peminjaman/$id/report-damage',
-      {'description': description, 'photos': photoUrls},
+      {'damage_description': description, 'damage_photos': photoUrls},
+      bearerToken: token,
+    );
+  }
+
+  // --- admin actions ---------------------------------------------------
+
+  /// Admin confirms the borrower's submitted deposit proof.
+  Future<void> confirmDeposit(String id) async {
+    final token = await _storage.getToken();
+    await _api.post('/peminjaman/$id/confirm-deposit', const {}, bearerToken: token);
+  }
+
+  /// Admin returns the deposit to the borrower for a cleanly-returned book.
+  Future<void> returnDeposit(String id,
+      {String? proofUrl, String? note}) async {
+    final token = await _storage.getToken();
+    await _api.post(
+      '/peminjaman/$id/return-deposit',
+      {
+        if (proofUrl != null && proofUrl.isNotEmpty) 'deposit_proof_url': proofUrl,
+        if (note != null && note.isNotEmpty) 'resolution_note': note,
+      },
+      bearerToken: token,
+    );
+  }
+
+  /// Admin settles a damage dispute, sending the deposit to [resolution]
+  /// ('borrower' or 'owner').
+  Future<void> resolveDamage(
+    String id, {
+    required String resolution,
+    required String note,
+    String? proofUrl,
+  }) async {
+    final token = await _storage.getToken();
+    await _api.post(
+      '/peminjaman/$id/resolve-damage',
+      {
+        'resolution': resolution,
+        'resolution_note': note,
+        if (proofUrl != null && proofUrl.isNotEmpty) 'deposit_proof_url': proofUrl,
+      },
       bearerToken: token,
     );
   }

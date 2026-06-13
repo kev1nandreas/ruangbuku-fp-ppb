@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import '../../../core/theme.dart';
 import '../../../core/state.dart';
 import '../screens/request_borrow_page.dart';
-import 'return_inspection_dialog.dart';
 import '../../auth/domain/auth_notifier.dart';
+import 'deposit_proof.dart';
 
 /// Contextual call-to-action shown in the borrower book detail bottom sheet.
 /// Renders the right control for the current borrowing lifecycle state.
@@ -41,6 +41,8 @@ class BorrowActionSection extends StatelessWidget {
     }
 
     if (borrowing == null) {
+      // This book already has an active borrow by someone (incl. current user
+      // via a different status not caught above) — block requesting it.
       final isAlreadyBorrowed = state.borrowings.any((b) =>
           b.bookId == book.id &&
           b.status != BorrowStatus.completed &&
@@ -50,6 +52,24 @@ class BorrowActionSection extends StatelessWidget {
         return const OutlinedButton(
           onPressed: null,
           child: Text('Book Currently on Loan'),
+        );
+      }
+
+      // Backend rule: a user may hold only one active borrow at a time. Reflect
+      // that here so the user can't spam requests only to get a 422.
+      final hasActiveElsewhere = state.borrowings.any((b) =>
+          b.borrowerId == currentUserId &&
+          b.status != BorrowStatus.completed &&
+          b.status != BorrowStatus.cancelled);
+
+      if (hasActiveElsewhere) {
+        return _statusColumn(
+          message: 'Finish your active borrowing before requesting another.',
+          messageColor: RuangBukuColors.textSecondary,
+          action: const OutlinedButton(
+            onPressed: null,
+            child: Text('Borrow Book'),
+          ),
         );
       }
 
@@ -74,21 +94,31 @@ class BorrowActionSection extends StatelessWidget {
         return _statusColumn(
           message: 'Lender approved! Please pay the deposit.',
           action: FilledButton(
-            onPressed: () {
-              state.uploadProofOfDeposit(borrowing!.id);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                    content: Text(
-                        'Deposit receipt uploaded successfully (F-02)!')),
-              );
-            },
+            onPressed: () => pickAndUploadDepositProof(context, borrowing!.id),
             child: const Text('Upload Deposit Proof (Rp. 50,000)'),
           ),
         );
       case BorrowStatus.depositUploaded:
-        return const OutlinedButton(
-          onPressed: null,
-          child: Text('Waiting for Admin Verification'),
+        return _statusColumn(
+          message: 'Deposit proof submitted.',
+          action: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (borrowing!.paymentProofUrl != null &&
+                  borrowing!.paymentProofUrl!.isNotEmpty)
+                OutlinedButton.icon(
+                  icon: const Icon(Icons.receipt_long_outlined),
+                  onPressed: () => showDepositProofViewer(
+                      context, borrowing!.paymentProofUrl!),
+                  label: const Text('View Deposit Proof'),
+                ),
+              const SizedBox(height: 8),
+              const OutlinedButton(
+                onPressed: null,
+                child: Text('Waiting for Admin Verification'),
+              ),
+            ],
+          ),
         );
       case BorrowStatus.depositVerified:
         return _statusColumn(
@@ -107,10 +137,11 @@ class BorrowActionSection extends StatelessWidget {
         );
       case BorrowStatus.bookReceived:
         return _statusColumn(
-          message: 'You have this book. Coordinate via WA to return.',
-          action: FilledButton(
-            onPressed: () => showReturnInspectionDialog(context, borrowing!),
-            child: const Text('Return Book'),
+          message:
+              'You have this book. Coordinate the return; the owner confirms its condition.',
+          action: const OutlinedButton(
+            onPressed: null,
+            child: Text('On Loan'),
           ),
         );
       case BorrowStatus.returnedGood:

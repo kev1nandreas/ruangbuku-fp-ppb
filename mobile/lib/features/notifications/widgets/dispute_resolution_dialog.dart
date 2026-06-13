@@ -2,73 +2,108 @@ import 'package:flutter/material.dart';
 import '../../../core/theme.dart';
 import '../../../core/state.dart';
 
-/// Admin dialog to resolve a damage dispute by setting a deduction amount and a
-/// decision note, then refunding the remaining deposit.
+/// Admin dialog to settle a damage dispute (resolve-damage route).
+/// The admin reviews the reported damage and decides whether the deposit goes
+/// back to the borrower or to the owner as compensation.
 Future<void> showDisputeResolutionDialog(
   BuildContext context,
   BorrowModel borrowing,
 ) {
-  final fineController = TextEditingController(text: '15000');
   final noteController =
       TextEditingController(text: 'Biaya perbaikan halaman robek');
   final state = RuangBukuState.instance;
+  bool depositToOwner = true;
 
   return showDialog(
     context: context,
     builder: (context) {
-      return AlertDialog(
-        title: const Text('Resolve Damage Dispute'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Book: ${borrowing.bookTitle}',
-                style: const TextStyle(fontWeight: FontWeight.bold)),
-            Text('Borrower: ${borrowing.borrowerName}'),
-            Text(
-                'Reported Damage: ${borrowing.damageReport?.description ?? "N/A"}'),
-            const SizedBox(height: RuangBukuSpacing.lg),
-            TextField(
-              controller: fineController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Deduction Amount (Rp)',
-                hintText: 'e.g., 15000',
+      return StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            title: const Text('Resolve Damage Dispute'),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Book: ${borrowing.bookTitle}',
+                      style: const TextStyle(fontWeight: FontWeight.bold)),
+                  Text('Borrower: ${borrowing.borrowerName}'),
+                  Text(
+                      'Reported Damage: ${borrowing.damageReport?.description ?? "N/A"}'),
+                  const SizedBox(height: RuangBukuSpacing.lg),
+                  const Text('Send deposit to:',
+                      style: TextStyle(fontWeight: FontWeight.w600)),
+                  RadioGroup<bool>(
+                    groupValue: depositToOwner,
+                    onChanged: (v) => setState(() => depositToOwner = v ?? true),
+                    child: const Column(
+                      children: [
+                        RadioListTile<bool>(
+                          contentPadding: EdgeInsets.zero,
+                          value: true,
+                          title: Text('Owner (book damaged)'),
+                        ),
+                        RadioListTile<bool>(
+                          contentPadding: EdgeInsets.zero,
+                          value: false,
+                          title: Text('Borrower (damage waived)'),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: RuangBukuSpacing.md),
+                  TextField(
+                    controller: noteController,
+                    decoration: const InputDecoration(
+                      labelText: 'Decision / Note (required)',
+                      hintText: 'Biaya ganti cover / halaman robek',
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: RuangBukuSpacing.md),
-            TextField(
-              controller: noteController,
-              decoration: const InputDecoration(
-                labelText: 'Decision / Note',
-                hintText: 'Biaya ganti cover / halaman robek',
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel'),
               ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(
-                backgroundColor: RuangBukuColors.primary),
-            onPressed: () {
-              final fine = double.tryParse(fineController.text.trim()) ?? 0.0;
-              final note = noteController.text.trim();
-              state.resolveRefundOrDispute(borrowing.id,
-                  deduction: fine, note: note);
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                    content: Text(
-                        'Dispute resolved. Deposit refunded after deduction.')),
-              );
-            },
-            child: const Text('Confirm Resolution'),
-          ),
-        ],
+              FilledButton(
+                style: FilledButton.styleFrom(
+                    backgroundColor: RuangBukuColors.primary),
+                onPressed: () async {
+                  final note = noteController.text.trim();
+                  if (note.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Catatan keputusan wajib diisi.')),
+                    );
+                    return;
+                  }
+                  final navigator = Navigator.of(context);
+                  final messenger = ScaffoldMessenger.of(context);
+                  try {
+                    await state.resolveDamage(
+                      borrowing.id,
+                      toOwner: depositToOwner,
+                      note: note,
+                    );
+                    navigator.pop();
+                    messenger.showSnackBar(
+                      SnackBar(
+                          content: Text(
+                              'Dispute resolved. Deposit sent to ${depositToOwner ? "owner" : "borrower"}.')),
+                    );
+                  } catch (e) {
+                    messenger.showSnackBar(
+                      SnackBar(content: Text('Gagal menyelesaikan: $e')),
+                    );
+                  }
+                },
+                child: const Text('Confirm Resolution'),
+              ),
+            ],
+          );
+        },
       );
     },
   );

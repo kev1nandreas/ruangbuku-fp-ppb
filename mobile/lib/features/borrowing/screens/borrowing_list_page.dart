@@ -17,6 +17,7 @@ class BorrowingListPage extends StatelessWidget {
       builder: (context, _) {
         final state = RuangBukuState.instance;
         final borrowings = state.borrowings;
+        final incoming = state.incomingRequests;
 
         return Scaffold(
           appBar: AppBar(
@@ -27,22 +28,42 @@ class BorrowingListPage extends StatelessWidget {
               ),
             ),
           ),
-          body: borrowings.isEmpty
+          body: (borrowings.isEmpty && incoming.isEmpty)
               ? const EmptyStateView(
                   icon: Icons.handshake_outlined,
                   title: 'Belum Ada Transaksi',
                   message: 'Anda belum memiliki transaksi peminjaman buku.',
                 )
-              : ListView.separated(
+              : ListView(
                   padding: const EdgeInsets.all(RuangBukuSpacing.marginMobile),
-                  itemCount: borrowings.length,
-                  separatorBuilder: (context, index) =>
+                  children: [
+                    // Incoming requests on books this user owns. Shown to anyone
+                    // who owns a book, independent of the role toggle.
+                    if (incoming.isNotEmpty) ...[
+                      Text('Permintaan Masuk',
+                          style: textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.bold)),
                       const SizedBox(height: RuangBukuSpacing.md),
-                  itemBuilder: (context, index) {
-                    final b = borrowings[index];
-                    final isLender = state.currentRole == UserRole.lender;
-                    
-                    return InkWell(
+                      ...incoming.map((b) => Padding(
+                            padding: const EdgeInsets.only(
+                                bottom: RuangBukuSpacing.md),
+                            child: _IncomingRequestCard(borrowing: b),
+                          )),
+                      const SizedBox(height: RuangBukuSpacing.lg),
+                      Text('Transaksi Anda',
+                          style: textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.bold)),
+                      const SizedBox(height: RuangBukuSpacing.md),
+                    ],
+                    ...borrowings.asMap().entries.expand((entry) {
+                      final index = entry.key;
+                      final b = entry.value;
+                      final isLender = state.currentRole == UserRole.lender;
+
+                      return [
+                        if (index > 0)
+                          const SizedBox(height: RuangBukuSpacing.md),
+                        InkWell(
                       onTap: () {
                         Navigator.push(
                           context,
@@ -120,8 +141,10 @@ class BorrowingListPage extends StatelessWidget {
                           ],
                         ),
                       ),
-                    );
-                  },
+                    ),
+                      ];
+                    }),
+                  ],
                 ),
         );
       },
@@ -157,5 +180,123 @@ class BorrowingListPage extends StatelessWidget {
       case BorrowStatus.cancelled:
         return Colors.red;
     }
+  }
+}
+
+/// Card for a pending borrow request on a book the current user owns, with
+/// inline Accept / Reject controls wired to the approve/reject routes.
+class _IncomingRequestCard extends StatefulWidget {
+  const _IncomingRequestCard({required this.borrowing});
+
+  final BorrowModel borrowing;
+
+  @override
+  State<_IncomingRequestCard> createState() => _IncomingRequestCardState();
+}
+
+class _IncomingRequestCardState extends State<_IncomingRequestCard> {
+  bool _busy = false;
+
+  Future<void> _respond(bool approve) async {
+    final b = widget.borrowing;
+    final messenger = ScaffoldMessenger.of(context);
+    setState(() => _busy = true);
+    try {
+      await RuangBukuState.instance.respondToBorrowRequest(b.id, approve);
+      messenger.showSnackBar(SnackBar(
+        content: Text(approve ? 'Permintaan diterima.' : 'Permintaan ditolak.'),
+      ));
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text('Gagal: $e')));
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final b = widget.borrowing;
+
+    String fmt(DateTime d) =>
+        '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
+
+    return Container(
+      padding: const EdgeInsets.all(RuangBukuSpacing.md),
+      decoration: BoxDecoration(
+        color: RuangBukuColors.surface,
+        borderRadius: RuangBukuRadius.borderRadiusLg,
+        border: Border.all(color: RuangBukuColors.primary),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              ClipRRect(
+                borderRadius: RuangBukuRadius.borderRadiusSm,
+                child: Image.network(
+                  b.bookImageUrl,
+                  width: 50,
+                  height: 75,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, _, _) => Container(
+                    width: 50,
+                    height: 75,
+                    color: Colors.grey[300],
+                    child: const Icon(Icons.book, color: Colors.grey),
+                  ),
+                ),
+              ),
+              const SizedBox(width: RuangBukuSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(b.bookTitle,
+                        style: textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w600),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis),
+                    const SizedBox(height: 4),
+                    Text('Peminjam: ${b.borrowerName}',
+                        style: textTheme.bodyMedium
+                            ?.copyWith(color: RuangBukuColors.textSecondary)),
+                    Text('${fmt(b.startDate)} - ${fmt(b.endDate)}',
+                        style: textTheme.bodySmall
+                            ?.copyWith(color: RuangBukuColors.textSecondary)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: RuangBukuSpacing.md),
+          if (_busy)
+            const Center(child: CircularProgressIndicator())
+          else
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: RuangBukuColors.error,
+                      side: const BorderSide(color: RuangBukuColors.error),
+                    ),
+                    onPressed: () => _respond(false),
+                    child: const Text('Tolak'),
+                  ),
+                ),
+                const SizedBox(width: RuangBukuSpacing.md),
+                Expanded(
+                  child: FilledButton(
+                    onPressed: () => _respond(true),
+                    child: const Text('Terima'),
+                  ),
+                ),
+              ],
+            ),
+        ],
+      ),
+    );
   }
 }

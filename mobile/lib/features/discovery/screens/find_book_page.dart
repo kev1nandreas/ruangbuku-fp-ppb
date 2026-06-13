@@ -104,6 +104,7 @@ class _FindBookPageState extends State<FindBookPage> {
                     radius: 18,
                     backgroundImage: NetworkImage(
                         'https://picsum.photos/seed/$currentUserId/100/100'),
+                    onBackgroundImageError: (error, stack) {},
                     backgroundColor: RuangBukuColors.surfaceContainerHigh,
                   ),
                 ),

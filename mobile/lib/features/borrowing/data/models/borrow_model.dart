@@ -12,16 +12,30 @@ enum BorrowStatus {
 
 class DamageReportModel {
   final String description;
-  final String photoUrl;
+  final List<String> photoUrls;
   double deductionAmount;
   String adminDecision;
 
   DamageReportModel({
     required this.description,
-    required this.photoUrl,
+    this.photoUrls = const [],
     this.deductionAmount = 0.0,
     this.adminDecision = '',
   });
+
+  /// Convenience: first photo or empty string.
+  String get photoUrl => photoUrls.isNotEmpty ? photoUrls.first : '';
+
+  factory DamageReportModel.fromJson(Map<String, dynamic> json) {
+    final rawPhotos = json['photos'];
+    final photos = rawPhotos is List
+        ? rawPhotos.map((e) => e.toString()).toList()
+        : <String>[];
+    return DamageReportModel(
+      description: json['description']?.toString() ?? '',
+      photoUrls: photos,
+    );
+  }
 }
 
 class BorrowModel {
@@ -40,6 +54,11 @@ class BorrowModel {
   DamageReportModel? damageReport;
   final DateTime createdAt;
 
+  /// Who the admin returned the deposit to once settled: 'borrower' or 'owner'.
+  final String? depositReturnedTo;
+  final String? depositProofUrl;
+  final String? resolutionNote;
+
   BorrowModel({
     required this.id,
     required this.bookId,
@@ -55,26 +74,40 @@ class BorrowModel {
     this.paymentProofUrl,
     this.damageReport,
     required this.createdAt,
+    this.depositReturnedTo,
+    this.depositProofUrl,
+    this.resolutionNote,
   });
 
   factory BorrowModel.fromJson(Map<String, dynamic> json) {
+    // Backend status strings (App\Models\Peminjaman constants).
     BorrowStatus parseStatus(String st) {
       switch (st) {
-        case 'menunggu_konfirmasi': return BorrowStatus.requested;
-        case 'menunggu_deposit': return BorrowStatus.waitingDeposit;
-        case 'deposit_dibayar': return BorrowStatus.depositUploaded;
-        case 'deposit_diverifikasi': return BorrowStatus.depositVerified;
-        case 'buku_diterima': return BorrowStatus.bookReceived;
-        case 'dikembalikan_baik': return BorrowStatus.returnedGood;
-        case 'dikembalikan_rusak': return BorrowStatus.returnedDamaged;
-        case 'selesai': return BorrowStatus.completed;
-        case 'ditolak': return BorrowStatus.cancelled;
-        case 'dibatalkan': return BorrowStatus.cancelled;
+        case 'pending': return BorrowStatus.requested;
+        case 'waiting_deposit': return BorrowStatus.waitingDeposit;
+        case 'deposit_received': return BorrowStatus.depositVerified;
+        case 'book_received': return BorrowStatus.bookReceived;
+        case 'returned': return BorrowStatus.returnedGood;
+        case 'damaged': return BorrowStatus.returnedDamaged;
+        case 'completed': return BorrowStatus.completed;
+        case 'rejected': return BorrowStatus.cancelled;
+        case 'cancelled': return BorrowStatus.cancelled;
         default: return BorrowStatus.requested;
       }
     }
 
     final book = json['buku'] ?? {};
+
+    final rawDeposit = json['buktiDeposit']?.toString();
+    var status = parseStatus(json['status']?.toString() ?? '');
+    // Borrower has submitted deposit proof but admin hasn't confirmed yet.
+    if (status == BorrowStatus.waitingDeposit &&
+        rawDeposit != null &&
+        rawDeposit.isNotEmpty) {
+      status = BorrowStatus.depositUploaded;
+    }
+
+    final kerusakan = json['kerusakan'];
 
     return BorrowModel(
       id: json['id']?.toString() ?? '',
@@ -86,10 +119,16 @@ class BorrowModel {
       borrowerName: json['user']?['name'] ?? 'Unknown',
       startDate: DateTime.tryParse(json['start_date'] ?? '') ?? DateTime.now(),
       endDate: DateTime.tryParse(json['end_date'] ?? '') ?? DateTime.now(),
-      status: parseStatus(json['status'] ?? ''),
+      status: status,
       depositAmount: double.tryParse(json['deposit_amount']?.toString() ?? '50000') ?? 50000.0,
-      paymentProofUrl: json['bukti_deposit'],
+      paymentProofUrl: rawDeposit,
+      damageReport: kerusakan is Map<String, dynamic>
+          ? DamageReportModel.fromJson(kerusakan)
+          : null,
       createdAt: DateTime.tryParse(json['created_at'] ?? '') ?? DateTime.now(),
+      depositReturnedTo: json['deposit_returned_to']?.toString(),
+      depositProofUrl: json['deposit_proof_url']?.toString(),
+      resolutionNote: json['resolution_note']?.toString(),
     );
   }
 }

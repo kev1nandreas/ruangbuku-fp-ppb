@@ -35,4 +35,16 @@ class BorrowNotifier {
 
   Future<void> reportDamage(String id, String description, List<String> photoUrls) =>
       _repository.reportDamage(id, description, photoUrls);
+
+  // --- admin actions ---------------------------------------------------
+
+  Future<void> confirmDeposit(String id) => _repository.confirmDeposit(id);
+
+  Future<void> returnDeposit(String id, {String? proofUrl, String? note}) =>
+      _repository.returnDeposit(id, proofUrl: proofUrl, note: note);
+
+  Future<void> resolveDamage(String id,
+          {required String resolution, required String note, String? proofUrl}) =>
+      _repository.resolveDamage(id,
+          resolution: resolution, note: note, proofUrl: proofUrl);
 }

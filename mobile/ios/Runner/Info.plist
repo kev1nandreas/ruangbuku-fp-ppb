@@ -66,5 +66,9 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Diperlukan untuk memilih gambar bukti deposit dari galeri.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Diperlukan untuk mengambil foto bukti deposit.</string>
 </dict>
 </plist>

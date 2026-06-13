@@ -1,12 +1,27 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme.dart';
-import '../../../core/state.dart';
 import '../../../core/widgets/empty_state_view.dart';
+import '../../../core/widgets/app_filter_chip.dart';
+import '../../borrowing/screens/borrowing_detail_page.dart';
+import '../data/models/app_notification_model.dart';
+import '../domain/notification_notifier.dart';
 import '../widgets/notification_card.dart';
-import '../widgets/dispute_resolution_dialog.dart';
 
-class NotificationPage extends StatelessWidget {
+class NotificationPage extends StatefulWidget {
   const NotificationPage({super.key});
+
+  @override
+  State<NotificationPage> createState() => _NotificationPageState();
+}
+
+class _NotificationPageState extends State<NotificationPage> {
+  final _notifier = NotificationNotifier.instance;
+
+  @override
+  void initState() {
+    super.initState();
+    _notifier.load();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -14,13 +29,9 @@ class NotificationPage extends StatelessWidget {
     final textTheme = theme.textTheme;
 
     return ListenableBuilder(
-      listenable: RuangBukuState.instance,
+      listenable: _notifier,
       builder: (context, _) {
-        final state = RuangBukuState.instance;
-
-        // Filter notifications based on active role
-        final roleNotifications =
-            state.notifications.where((n) => n.role == state.currentRole).toList();
+        final items = _notifier.items;
 
         return Scaffold(
           appBar: AppBar(
@@ -30,121 +41,148 @@ class NotificationPage extends StatelessWidget {
                 fontWeight: FontWeight.w700,
               ),
             ),
-          ),
-          body: roleNotifications.isEmpty
-              ? const EmptyStateView(
-                  icon: Icons.notifications_off_outlined,
-                  title: 'No Notifications',
-                  message: 'You have no notifications in your current role.',
-                )
-              : ListView.separated(
-                  padding: const EdgeInsets.all(RuangBukuSpacing.marginMobile),
-                  itemCount: roleNotifications.length,
-                  separatorBuilder: (context, index) =>
-                      const SizedBox(height: RuangBukuSpacing.lg),
-                  itemBuilder: (context, index) =>
-                      _buildNotification(context, state, roleNotifications[index]),
+            actions: [
+              if (_notifier.unreadCount > 0)
+                TextButton(
+                  onPressed: _notifier.markAllRead,
+                  child: const Text('Tandai dibaca'),
                 ),
+            ],
+          ),
+          body: Column(
+            children: [
+              _CategoryFilterBar(notifier: _notifier),
+              const Divider(height: 1),
+              Expanded(
+                child: RefreshIndicator(
+                  onRefresh: _notifier.load,
+                  child: _buildBody(items),
+                ),
+              ),
+            ],
+          ),
         );
       },
     );
   }
 
-  Widget _buildNotification(
-      BuildContext context, RuangBukuState state, NotificationModel notif) {
-    final isActionable = notif.borrowId != null && notif.isPending;
-    final role = state.currentRole;
-
-    if (isActionable && role == UserRole.lender) {
-      return NotificationCard.withAvatar(
-        avatarUrl: 'https://picsum.photos/seed/${notif.id}/100/100',
-        title: notif.title,
-        message: notif.message,
-        time: notif.time,
-        footer: NotificationActions(
-          declineLabel: 'Decline',
-          confirmLabel: 'Accept',
-          onDecline: () {
-            state.respondToBorrowRequest(notif.borrowId!, false);
-            _snack(context, 'Borrow request declined.');
-          },
-          onConfirm: () {
-            state.respondToBorrowRequest(notif.borrowId!, true);
-            _snack(context,
-                'Borrow request accepted (F-02)! Deep-link to WA simulated.');
-          },
-        ),
-      );
+  Widget _buildBody(List<AppNotificationModel> items) {
+    if (_notifier.isLoading && items.isEmpty) {
+      return const Center(child: CircularProgressIndicator());
     }
 
-    if (isActionable &&
-        role == UserRole.admin &&
-        notif.title.contains('Payment')) {
-      return NotificationCard.fromModel(
-        notif,
-        footer: NotificationActions(
-          declineLabel: 'Reject Payment',
-          confirmLabel: 'Verify Payment',
-          onDecline: () {
-            state.verifyDepositPayment(notif.borrowId!, false);
-            _snack(context, 'Payment rejected.');
-          },
-          onConfirm: () {
-            state.verifyDepositPayment(notif.borrowId!, true);
-            _snack(context,
-                'Payment verified! Deposit status changed to PAID (F-02).');
-          },
-        ),
-      );
-    }
-
-    if (isActionable &&
-        role == UserRole.admin &&
-        notif.title.contains('Dispute')) {
-      final borrowing =
-          state.borrowings.firstWhere((b) => b.id == notif.borrowId);
-      return NotificationCard.fromModel(
-        notif,
-        extraInfo:
-            'Reported Damage: ${borrowing.damageReport?.description ?? "N/A"}',
-        footer: FilledButton(
-          style: FilledButton.styleFrom(
-            minimumSize: const Size(double.infinity, 36),
-            backgroundColor: RuangBukuColors.primary,
+    if (items.isEmpty) {
+      return ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: const [
+          SizedBox(height: 120),
+          EmptyStateView(
+            icon: Icons.notifications_off_outlined,
+            title: 'No Notifications',
+            message: 'You have no notifications yet.',
           ),
-          onPressed: () => showDisputeResolutionDialog(context, borrowing),
-          child: const Text('Resolve Dispute & Refund'),
-        ),
+        ],
       );
     }
 
-    // System / informational notification
-    return NotificationCard.fromModel(
-      notif,
-      elevated: false,
-      footer: notif.statusText != null
-          ? Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: RuangBukuColors.surfaceContainerHigh,
-                borderRadius: RuangBukuRadius.borderRadiusSm,
-              ),
-              child: Text(
-                notif.statusText!,
-                style: Theme.of(context)
-                    .textTheme
-                    .labelMedium
-                    ?.copyWith(fontWeight: FontWeight.w700),
-              ),
-            )
-          : null,
+    return ListView.separated(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.all(RuangBukuSpacing.marginMobile),
+      itemCount: items.length,
+      separatorBuilder: (_, _) => const SizedBox(height: RuangBukuSpacing.lg),
+      itemBuilder: (context, index) => _buildItem(context, items[index]),
     );
   }
 
-  void _snack(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
+  Widget _buildItem(BuildContext context, AppNotificationModel notif) {
+    return Opacity(
+      opacity: notif.isRead ? 0.7 : 1.0,
+      child: InkWell(
+        borderRadius: RuangBukuRadius.borderRadiusMd,
+        onTap: () => _onTap(notif),
+        child: NotificationCard(
+          leading: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              CircleAvatar(
+                radius: 20,
+                backgroundColor: notif.iconColor.withValues(alpha: 0.1),
+                child: Icon(notif.icon, color: notif.iconColor, size: 20),
+              ),
+              if (!notif.isRead)
+                Positioned(
+                  right: -1,
+                  top: -1,
+                  child: Container(
+                    width: 10,
+                    height: 10,
+                    decoration: const BoxDecoration(
+                      color: RuangBukuColors.error,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          title: notif.title,
+          message: notif.body,
+          time: notif.time,
+          elevated: !notif.isRead,
+        ),
+      ),
+    );
+  }
+
+  void _onTap(AppNotificationModel notif) {
+    _notifier.markRead(notif);
+
+    // Deep-link peminjaman notifications to the borrow detail.
+    if (notif.category == NotificationCategory.peminjaman &&
+        notif.peminjamanId != null) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => BorrowingDetailPage(borrowingId: notif.peminjamanId!),
+        ),
+      );
+    }
+  }
+}
+
+/// Horizontal row of category filter chips (All / Peminjaman / Test / System).
+class _CategoryFilterBar extends StatelessWidget {
+  const _CategoryFilterBar({required this.notifier});
+
+  final NotificationNotifier notifier;
+
+  @override
+  Widget build(BuildContext context) {
+    final active = notifier.categoryFilter;
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(
+        horizontal: RuangBukuSpacing.marginMobile,
+        vertical: RuangBukuSpacing.md,
+      ),
+      child: Row(
+        children: [
+          AppFilterChip(
+            label: 'Semua',
+            isSelected: active == null,
+            onTap: () => notifier.setCategory(null),
+          ),
+          const SizedBox(width: RuangBukuSpacing.sm),
+          ...NotificationCategory.values.map((c) => Padding(
+                padding: const EdgeInsets.only(right: RuangBukuSpacing.sm),
+                child: AppFilterChip(
+                  label: c.label,
+                  isSelected: active == c,
+                  onTap: () => notifier.setCategory(c),
+                ),
+              )),
+        ],
+      ),
     );
   }
 }

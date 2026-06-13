@@ -9,4 +9,5 @@ class ApiConstants {
   static const String me = '/me';
   static const String logout = '/logout';
   static const String deviceToken = '/device-token';
+  static const String notifications = '/notifications';
 }

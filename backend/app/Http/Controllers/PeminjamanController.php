@@ -25,10 +25,14 @@ class PeminjamanController extends Controller
         $userId = Auth::id();
 
         $query = Peminjaman::query()
-            ->with(['buku:id,title,author,coverImageUrl', 'user:id,name,email'])
+            ->with(['buku:id,title,author,coverImageUrl', 'user:id,name,email', 'kerusakan'])
             ->latest('created_at');
 
-        if ($request->query('as') === 'owner') {
+        // Admins see every borrow so they can settle deposits and disputes.
+        // Regular users see only the borrows they take part in.
+        if ($request->user()->hasRole('admin')) {
+            // no scope: all peminjaman
+        } elseif ($request->query('as') === 'owner') {
             $query->whereHas('buku.users', fn($q) => $q->whereKey($userId));
         } else {
             $query->where('user_id', $userId);
@@ -340,7 +344,13 @@ class PeminjamanController extends Controller
 
     private function authorizeParticipant(Peminjaman $peminjaman): void
     {
-        if ($peminjaman->user_id !== Auth::id() || !$peminjaman->isOwnedBy(Auth::id())) {
+        $user = Auth::user();
+
+        $isBorrower = $peminjaman->user_id === $user?->getKey();
+        $isOwner    = $peminjaman->isOwnedBy($user?->getKey());
+        $isAdmin    = $user?->hasRole('admin') ?? false;
+
+        if (!$isBorrower && !$isOwner && !$isAdmin) {
             abort(403, 'Kamu tidak memiliki akses ke peminjaman ini.');
         }
     }

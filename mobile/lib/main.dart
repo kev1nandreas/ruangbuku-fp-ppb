@@ -10,7 +10,7 @@ import 'features/auth/presentation/screens/login_screen.dart';
 import 'features/discovery/screens/home_page.dart';
 import 'features/discovery/screens/find_book_page.dart';
 import 'features/inventory/screens/your_books_page.dart';
-import 'features/notifications/screens/notification_page.dart';
+import 'features/borrowing/screens/borrowing_list_page.dart';
 import 'features/profile/screens/profile_page.dart';
 
 void main() async {
@@ -119,7 +119,7 @@ class _MainScaffoldState extends State<MainScaffold> {
     HomePage(),
     FindBookPage(),
     YourBooksPage(),
-    NotificationPage(),
+    BorrowingListPage(),
     ProfilePage(),
   ];
 
@@ -159,9 +159,9 @@ class _MainScaffoldState extends State<MainScaffold> {
                 label: isAdmin ? 'Curation' : 'Your Books',
               ),
               const BottomNavigationBarItem(
-                icon: Icon(Icons.notifications_outlined),
-                activeIcon: Icon(Icons.notifications),
-                label: 'Notification',
+                icon: Icon(Icons.handshake_outlined),
+                activeIcon: Icon(Icons.handshake),
+                label: 'Borrowing',
               ),
               const BottomNavigationBarItem(
                 icon: Icon(Icons.person_outline),

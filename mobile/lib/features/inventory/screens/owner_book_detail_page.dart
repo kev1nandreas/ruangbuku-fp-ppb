@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../core/theme.dart';
 import '../../../core/state.dart';
 import '../../discovery/domain/book_notifier.dart';
+import 'edit_book_page.dart';
 
 class OwnerBookDetailPage extends StatefulWidget {
   final String bookId;
@@ -25,7 +26,13 @@ class _OwnerBookDetailPageState extends State<OwnerBookDetailPage> {
   Future<void> _fetchBookDetail() async {
     setState(() => _isLoading = true);
     try {
-      final book = await BookNotifier.instance.fetchBookDetail(widget.bookId);
+      var book = await BookNotifier.instance.fetchBookDetail(widget.bookId);
+      if (book == null) {
+        final localIndex = RuangBukuState.instance.books.indexWhere((b) => b.id == widget.bookId);
+        if (localIndex != -1) {
+          book = RuangBukuState.instance.books[localIndex];
+        }
+      }
       if (mounted) {
         setState(() {
           _book = book;
@@ -33,6 +40,12 @@ class _OwnerBookDetailPageState extends State<OwnerBookDetailPage> {
       }
     } catch (e) {
       if (mounted) {
+        final localIndex = RuangBukuState.instance.books.indexWhere((b) => b.id == widget.bookId);
+        if (localIndex != -1) {
+          setState(() {
+            _book = RuangBukuState.instance.books[localIndex];
+          });
+        }
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error loading book details: $e')));
       }
     } finally {
@@ -54,10 +67,15 @@ class _OwnerBookDetailPageState extends State<OwnerBookDetailPage> {
     }
 
     if (_book == null) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('My Book Details')),
-        body: const Center(child: Text('Book not found')),
-      );
+      final localIndex = RuangBukuState.instance.books.indexWhere((b) => b.id == widget.bookId);
+      if (localIndex != -1) {
+        _book = RuangBukuState.instance.books[localIndex];
+      } else {
+        return Scaffold(
+          appBar: AppBar(title: const Text('My Book Details')),
+          body: const Center(child: Text('Book not found')),
+        );
+      }
     }
 
     final book = _book!;
@@ -89,7 +107,12 @@ class _OwnerBookDetailPageState extends State<OwnerBookDetailPage> {
           IconButton(
             icon: const Icon(Icons.edit),
             onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Edit feature not supported by backend yet')));
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => EditBookPage(bookId: widget.bookId),
+                ),
+              );
             },
           ),
         ],

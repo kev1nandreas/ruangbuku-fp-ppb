@@ -41,12 +41,13 @@ class TestNotificationController extends Controller
             );
         }
 
+        $title = $validated['title'] ?? 'Test Notifikasi';
+        $body  = $validated['body'] ?? 'Halo! Ini notifikasi percobaan dari RuangBuku.';
+
+        $this->notifier->record($user, \App\Models\AppNotification::CATEGORY_TEST, $title, $body);
         $this->notifier->pushTo(
             $user,
-            new TestNotification(
-                title: $validated['title'] ?? 'Test Notifikasi',
-                body: $validated['body'] ?? 'Halo! Ini notifikasi percobaan dari RuangBuku.',
-            ),
+            new TestNotification(title: $title, body: $body),
         );
 
         return $this->success('Notifikasi percobaan dikirim', [

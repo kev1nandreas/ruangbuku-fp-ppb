@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BukuController;
 use App\Http\Controllers\DeviceTokenController;
 use App\Http\Controllers\GenreController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PeminjamanController;
 use App\Http\Controllers\StorageController;
 use App\Http\Controllers\TestNotificationController;
@@ -24,6 +25,12 @@ Route::prefix('v1')->group(function () {
         Route::delete('/device-token', [DeviceTokenController::class, 'destroy']);
 
         Route::post('/test-notification', [TestNotificationController::class, 'send']);
+
+        // In-app notification feed (persisted, per-user, filterable by category)
+        Route::get('/notifications', [NotificationController::class, 'index']);
+        Route::get('/notifications/unread-count', [NotificationController::class, 'unreadCount']);
+        Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead']);
+        Route::post('/notifications/{id}/read', [NotificationController::class, 'markRead']);
 
         // Genre
         Route::apiResource('/genres', GenreController::class);

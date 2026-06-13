@@ -6,6 +6,7 @@ use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
@@ -52,5 +53,20 @@ class AuthController extends Controller
     public function me(): JsonResponse
     {
         return $this->success('Berhasil mengambil data pengguna', Auth::user()->load('roles'));
+    }
+
+    public function updateProfile(Request $request): JsonResponse
+    {
+        /** @var User $user */
+        $user = Auth::user();
+
+        $validated = $request->validate([
+            'name'       => ['sometimes', 'string', 'max:255'],
+            'avatar_url' => ['sometimes', 'nullable', 'string', 'max:512'],
+        ]);
+
+        $user->update($validated);
+
+        return $this->success('Profil berhasil diperbarui', $user->load('roles'));
     }
 }

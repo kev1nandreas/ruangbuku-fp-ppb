@@ -56,15 +56,20 @@ class _UserProfilePageState extends State<UserProfilePage> {
         final ownedCount =
             state.books.where((b) => b.ownerId == currentUserId).length;
 
-        final borrowedCount = state.borrowings
+        final uniqueBorrowings = <String, dynamic>{};
+        for (var b in state.borrowings) { uniqueBorrowings[b.id] = b; }
+        for (var b in state.ownerBorrowings) { uniqueBorrowings[b.id] = b; }
+        final allBorrowings = uniqueBorrowings.values;
+
+        final borrowedCount = allBorrowings
             .where((b) =>
-                b.borrowerId == currentUserId && _isHeldOrReturned(b))
+                b.borrowerId == currentUserId && _isActiveBorrowing(b))
             .length;
 
-        final lentCount = state.borrowings.where((b) {
+        final lentCount = allBorrowings.where((b) {
           final isMine = state.books
               .any((bk) => bk.id == b.bookId && bk.ownerId == currentUserId);
-          return isMine && _isHeldOrReturned(b);
+          return isMine && _isActiveBorrowing(b);
         }).length;
 
         return Scaffold(
@@ -175,8 +180,10 @@ class _UserProfilePageState extends State<UserProfilePage> {
     );
   }
 
-  bool _isHeldOrReturned(BorrowModel b) =>
-      b.status == BorrowStatus.bookReceived ||
-      b.status == BorrowStatus.returnedGood ||
-      b.status == BorrowStatus.returnedDamaged;
+  bool _isActiveBorrowing(BorrowModel b) =>
+      b.status == BorrowStatus.requested ||
+      b.status == BorrowStatus.waitingDeposit ||
+      b.status == BorrowStatus.depositUploaded ||
+      b.status == BorrowStatus.depositVerified ||
+      b.status == BorrowStatus.bookReceived;
 }

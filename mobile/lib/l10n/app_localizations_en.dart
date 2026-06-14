@@ -713,4 +713,124 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get goodEvening => 'Good evening,';
+
+  @override
+  String get appearanceLoc => 'Appearance & Localization';
+
+  @override
+  String get themeMode => 'Theme';
+
+  @override
+  String get systemDefault => 'System Default';
+
+  @override
+  String get lightMode => 'Light Mode';
+
+  @override
+  String get darkMode => 'Dark Mode';
+
+  @override
+  String get notificationSettings => 'Notification Settings';
+
+  @override
+  String get notifBorrow => 'Borrowing Notifications';
+
+  @override
+  String get notifBorrowDesc => 'Notify when someone wants to borrow your book';
+
+  @override
+  String get notifSla => 'Deposit Reminder (SLA)';
+
+  @override
+  String get notifSlaDesc => 'Notify before 24h deposit deadline expires';
+
+  @override
+  String get notifReturn => 'Handover/Return Reminder';
+
+  @override
+  String get notifReturnDesc => 'Notify for books that must be returned today';
+
+  @override
+  String get helpSupportDesc =>
+      'If you have any questions or experience issues with the RuangBuku application, please contact our support team through one of the following channels:';
+
+  @override
+  String get emailUs => 'Email Us';
+
+  @override
+  String get chatWhatsapp => 'Chat on WhatsApp';
+
+  @override
+  String get faqTitle => 'Frequently Asked Questions (FAQ)';
+
+  @override
+  String get faq1Q => 'How do I borrow a book?';
+
+  @override
+  String get faq1A =>
+      'Find the book you want, click \'Borrow Book\', and wait for owner confirmation.';
+
+  @override
+  String get faq2Q => 'How does the deposit system work?';
+
+  @override
+  String get faq2A =>
+      'Borrower pays a deposit which will be refunded when the book is returned safely.';
+
+  @override
+  String get faq3Q => 'What if the book is damaged?';
+
+  @override
+  String get faq3A =>
+      'The owner can claim the deposit as compensation for the damage.';
+
+  @override
+  String get sortTitle => 'Sort by Title';
+
+  @override
+  String get privacyPref => 'Privacy & Book Preferences';
+
+  @override
+  String get publicDefault => 'Public Collection by Default';
+
+  @override
+  String get publicDefaultDesc =>
+      'Newly added books automatically become Public Collection';
+
+  @override
+  String get hideWa => 'Hide WA Number';
+
+  @override
+  String get hideWaDesc => 'Number can only be seen after loan is approved';
+
+  @override
+  String get conditionLabel => 'Condition';
+
+  @override
+  String get likeNew => 'Like New';
+
+  @override
+  String get veryGood => 'Very Good';
+
+  @override
+  String get good => 'Good';
+
+  @override
+  String get acceptable => 'Acceptable';
+
+  @override
+  String get availableLending => 'Available for Lending';
+
+  @override
+  String get availableLendingDesc =>
+      'Allow others in your area to borrow this book.';
+
+  @override
+  String get addCoverPhoto => 'Add cover photo';
+
+  @override
+  String get change => 'Change';
+
+  @override
+  String get coverPhoto => 'Cover Photo';
 }

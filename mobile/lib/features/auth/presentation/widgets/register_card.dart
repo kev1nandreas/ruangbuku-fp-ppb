@@ -39,7 +39,7 @@ class RegisterCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(RuangBukuSpacing.xl),
       decoration: BoxDecoration(
-        color: RuangBukuColors.cardSurface,
+        color: Theme.of(context).colorScheme.surfaceContainer,
         borderRadius: RuangBukuRadius.borderRadiusXl,
         boxShadow: RuangBukuElevation.level2,
       ),
@@ -50,13 +50,15 @@ class RegisterCard extends StatelessWidget {
           children: [
             Text(
               l10n?.register ?? 'Daftar',
-              style: RuangBukuTypography.headlineMedium,
+              style: RuangBukuTypography.headlineMedium.copyWith(
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
             ),
             const SizedBox(height: RuangBukuSpacing.sm),
             Text(
               l10n?.registerSubtitle ?? 'Buat akun untuk mulai meminjam buku',
               style: RuangBukuTypography.bodyMedium.copyWith(
-                color: RuangBukuColors.textSecondary,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
             const SizedBox(height: RuangBukuSpacing.xl),

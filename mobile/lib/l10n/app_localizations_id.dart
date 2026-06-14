@@ -720,4 +720,128 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get goodEvening => 'Selamat malam,';
+
+  @override
+  String get appearanceLoc => 'Tampilan & Lokalisasi';
+
+  @override
+  String get themeMode => 'Tema (Theme)';
+
+  @override
+  String get systemDefault => 'Sistem Default';
+
+  @override
+  String get lightMode => 'Mode Terang';
+
+  @override
+  String get darkMode => 'Mode Gelap';
+
+  @override
+  String get notificationSettings => 'Pengaturan Notifikasi';
+
+  @override
+  String get notifBorrow => 'Notifikasi Peminjaman';
+
+  @override
+  String get notifBorrowDesc =>
+      'Beri tahu saat ada yang ingin meminjam buku Anda';
+
+  @override
+  String get notifSla => 'Pengingat Deposit (SLA)';
+
+  @override
+  String get notifSlaDesc =>
+      'Beri tahu sebelum batas waktu deposit 24 jam habis';
+
+  @override
+  String get notifReturn => 'Pengingat Penyerahan/Pengembalian';
+
+  @override
+  String get notifReturnDesc =>
+      'Beri tahu untuk buku yang harus dikembalikan hari ini';
+
+  @override
+  String get helpSupportDesc =>
+      'Jika Anda memiliki pertanyaan atau mengalami kendala dalam menggunakan aplikasi RuangBuku, silakan hubungi tim dukungan kami melalui salah satu kanal berikut:';
+
+  @override
+  String get emailUs => 'Email Kami';
+
+  @override
+  String get chatWhatsapp => 'Chat via WhatsApp';
+
+  @override
+  String get faqTitle => 'Pertanyaan yang Sering Diajukan (FAQ)';
+
+  @override
+  String get faq1Q => 'Bagaimana cara meminjam buku?';
+
+  @override
+  String get faq1A =>
+      'Cari buku yang diinginkan, klik \'Pinjam Buku\', lalu tunggu konfirmasi pemilik.';
+
+  @override
+  String get faq2Q => 'Bagaimana sistem deposit bekerja?';
+
+  @override
+  String get faq2A =>
+      'Peminjam membayar uang jaminan yang akan dikembalikan saat buku kembali dengan aman.';
+
+  @override
+  String get faq3Q => 'Apa yang terjadi jika buku rusak?';
+
+  @override
+  String get faq3A =>
+      'Pemilik dapat mengklaim uang deposit sebagai ganti rugi kerusakan.';
+
+  @override
+  String get sortTitle => 'Urutkan berdasar Judul';
+
+  @override
+  String get privacyPref => 'Privasi & Preferensi Buku';
+
+  @override
+  String get publicDefault => 'Koleksi Publik Secara Default';
+
+  @override
+  String get publicDefaultDesc =>
+      'Buku baru yang ditambahkan otomatis menjadi Koleksi Publik';
+
+  @override
+  String get hideWa => 'Sembunyikan Nomor WA';
+
+  @override
+  String get hideWaDesc =>
+      'Nomor hanya bisa dilihat setelah pinjaman disetujui';
+
+  @override
+  String get conditionLabel => 'Kondisi';
+
+  @override
+  String get likeNew => 'Seperti Baru';
+
+  @override
+  String get veryGood => 'Sangat Baik';
+
+  @override
+  String get good => 'Baik';
+
+  @override
+  String get acceptable => 'Bisa Diterima';
+
+  @override
+  String get availableLending => 'Tersedia untuk Dipinjam';
+
+  @override
+  String get availableLendingDesc =>
+      'Izinkan tetangga di area Anda meminjam buku ini.';
+
+  @override
+  String get addCoverPhoto => 'Tambah foto sampul';
+
+  @override
+  String get change => 'Ubah';
+
+  @override
+  String get coverPhoto => 'Foto Sampul';
 }

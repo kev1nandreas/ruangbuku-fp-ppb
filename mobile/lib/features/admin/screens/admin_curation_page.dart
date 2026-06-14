@@ -37,9 +37,7 @@ class _AdminCurationPageState extends State<AdminCurationPage> {
         }
 
         final pendingBooks = state.books
-            .where((b) =>
-                b.isPublic &&
-                b.statusVerifikasi == BookStatus.publicPending)
+            .where((b) => b.statusVerifikasi == BookStatus.publicPending)
             .toList();
 
         return Scaffold(

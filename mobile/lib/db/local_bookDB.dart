@@ -8,13 +8,15 @@ class LocalBookDB {
   static final LocalBookDB instance = LocalBookDB._();
 
   static Database? _database;
+  static Future<Database>? _initDbFuture;
   final List<Map<String, dynamic>> _webCache = [];
   final List<Map<String, dynamic>> _myWebCache = [];
 
   Future<Database?> get database async {
     if (kIsWeb) return null;
     if (_database != null) return _database!;
-    _database = await _initDB('ruangbuku.db');
+    _initDbFuture ??= _initDB('ruangbuku.db');
+    _database = await _initDbFuture;
     return _database!;
   }
 
@@ -23,13 +25,23 @@ class LocalBookDB {
     final path = join(dbPath.path, filePath);
     return openDatabase(
       path,
-      version: 2,
+      version: 4,
       onCreate: _createDB,
       onUpgrade: _upgradeDB,
     );
   }
 
   Future<void> _createDB(Database db, int version) async {
+    await db.execute('''
+CREATE TABLE users (
+  local_id INTEGER PRIMARY KEY AUTOINCREMENT,
+  backend_id TEXT UNIQUE,
+  name TEXT,
+  email TEXT UNIQUE,
+  avatarUrl TEXT
+)
+''');
+
     await db.execute('''
 CREATE TABLE books (
   id TEXT PRIMARY KEY,
@@ -40,10 +52,12 @@ CREATE TABLE books (
   isPublic INTEGER NOT NULL,
   statusVerifikasi TEXT,
   ownerId TEXT,
+  local_owner_id INTEGER,
   ownerName TEXT,
   imageUrl TEXT,
   distance TEXT,
-  condition TEXT
+  condition TEXT,
+  hasActiveBorrowing INTEGER DEFAULT 0
 )
 ''');
 
@@ -57,10 +71,12 @@ CREATE TABLE my_books (
   isPublic INTEGER NOT NULL,
   statusVerifikasi TEXT,
   ownerId TEXT,
+  local_owner_id INTEGER,
   ownerName TEXT,
   imageUrl TEXT,
   distance TEXT,
-  condition TEXT
+  condition TEXT,
+  hasActiveBorrowing INTEGER DEFAULT 0
 )
 ''');
   }
@@ -84,7 +100,63 @@ CREATE TABLE my_books (
 )
 ''');
     }
+    if (oldVersion < 3) {
+      try { await db.execute('ALTER TABLE books ADD COLUMN hasActiveBorrowing INTEGER DEFAULT 0'); } catch (_) {}
+      try { await db.execute('ALTER TABLE my_books ADD COLUMN hasActiveBorrowing INTEGER DEFAULT 0'); } catch (_) {}
+    }
+    if (oldVersion < 4) {
+      try {
+        await db.execute('''
+CREATE TABLE users (
+  local_id INTEGER PRIMARY KEY AUTOINCREMENT,
+  backend_id TEXT UNIQUE,
+  name TEXT,
+  email TEXT UNIQUE,
+  avatarUrl TEXT
+)
+''');
+      } catch (_) {}
+      try { await db.execute('ALTER TABLE books ADD COLUMN local_owner_id INTEGER'); } catch (_) {}
+      try { await db.execute('ALTER TABLE my_books ADD COLUMN local_owner_id INTEGER'); } catch (_) {}
+    }
   }
+
+  // --- USER OPERATIONS ---
+  
+  Future<Map<String, dynamic>?> getUserByEmail(String email) async {
+    if (kIsWeb) return null;
+    final db = await database;
+    if (db == null) return null;
+    final result = await db.query('users', where: 'email = ?', whereArgs: [email]);
+    if (result.isNotEmpty) {
+      return result.first;
+    }
+    return null;
+  }
+
+  Future<int?> upsertUser(Map<String, dynamic> user) async {
+    if (kIsWeb) return null;
+    final db = await database;
+    if (db == null) return null;
+    
+    final email = user['email'] as String?;
+    if (email == null) return null;
+    
+    final existing = await getUserByEmail(email);
+    if (existing != null) {
+      await db.update(
+        'users',
+        user,
+        where: 'email = ?',
+        whereArgs: [email],
+      );
+      return existing['local_id'] as int?;
+    } else {
+      return await db.insert('users', user, conflictAlgorithm: ConflictAlgorithm.replace);
+    }
+  }
+
+  // --- BOOK OPERATIONS ---
 
   Future<void> insertBook(Map<String, dynamic> book) async {
     if (kIsWeb) {
@@ -124,6 +196,8 @@ CREATE TABLE my_books (
     return [];
   }
 
+  // --- MY BOOKS OPERATIONS ---
+
   Future<void> insertMyBook(Map<String, dynamic> book) async {
     if (kIsWeb) {
       _myWebCache.removeWhere((b) => b['id'] == book['id']);
@@ -140,24 +214,24 @@ CREATE TABLE my_books (
     }
   }
 
-  Future<void> clearMyBooks() async {
+  Future<void> deleteMyBooksByBackendOwner(String ownerId) async {
     if (kIsWeb) {
-      _myWebCache.clear();
+      _myWebCache.removeWhere((b) => b['ownerId'] == ownerId);
       return;
     }
     final db = await database;
     if (db != null) {
-      await db.delete('my_books');
+      await db.delete('my_books', where: 'ownerId = ?', whereArgs: [ownerId]);
     }
   }
 
-  Future<List<Map<String, dynamic>>> getAllMyBooks() async {
+  Future<List<Map<String, dynamic>>> getMyBooksByBackendOwner(String ownerId) async {
     if (kIsWeb) {
-      return List<Map<String, dynamic>>.from(_myWebCache);
+      return _myWebCache.where((b) => b['ownerId'] == ownerId).toList();
     }
     final db = await database;
     if (db != null) {
-      return db.query('my_books');
+      return db.query('my_books', where: 'ownerId = ?', whereArgs: [ownerId]);
     }
     return [];
   }

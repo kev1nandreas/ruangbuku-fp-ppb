@@ -83,6 +83,11 @@ class BorrowRepository {
     await _api.post('/peminjaman/$id/hand-over', const {}, bearerToken: token);
   }
 
+  Future<void> requestReturn(String id) async {
+    final token = await _storage.getToken();
+    await _api.post('/peminjaman/$id/request-return', const {}, bearerToken: token);
+  }
+
   Future<void> confirmReturn(String id) async {
     final token = await _storage.getToken();
     await _api.post('/peminjaman/$id/confirm-return', const {}, bearerToken: token);
@@ -104,6 +109,12 @@ class BorrowRepository {
   Future<void> confirmDeposit(String id) async {
     final token = await _storage.getToken();
     await _api.post('/peminjaman/$id/confirm-deposit', const {}, bearerToken: token);
+  }
+
+  /// Admin rejects the borrower's submitted deposit proof.
+  Future<void> rejectDeposit(String id) async {
+    final token = await _storage.getToken();
+    await _api.post('/peminjaman/$id/reject-deposit', const {}, bearerToken: token);
   }
 
   /// Admin returns the deposit to the borrower for a cleanly-returned book.

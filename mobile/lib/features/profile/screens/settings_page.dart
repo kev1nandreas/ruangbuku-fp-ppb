@@ -30,10 +30,10 @@ class SettingsPage extends StatelessWidget {
           return ListView(
             padding: const EdgeInsets.symmetric(vertical: RuangBukuSpacing.md),
             children: [
-              _buildSectionHeader(context, 'Tampilan & Lokalisasi'),
+              _buildSectionHeader(context, l10n?.appearanceLoc ?? 'Tampilan & Lokalisasi'),
               ListTile(
                 leading: const Icon(Icons.color_lens_outlined),
-                title: const Text('Tema (Theme)'),
+                title: Text(l10n?.themeMode ?? 'Tema (Theme)'),
                 trailing: DropdownButton<ThemeMode>(
                   value: prefs.themeMode,
                   onChanged: (ThemeMode? newValue) {
@@ -41,18 +41,18 @@ class SettingsPage extends StatelessWidget {
                       prefs.setThemeMode(newValue);
                     }
                   },
-                  items: const [
+                  items: [
                     DropdownMenuItem(
                       value: ThemeMode.system,
-                      child: Text('System Default'),
+                      child: Text(l10n?.systemDefault ?? 'System Default'),
                     ),
                     DropdownMenuItem(
                       value: ThemeMode.light,
-                      child: Text('Light Mode'),
+                      child: Text(l10n?.lightMode ?? 'Light Mode'),
                     ),
                     DropdownMenuItem(
                       value: ThemeMode.dark,
-                      child: Text('Dark Mode'),
+                      child: Text(l10n?.darkMode ?? 'Dark Mode'),
                     ),
                   ],
                 ),
@@ -80,41 +80,41 @@ class SettingsPage extends StatelessWidget {
                 ),
               ),
               const Divider(),
-              _buildSectionHeader(context, 'Pengaturan Notifikasi'),
+              _buildSectionHeader(context, l10n?.notificationSettings ?? 'Pengaturan Notifikasi'),
               SwitchListTile(
                 secondary: const Icon(Icons.notifications_active_outlined),
-                title: const Text('Notifikasi Peminjaman'),
-                subtitle: const Text('Beri tahu saat ada yang ingin meminjam buku Anda'),
+                title: Text(l10n?.notifBorrow ?? 'Notifikasi Peminjaman'),
+                subtitle: Text(l10n?.notifBorrowDesc ?? 'Beri tahu saat ada yang ingin meminjam buku Anda'),
                 value: prefs.notifBorrow,
                 onChanged: (val) => prefs.setNotifBorrow(val),
               ),
               SwitchListTile(
                 secondary: const Icon(Icons.access_time_outlined),
-                title: const Text('Pengingat Deposit (SLA)'),
-                subtitle: const Text('Beri tahu sebelum batas waktu deposit 24 jam habis'),
+                title: Text(l10n?.notifSla ?? 'Pengingat Deposit (SLA)'),
+                subtitle: Text(l10n?.notifSlaDesc ?? 'Beri tahu sebelum batas waktu deposit 24 jam habis'),
                 value: prefs.notifSla,
                 onChanged: (val) => prefs.setNotifSla(val),
               ),
               SwitchListTile(
                 secondary: const Icon(Icons.handshake_outlined),
-                title: const Text('Pengingat Penyerahan/Pengembalian'),
-                subtitle: const Text('Beri tahu batas waktu penyerahan buku'),
+                title: Text(l10n?.notifReturn ?? 'Pengingat Penyerahan/Pengembalian'),
+                subtitle: Text(l10n?.notifReturnDesc ?? 'Beri tahu batas waktu penyerahan buku'),
                 value: prefs.notifHandover,
                 onChanged: (val) => prefs.setNotifHandover(val),
               ),
               const Divider(),
-              _buildSectionHeader(context, 'Privasi & Preferensi Buku'),
+              _buildSectionHeader(context, l10n?.privacyPref ?? 'Privasi & Preferensi Buku'),
               SwitchListTile(
                 secondary: const Icon(Icons.public_outlined),
-                title: const Text('Koleksi Publik Secara Default'),
-                subtitle: const Text('Buku baru yang ditambahkan otomatis menjadi Koleksi Publik'),
+                title: Text(l10n?.publicDefault ?? 'Koleksi Publik Secara Default'),
+                subtitle: Text(l10n?.publicDefaultDesc ?? 'Buku baru yang ditambahkan otomatis menjadi Koleksi Publik'),
                 value: prefs.publicDefault,
                 onChanged: (val) => prefs.setPublicDefault(val),
               ),
               SwitchListTile(
                 secondary: const Icon(Icons.visibility_off_outlined),
-                title: const Text('Sembunyikan Nomor WA'),
-                subtitle: const Text('Nomor hanya bisa dilihat setelah pinjaman disetujui'),
+                title: Text(l10n?.hideWa ?? 'Sembunyikan Nomor WA'),
+                subtitle: Text(l10n?.hideWaDesc ?? 'Nomor hanya bisa dilihat setelah pinjaman disetujui'),
                 value: prefs.hideWa,
                 onChanged: (val) => prefs.setHideWa(val),
               ),

@@ -229,13 +229,13 @@ class _RequestBorrowPageState extends State<RequestBorrowPage> {
               onTap: () => _selectDate(context, true),
               child: InputDecorator(
                 decoration: InputDecoration(
-                  labelText: l10n?.pickupDate ?? 'Pickup Date',
+                  labelText: l10n?.borrowingDate ?? 'Borrowing Date',
                   suffixIcon: const Icon(Icons.calendar_today_outlined),
                 ),
                 child: Text(
                   _formatDate(_pickupDate, l10n),
                   style: TextStyle(
-                    color: _pickupDate == null ? RuangBukuColors.textSecondary.withValues(alpha: 0.6) : RuangBukuColors.textPrimary,
+                    color: _pickupDate == null ? theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6) : theme.colorScheme.onSurface,
                   ),
                 ),
               ),
@@ -253,7 +253,7 @@ class _RequestBorrowPageState extends State<RequestBorrowPage> {
                 child: Text(
                   _formatDate(_returnDate, l10n),
                   style: TextStyle(
-                    color: _returnDate == null ? RuangBukuColors.textSecondary.withValues(alpha: 0.6) : RuangBukuColors.textPrimary,
+                    color: _returnDate == null ? theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6) : theme.colorScheme.onSurface,
                   ),
                 ),
               ),

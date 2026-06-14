@@ -50,12 +50,6 @@ class _UserBooksPageState extends State<UserBooksPage> {
                 fontWeight: FontWeight.w700,
               ),
             ),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.sort),
-                onPressed: () {},
-              ),
-            ],
           ),
           body: RefreshIndicator(
             onRefresh: () => state.fetchBooks(),
@@ -83,7 +77,7 @@ class _UserBooksPageState extends State<UserBooksPage> {
                       bookId: bk.id,
                       title: bk.title,
                       author: bk.author,
-                      status: _statusText(state, bk, l10n),
+                      status: _statusText(state, bk),
                       imageUrl: bk.imageUrl,
                     );
                   },
@@ -103,19 +97,19 @@ class _UserBooksPageState extends State<UserBooksPage> {
     );
   }
 
-  String _statusText(RuangBukuState state, BookModel book, AppLocalizations? l10n) {
+  String _statusText(RuangBukuState state, BookModel book) {
     if (book.statusVerifikasi == BookStatus.publicPending) {
-      return l10n?.pendingApproval ?? 'Pending Approval';
+      return 'pending';
     } else if (book.statusVerifikasi == BookStatus.publicRejected) {
-      return l10n?.rejected ?? 'Rejected';
+      return 'rejected';
     } else if (book.statusVerifikasi == BookStatus.private) {
-      return l10n?.privateBook ?? 'Private';
+      return 'private';
     }
 
-    final hasActiveBorrow = state.borrowings.any((b) =>
+    final hasActiveBorrow = state.ownerBorrowings.any((b) =>
         b.bookId == book.id &&
         b.status != BorrowStatus.completed &&
         b.status != BorrowStatus.cancelled);
-    return hasActiveBorrow ? (l10n?.onLoan ?? 'On Loan') : (l10n?.available ?? 'Available');
+    return hasActiveBorrow ? 'on_loan' : 'available';
   }
 }

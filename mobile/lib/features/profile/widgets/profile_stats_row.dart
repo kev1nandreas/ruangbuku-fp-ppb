@@ -29,7 +29,7 @@ class ProfileStatsRow extends StatelessWidget {
         borderRadius: RuangBukuRadius.borderRadiusLg,
         boxShadow: RuangBukuElevation.level1,
         border: Border.all(
-          color: RuangBukuColors.outlineVariant.withValues(alpha: 0.3),
+          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
         ),
       ),
       child: Row(
@@ -41,14 +41,14 @@ class ProfileStatsRow extends StatelessWidget {
             l10n?.owned ?? 'Books Owned',
             onTap: () => onNavigateToTab?.call(2),
           ),
-          _divider(),
+          _divider(context),
           _stat(
             context,
             '$borrowedCount',
             l10n?.borrowed ?? 'Borrowed',
             onTap: () => onNavigateToTab?.call(3),
           ),
-          _divider(),
+          _divider(context),
           _stat(
             context,
             '$lentCount',
@@ -60,8 +60,8 @@ class ProfileStatsRow extends StatelessWidget {
     );
   }
 
-  Widget _divider() =>
-      Container(width: 1, height: 40, color: RuangBukuColors.divider);
+  Widget _divider(BuildContext context) =>
+      Container(width: 1, height: 40, color: Theme.of(context).dividerTheme.color ?? Theme.of(context).colorScheme.outlineVariant);
 
   Widget _stat(BuildContext context, String value, String label, {VoidCallback? onTap}) {
     final textTheme = Theme.of(context).textTheme;
@@ -72,9 +72,9 @@ class ProfileStatsRow extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: RuangBukuSpacing.md, vertical: RuangBukuSpacing.xs),
         child: Column(
           children: [
-            Text(value,
+             Text(value,
                 style: textTheme.headlineSmall
-                    ?.copyWith(color: RuangBukuColors.primary)),
+                    ?.copyWith(color: Theme.of(context).colorScheme.primary)),
             const SizedBox(height: RuangBukuSpacing.xs),
             Text(label, style: textTheme.labelSmall),
           ],

@@ -20,6 +20,7 @@ class UserBorrowingPage extends StatelessWidget {
         final state = RuangBukuState.instance;
         final borrowings = state.borrowings;
         final incoming = state.incomingRequests;
+        final activeIncoming = state.ownerBorrowings.where((b) => b.status != BorrowStatus.requested).toList();
 
         return Scaffold(
           appBar: AppBar(
@@ -32,7 +33,7 @@ class UserBorrowingPage extends StatelessWidget {
           ),
           body: RefreshIndicator(
             onRefresh: () => state.fetchBorrowings(),
-            child: (borrowings.isEmpty && incoming.isEmpty)
+            child: (borrowings.isEmpty && incoming.isEmpty && activeIncoming.isEmpty)
               ? ListView(
                   physics: const AlwaysScrollableScrollPhysics(),
                   children: [
@@ -60,105 +61,141 @@ class UserBorrowingPage extends StatelessWidget {
                             child: _IncomingRequestCard(borrowing: b),
                           )),
                       const SizedBox(height: RuangBukuSpacing.lg),
-                      Text(l10n?.yourTransactions ?? 'Transaksi Anda',
+                    ],
+
+                    // Books this user owns that are currently being borrowed by others.
+                    if (activeIncoming.isNotEmpty) ...[
+                      Text('Buku Terpinjam',
                           style: textTheme.titleMedium
                               ?.copyWith(fontWeight: FontWeight.bold)),
                       const SizedBox(height: RuangBukuSpacing.md),
+                      ...activeIncoming.asMap().entries.expand((entry) {
+                        return [
+                          if (entry.key > 0) const SizedBox(height: RuangBukuSpacing.md),
+                          _TransactionCard(borrowing: entry.value, isLender: true, l10n: l10n, theme: theme, textTheme: textTheme),
+                        ];
+                      }),
+                      const SizedBox(height: RuangBukuSpacing.lg),
                     ],
-                    ...borrowings.asMap().entries.expand((entry) {
-                      final index = entry.key;
-                      final b = entry.value;
-                      final isLender = state.currentRole == UserRole.lender;
 
-                      return [
-                        if (index > 0)
-                          const SizedBox(height: RuangBukuSpacing.md),
-                        InkWell(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => BorrowingDetailPage(borrowingId: b.id),
-                          ),
-                        );
-                      },
-                      borderRadius: RuangBukuRadius.borderRadiusLg,
-                      child: Container(
-                        padding: const EdgeInsets.all(RuangBukuSpacing.md),
-                        decoration: BoxDecoration(
-                          color: RuangBukuColors.surface,
-                          borderRadius: RuangBukuRadius.borderRadiusLg,
-                          border: Border.all(color: RuangBukuColors.outlineVariant),
-                        ),
-                        child: Row(
-                          children: [
-                            ClipRRect(
-                              borderRadius: RuangBukuRadius.borderRadiusSm,
-                              child: Image.network(
-                                b.bookImageUrl,
-                                width: 50,
-                                height: 75,
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) => Container(
-                                  width: 50,
-                                  height: 75,
-                                  color: Colors.grey[300],
-                                  child: const Icon(Icons.book, color: Colors.grey),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: RuangBukuSpacing.md),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    b.bookTitle,
-                                    style: textTheme.titleMedium?.copyWith(
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    isLender ? (l10n?.borrowerName(b.borrowerName) ?? 'Peminjam: ${b.borrowerName}') : (l10n?.ownerName(b.borrowerName) ?? 'Pemilik: ${b.borrowerName}'),
-                                    style: textTheme.bodyMedium?.copyWith(
-                                      color: RuangBukuColors.textSecondary,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                    decoration: BoxDecoration(
-                                      color: _getStatusColor(b.status).withValues(alpha: 0.1),
-                                      borderRadius: BorderRadius.circular(4),
-                                    ),
-                                    child: Text(
-                                      _getStatusText(b.status, l10n),
-                                      style: textTheme.labelSmall?.copyWith(
-                                        color: _getStatusColor(b.status),
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const Icon(Icons.chevron_right, color: RuangBukuColors.textSecondary),
-                          ],
-                        ),
-                      ),
-                    ),
-                      ];
-                    }),
+                    if (borrowings.isNotEmpty) ...[
+                      Text('Buku Dipinjam',
+                          style: textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.bold)),
+                      const SizedBox(height: RuangBukuSpacing.md),
+                      ...borrowings.asMap().entries.expand((entry) {
+                        return [
+                          if (entry.key > 0) const SizedBox(height: RuangBukuSpacing.md),
+                          _TransactionCard(borrowing: entry.value, isLender: false, l10n: l10n, theme: theme, textTheme: textTheme),
+                        ];
+                      }),
+                    ],
                   ],
                 ),
           ),
         );
       },
+    );
+  }
+}
+
+class _TransactionCard extends StatelessWidget {
+  final BorrowModel borrowing;
+  final bool isLender;
+  final AppLocalizations? l10n;
+  final ThemeData theme;
+  final TextTheme textTheme;
+
+  const _TransactionCard({
+    required this.borrowing,
+    required this.isLender,
+    required this.l10n,
+    required this.theme,
+    required this.textTheme,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => BorrowingDetailPage(borrowingId: borrowing.id),
+          ),
+        );
+      },
+      borderRadius: RuangBukuRadius.borderRadiusLg,
+      child: Container(
+        padding: const EdgeInsets.all(RuangBukuSpacing.md),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          borderRadius: RuangBukuRadius.borderRadiusLg,
+          border: Border.all(color: theme.colorScheme.outlineVariant),
+        ),
+        child: Row(
+          children: [
+            ClipRRect(
+              borderRadius: RuangBukuRadius.borderRadiusSm,
+              child: Image.network(
+                borrowing.bookImageUrl,
+                width: 50,
+                height: 75,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => Container(
+                  width: 50,
+                  height: 75,
+                  color: Colors.grey[300],
+                  child: const Icon(Icons.book, color: Colors.grey),
+                ),
+              ),
+            ),
+            const SizedBox(width: RuangBukuSpacing.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    borrowing.bookTitle,
+                    style: textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    isLender
+                        ? (l10n?.borrowerName(borrowing.borrowerName) ?? 'Peminjam: ${borrowing.borrowerName}')
+                        : 'Pemilik Buku',
+                    style: textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: _getStatusColor(borrowing.status).withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      _getStatusText(borrowing.status, l10n),
+                      style: textTheme.labelSmall?.copyWith(
+                        color: _getStatusColor(borrowing.status),
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right, color: theme.colorScheme.onSurfaceVariant),
+          ],
+        ),
+      ),
     );
   }
 
@@ -237,9 +274,9 @@ class _IncomingRequestCardState extends State<_IncomingRequestCard> {
     return Container(
       padding: const EdgeInsets.all(RuangBukuSpacing.md),
       decoration: BoxDecoration(
-        color: RuangBukuColors.surface,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: RuangBukuRadius.borderRadiusLg,
-        border: Border.all(color: RuangBukuColors.primary),
+        border: Border.all(color: Theme.of(context).colorScheme.primary),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -274,10 +311,10 @@ class _IncomingRequestCardState extends State<_IncomingRequestCard> {
                     const SizedBox(height: 4),
                     Text(l10n?.borrowerName(b.borrowerName) ?? 'Peminjam: ${b.borrowerName}',
                         style: textTheme.bodyMedium
-                            ?.copyWith(color: RuangBukuColors.textSecondary)),
+                            ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
                     Text('${fmt(b.startDate)} - ${fmt(b.endDate)}',
                         style: textTheme.bodySmall
-                            ?.copyWith(color: RuangBukuColors.textSecondary)),
+                            ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
                   ],
                 ),
               ),
@@ -292,8 +329,8 @@ class _IncomingRequestCardState extends State<_IncomingRequestCard> {
                 Expanded(
                   child: OutlinedButton(
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: RuangBukuColors.error,
-                      side: const BorderSide(color: RuangBukuColors.error),
+                      foregroundColor: Theme.of(context).colorScheme.error,
+                      side: BorderSide(color: Theme.of(context).colorScheme.error),
                     ),
                     onPressed: () => _respond(false),
                     child: Text(l10n?.reject ?? 'Tolak'),

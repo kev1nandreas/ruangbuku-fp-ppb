@@ -35,7 +35,7 @@ class BookRepository {
       final params = <String>[];
       if (userId != null) params.add('user_id=$userId');
       if (statusVerifikasi != null) params.add('status_verifikasi=$statusVerifikasi');
-      if (isPublic != null) params.add('is_public=$isPublic');
+      if (isPublic != null) params.add('is_public=${isPublic ? 1 : 0}');
       final query = params.isNotEmpty ? '?${params.join('&')}' : '';
       final data = await _api.get('/buku$query', bearerToken: token);
       if (data['data'] != null && data['data'] is List) {
@@ -56,6 +56,19 @@ class BookRepository {
       }
     } catch (e) {
       debugPrint('BookRepository: fetchBookDetail failed: $e');
+    }
+    return null;
+  }
+
+  Future<Map<String, dynamic>?> verifyBook(String id) async {
+    try {
+      final token = await _storage.getToken();
+      final data = await _api.post('/buku/$id/verify', {}, bearerToken: token);
+      if (data['data'] != null) {
+        return Map<String, dynamic>.from(data['data']);
+      }
+    } catch (e) {
+      debugPrint('BookRepository: verifyBook failed: $e');
     }
     return null;
   }

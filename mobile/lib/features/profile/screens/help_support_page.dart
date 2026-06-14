@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/theme.dart';
+import '../../../l10n/app_localizations.dart';
 
 /// Static help & support: expandable FAQ entries plus contact shortcuts
 /// (email + WhatsApp). No backend required.
@@ -10,29 +11,7 @@ class HelpSupportPage extends StatelessWidget {
   static const _supportEmail = 'support@ruangbuku.app';
   static const _supportWhatsApp = '6281234567890';
 
-  static const _faqs = <(String, String)>[
-    (
-      'Bagaimana cara meminjam buku?',
-      'Buka detail buku yang tersedia, pilih tanggal pinjam, lalu kirim '
-          'permintaan. Pemilik akan menyetujui dan kamu mengunggah bukti '
-          'deposit untuk diverifikasi admin.',
-    ),
-    (
-      'Apa itu deposit?',
-      'Deposit adalah jaminan yang kamu bayarkan saat meminjam. Deposit '
-          'dikembalikan setelah buku dikembalikan dalam kondisi baik.',
-    ),
-    (
-      'Bagaimana menambahkan buku saya?',
-      'Masuk ke menu koleksi, tekan tambah buku, isi ISBN (atau scan), '
-          'unggah foto sampul, lalu pilih apakah buku tersedia untuk dipinjam.',
-    ),
-    (
-      'Bagaimana jika buku rusak saat dikembalikan?',
-      'Pemilik dapat melaporkan kerusakan. Admin akan meninjau bukti dan '
-          'memutuskan pembagian deposit antara peminjam dan pemilik.',
-    ),
-  ];
+  // Moved FAQs to build method for l10n access
 
   Future<void> _launch(BuildContext context, Uri uri) async {
     try {
@@ -55,15 +34,32 @@ class HelpSupportPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
+    final l10n = AppLocalizations.of(context);
+
+    final faqs = <(String, String)>[
+      (
+        l10n?.faq1Q ?? 'Bagaimana cara meminjam buku?',
+        l10n?.faq1A ?? 'Buka detail buku yang tersedia, pilih tanggal pinjam, lalu kirim permintaan.',
+      ),
+      (
+        l10n?.faq2Q ?? 'Apa itu deposit?',
+        l10n?.faq2A ?? 'Deposit adalah jaminan yang kamu bayarkan saat meminjam.',
+      ),
+      (
+        l10n?.faq3Q ?? 'Bagaimana jika buku rusak saat dikembalikan?',
+        l10n?.faq3A ?? 'Pemilik dapat melaporkan kerusakan.',
+      ),
+    ];
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Help & Support')),
+      appBar: AppBar(title: Text(l10n?.helpSupport ?? 'Help & Support')),
       body: ListView(
         padding: const EdgeInsets.all(RuangBukuSpacing.marginMobile),
         children: [
-          Text('Pertanyaan Umum', style: textTheme.titleLarge),
+
+          Text(l10n?.faqTitle ?? 'Pertanyaan Umum', style: textTheme.titleLarge),
           const SizedBox(height: RuangBukuSpacing.md),
-          ..._faqs.map((faq) => Card(
+          ...faqs.map((faq) => Card(
                 margin: const EdgeInsets.only(bottom: RuangBukuSpacing.sm),
                 elevation: 0,
                 color: theme.colorScheme.surfaceContainerHigh,
@@ -87,12 +83,12 @@ class HelpSupportPage extends StatelessWidget {
                 ),
               )),
           const SizedBox(height: RuangBukuSpacing.xl),
-          Text('Hubungi Kami', style: textTheme.titleLarge),
+          Text(l10n?.contactSupport ?? 'Hubungi Kami', style: textTheme.titleLarge),
           const SizedBox(height: RuangBukuSpacing.md),
           ListTile(
-            leading: const Icon(Icons.email_outlined,
-                color: RuangBukuColors.primary),
-            title: const Text('Email'),
+            leading: Icon(Icons.email_outlined,
+                color: Theme.of(context).colorScheme.primary),
+            title: Text(l10n?.emailContact ?? 'Email'),
             subtitle: const Text(_supportEmail),
             onTap: () => _launch(context, Uri(
               scheme: 'mailto',
@@ -101,9 +97,9 @@ class HelpSupportPage extends StatelessWidget {
             )),
           ),
           ListTile(
-            leading: const Icon(Icons.chat_outlined,
-                color: RuangBukuColors.primary),
-            title: const Text('WhatsApp'),
+            leading: Icon(Icons.chat_outlined,
+                color: Theme.of(context).colorScheme.primary),
+            title: Text(l10n?.whatsappContact ?? 'WhatsApp'),
             subtitle: const Text('Chat tim dukungan'),
             onTap: () => _launch(context,
                 Uri.parse('https://wa.me/$_supportWhatsApp')),

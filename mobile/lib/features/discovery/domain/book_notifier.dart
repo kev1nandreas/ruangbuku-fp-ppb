@@ -94,9 +94,9 @@ class BookNotifier extends ChangeNotifier {
   Future<List<BookModel>> fetchBooks({required bool isAdmin}) async {
     final data = isAdmin
         ? await _repository.fetchBooks(
-            statusVerifikasi: 'need_verification', isPublic: true)
+            statusVerifikasi: 'need_verification')
         : await _repository.fetchBooks();
-    if (data == null) return [];
+    if (data == null) throw Exception('API fetch failed, fallback to local DB');
     return data.map((e) => BookModel.fromJson(e)).toList();
   }
 
@@ -110,6 +110,8 @@ class BookNotifier extends ChangeNotifier {
       _repository.createBook(payload);
 
   Future<bool> deleteBook(String id) => _repository.deleteBook(id);
+
+  Future<Map<String, dynamic>?> verifyBook(String id) => _repository.verifyBook(id);
 
   Future<Map<String, dynamic>?> updateBook(
           String id, Map<String, dynamic> payload) =>

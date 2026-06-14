@@ -24,7 +24,7 @@ class EmptyStateView extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 64, color: RuangBukuColors.primary),
+            Icon(icon, size: 64, color: Theme.of(context).colorScheme.primary),
             const SizedBox(height: RuangBukuSpacing.lg),
             Text(title, style: textTheme.titleLarge),
             const SizedBox(height: RuangBukuSpacing.sm),
@@ -32,7 +32,7 @@ class EmptyStateView extends StatelessWidget {
               message,
               textAlign: TextAlign.center,
               style: textTheme.bodyMedium
-                  ?.copyWith(color: RuangBukuColors.textSecondary),
+                  ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
             ),
           ],
         ),

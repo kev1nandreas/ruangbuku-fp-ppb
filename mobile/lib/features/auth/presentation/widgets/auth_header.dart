@@ -11,25 +11,10 @@ class AuthHeader extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     return Column(
       children: [
-        Container(
-          width: 80,
-          height: 80,
-          decoration: BoxDecoration(
-            color: RuangBukuColors.primary,
-            borderRadius: RuangBukuRadius.borderRadiusXl,
-            boxShadow: RuangBukuElevation.level2,
-          ),
-          child: const Icon(
-            Icons.menu_book_rounded,
-            color: RuangBukuColors.onPrimary,
-            size: 40,
-          ),
-        ),
-        const SizedBox(height: RuangBukuSpacing.lg),
         Text(
           l10n?.ruangBuku ?? 'RuangBuku',
           style: RuangBukuTypography.displayLargeMobile.copyWith(
-            color: RuangBukuColors.textDeep,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
           textAlign: TextAlign.center,
         ),
@@ -37,7 +22,7 @@ class AuthHeader extends StatelessWidget {
         Text(
           l10n?.authHeaderTagline ?? 'Berbagi buku, memperluas wawasan.',
           style: RuangBukuTypography.bodyMedium.copyWith(
-            color: RuangBukuColors.textSecondary,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
           textAlign: TextAlign.center,
         ),

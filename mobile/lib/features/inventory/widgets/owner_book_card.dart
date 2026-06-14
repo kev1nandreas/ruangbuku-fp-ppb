@@ -34,20 +34,31 @@ class OwnerBookCard extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
 
     // Resolve status badge colors.
-    Color textColor = RuangBukuColors.textSecondary;
+    Color textColor = Theme.of(context).colorScheme.onSurfaceVariant;
     Color badgeBg = semanticColors.neutralChip.withValues(alpha: 0.2);
+    String labelText = status;
+
     switch (status) {
-      case 'Available':
+      case 'available':
         textColor = semanticColors.success;
         badgeBg = semanticColors.success.withValues(alpha: 0.2);
+        labelText = l10n?.available ?? 'Available';
         break;
-      case 'Pending Approval':
+      case 'pending':
         textColor = Colors.orange;
         badgeBg = Colors.orange.withValues(alpha: 0.2);
+        labelText = l10n?.pendingApproval ?? 'Pending Approval';
         break;
-      case 'Rejected':
+      case 'rejected':
         textColor = Colors.red;
         badgeBg = Colors.red.withValues(alpha: 0.2);
+        labelText = l10n?.rejected ?? 'Rejected';
+        break;
+      case 'private':
+        labelText = l10n?.privateBook ?? 'Private';
+        break;
+      case 'on_loan':
+        labelText = l10n?.onLoan ?? 'On Loan';
         break;
     }
 
@@ -92,7 +103,7 @@ class OwnerBookCard extends StatelessWidget {
                     ),
                     const SizedBox(width: RuangBukuSpacing.sm),
                     StatusBadge(
-                      label: status,
+                      label: labelText,
                       color: textColor,
                       backgroundColor: badgeBg,
                     ),
@@ -102,7 +113,7 @@ class OwnerBookCard extends StatelessWidget {
                 Text(
                   author,
                   style: textTheme.bodyMedium?.copyWith(
-                    color: RuangBukuColors.textSecondary,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
                 const SizedBox(height: RuangBukuSpacing.lg),
@@ -111,36 +122,50 @@ class OwnerBookCard extends StatelessWidget {
                   children: [
                     OutlinedButton.icon(
                       style: OutlinedButton.styleFrom(
+                        foregroundColor: status == 'on_loan' ? Colors.grey.withValues(alpha: 0.5) : theme.colorScheme.primary,
+                        side: BorderSide(color: status == 'on_loan' ? Colors.grey.withValues(alpha: 0.5) : theme.colorScheme.primary),
                         minimumSize: const Size(0, 36),
                         padding: const EdgeInsets.symmetric(
                             horizontal: RuangBukuSpacing.md),
                       ),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => EditBookPage(bookId: bookId),
-                          ),
-                        );
-                      },
+                      onPressed: status == 'on_loan' 
+                          ? () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text(l10n?.bookCurrentlyOnLoan ?? 'Buku sedang dipinjam, tidak dapat diedit')),
+                              );
+                            }
+                          : () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => EditBookPage(bookId: bookId),
+                                ),
+                              );
+                            },
                       icon: const Icon(Icons.edit, size: 16),
                       label: Text(l10n?.edit ?? 'Edit'),
                     ),
                     const SizedBox(width: RuangBukuSpacing.sm),
                     OutlinedButton.icon(
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: RuangBukuColors.error,
-                        side: const BorderSide(
-                            color: RuangBukuColors.error, width: 1.5),
+                        foregroundColor: status == 'on_loan' ? Colors.grey.withValues(alpha: 0.5) : RuangBukuColors.error,
+                        side: BorderSide(
+                            color: status == 'on_loan' ? Colors.grey.withValues(alpha: 0.5) : RuangBukuColors.error, width: 1.5),
                         minimumSize: const Size(0, 36),
                         padding: const EdgeInsets.symmetric(
                             horizontal: RuangBukuSpacing.md),
                       ),
-                      onPressed: () async {
-                        final confirm = await showDialog<bool>(
-                          context: context,
-                          builder: (context) {
-                            final controller = TextEditingController();
+                      onPressed: status == 'on_loan'
+                          ? () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text(l10n?.bookCurrentlyOnLoan ?? 'Buku sedang dipinjam, tidak dapat dihapus')),
+                              );
+                            }
+                          : () async {
+                              final confirm = await showDialog<bool>(
+                                context: context,
+                                builder: (context) {
+                                  final controller = TextEditingController();
                             return AlertDialog(
                               title: Text(l10n?.deleteConfirmTitle ?? 'Do you want to delete your book?'),
                               content: Column(

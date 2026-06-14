@@ -187,7 +187,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
                   ),
                   const SizedBox(height: RuangBukuSpacing.md),
                   SizedBox(
-                    height: 280,
+                    height: 300,
                     child: ListView.separated(
                       padding: const EdgeInsets.symmetric(
                           horizontal: RuangBukuSpacing.marginMobile),
@@ -197,11 +197,20 @@ class _AdminHomePageState extends State<AdminHomePage> {
                           const SizedBox(width: RuangBukuSpacing.lg),
                       itemBuilder: (context, index) {
                         final bk = popularBooks[index];
+                        String genreName = '-';
+                        if (bk.genreIds.isNotEmpty) {
+                          final genreId = bk.genreIds.first;
+                          final match = state.genres.where((g) => g.id == genreId);
+                          if (match.isNotEmpty) {
+                            genreName = match.first.name;
+                          }
+                        }
                         return PopularBookCard(
                           bookId: bk.id,
                           title: bk.title,
                           author: bk.author,
                           imageUrl: bk.imageUrl,
+                          genre: genreName,
                         );
                       },
                     ),
@@ -243,6 +252,14 @@ class _AdminHomePageState extends State<AdminHomePage> {
                         const SizedBox(height: RuangBukuSpacing.md),
                     itemBuilder: (context, index) {
                       final bk = filteredRecentBooks[index];
+                      String genreName = '-';
+                      if (bk.genreIds.isNotEmpty) {
+                        final genreId = bk.genreIds.first;
+                        final match = state.genres.where((g) => g.id == genreId);
+                        if (match.isNotEmpty) {
+                          genreName = match.first.name;
+                        }
+                      }
                       return RecentBookCard(
                         bookId: bk.id,
                         title: bk.title,
@@ -252,6 +269,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
                             'https://picsum.photos/seed/${bk.ownerId}/100/100',
                         imageUrl: bk.imageUrl,
                         isAvailable: !_isBookOnLoan(state, bk.id),
+                        genre: genreName,
                       );
                     },
                   ),

@@ -75,19 +75,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
                 fontWeight: FontWeight.w700,
               ),
             ),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.settings_outlined),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const SettingsPage(),
-                    ),
-                  );
-                },
-              ),
-            ],
           ),
           body: RefreshIndicator(
             onRefresh: () async {
@@ -166,9 +153,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
                   // Logout
                   OutlinedButton.icon(
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: RuangBukuColors.error,
-                      side: const BorderSide(
-                          color: RuangBukuColors.error, width: 1.5),
+                      foregroundColor: Theme.of(context).colorScheme.error,
+                      side: BorderSide(
+                          color: Theme.of(context).colorScheme.error, width: 1.5),
                       minimumSize: const Size.fromHeight(52),
                       shape: RoundedRectangleBorder(
                         borderRadius: RuangBukuRadius.borderRadiusLg,

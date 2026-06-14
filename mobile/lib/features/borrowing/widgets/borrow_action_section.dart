@@ -45,7 +45,7 @@ class BorrowActionSection extends StatelessWidget {
     if (borrowing == null) {
       // This book already has an active borrow by someone (incl. current user
       // via a different status not caught above) — block requesting it.
-      final isAlreadyBorrowed = state.borrowings.any((b) =>
+      final isAlreadyBorrowed = book.hasActiveBorrowing || state.borrowings.any((b) =>
           b.bookId == book.id &&
           b.status != BorrowStatus.completed &&
           b.status != BorrowStatus.cancelled);

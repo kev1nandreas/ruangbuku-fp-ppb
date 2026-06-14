@@ -78,12 +78,6 @@ class _BorrowerBookDetailPageState extends State<BorrowerBookDetailPage> {
             fontWeight: FontWeight.w600,
           ),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.bookmark_border),
-            onPressed: () {},
-          ),
-        ],
       ),
       body: _buildBody(context, textTheme),
     );

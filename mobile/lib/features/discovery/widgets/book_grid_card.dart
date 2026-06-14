@@ -5,33 +5,33 @@ import '../../borrowing/screens/borrower_book_detail_page.dart';
 import '../../../l10n/app_localizations.dart';
 
 /// Grid cell used on the Find Book results grid: cover with an overlaid status
-/// badge plus title/author/distance below.
+/// badge plus title/author below.
 class BookGridCard extends StatelessWidget {
   const BookGridCard({
     super.key,
     required this.bookId,
     required this.title,
     required this.author,
-    required this.distance,
     required this.imageUrl,
     required this.isAvailable,
+    required this.genre,
   });
 
   final String bookId;
   final String title;
   final String author;
-  final String distance;
   final String imageUrl;
   final bool isAvailable;
+  final String genre;
 
-  Widget _coverFallback() {
-    return const ColoredBox(
-      color: RuangBukuColors.surfaceContainerHigh,
+  Widget _coverFallback(BuildContext context) {
+    return ColoredBox(
+      color: Theme.of(context).colorScheme.surfaceContainerHigh,
       child: Center(
         child: Icon(
           Icons.menu_book_outlined,
           size: 40,
-          color: RuangBukuColors.textSecondary,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
         ),
       ),
     );
@@ -59,7 +59,7 @@ class BookGridCard extends StatelessWidget {
           borderRadius: RuangBukuRadius.borderRadiusLg,
           boxShadow: RuangBukuElevation.level1,
           border: Border.all(
-            color: RuangBukuColors.outlineVariant.withValues(alpha: 0.3),
+            color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
             width: 1,
           ),
         ),
@@ -75,17 +75,17 @@ class BookGridCard extends StatelessWidget {
                       top: Radius.circular(16),
                     ),
                     child: (imageUrl.isEmpty)
-                        ? _coverFallback()
+                        ? _coverFallback(context)
                         : Image.network(
                             imageUrl,
                             fit: BoxFit.cover,
                             errorBuilder: (context, error, stack) =>
-                                _coverFallback(),
+                                _coverFallback(context),
                             loadingBuilder: (context, child, progress) {
                               if (progress == null) return child;
-                              return const ColoredBox(
-                                color: RuangBukuColors.surfaceContainerHigh,
-                                child: Center(
+                              return ColoredBox(
+                                color: theme.colorScheme.surfaceContainerHigh,
+                                child: const Center(
                                   child: SizedBox(
                                     width: 24,
                                     height: 24,
@@ -103,11 +103,11 @@ class BookGridCard extends StatelessWidget {
                     child: StatusBadge(
                       label: isAvailable ? (l10n?.available ?? 'Available') : (l10n?.onLoan ?? 'On Loan'),
                       color: isAvailable
-                          ? RuangBukuColors.textDeep
-                          : RuangBukuColors.textSecondary,
+                          ? theme.colorScheme.onPrimary
+                          : theme.colorScheme.onSurfaceVariant,
                       backgroundColor: (isAvailable
                               ? semanticColors.success
-                              : RuangBukuColors.surfaceContainerHigh)
+                              : theme.colorScheme.surfaceContainerHigh)
                           .withValues(alpha: 0.9),
                       fontWeight: FontWeight.w700,
                     ),
@@ -136,17 +136,22 @@ class BookGridCard extends StatelessWidget {
                   const SizedBox(height: RuangBukuSpacing.md),
                   Row(
                     children: [
-                      const Icon(Icons.location_on_outlined,
-                          size: 14, color: RuangBukuColors.textSecondary),
+                      Icon(Icons.category_outlined,
+                          size: 14, color: theme.colorScheme.onSurfaceVariant),
                       const SizedBox(width: 4),
-                      Text(
-                        distance,
-                        style: textTheme.bodySmall?.copyWith(
-                          color: RuangBukuColors.textSecondary,
+                      Expanded(
+                        child: Text(
+                          genre,
+                          style: textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],
                   ),
+
                 ],
               ),
             ),

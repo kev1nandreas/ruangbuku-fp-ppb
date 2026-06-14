@@ -18,7 +18,7 @@ class PaymentPage extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          l10n?.paymentInfo ?? 'Payment Details',
+          l10n?.paymentDetails ?? 'Payment Details',
           style: textTheme.headlineSmall?.copyWith(
             fontWeight: FontWeight.w600,
           ),

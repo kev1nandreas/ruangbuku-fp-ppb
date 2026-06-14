@@ -10,7 +10,12 @@ import '../../discovery/widgets/recent_book_card.dart';
 import '../../../l10n/app_localizations.dart';
 
 class UserHomePage extends StatefulWidget {
-  const UserHomePage({super.key});
+  final Function(int)? onNavigateToTab;
+
+  const UserHomePage({
+    super.key,
+    this.onNavigateToTab,
+  });
 
   @override
   State<UserHomePage> createState() => _UserHomePageState();
@@ -27,10 +32,20 @@ class _UserHomePageState extends State<UserHomePage> {
   }
 
   bool _isBookOnLoan(RuangBukuState state, String bookId) {
+    final book = state.books.firstWhere((b) => b.id == bookId, orElse: () => BookModel(
+      id: '', isbn: '', title: '', author: '', description: '', isPublic: false, 
+      statusVerifikasi: BookStatus.private, ownerId: '', ownerName: '', imageUrl: '', 
+      distance: '', condition: ''));
+      
+    if (book.hasActiveBorrowing) return true;
+    
+    // Fallback: check our own borrowing lists in case the backend hasn't been deployed yet
+    final isIncoming = state.ownerBorrowings.any((b) => 
+        b.bookId == bookId && b.status != BorrowStatus.completed && b.status != BorrowStatus.cancelled);
+    if (isIncoming) return true;
+
     return state.borrowings.any((b) =>
-        b.bookId == bookId &&
-        b.status != BorrowStatus.completed &&
-        b.status != BorrowStatus.cancelled);
+        b.bookId == bookId && b.status != BorrowStatus.completed && b.status != BorrowStatus.cancelled);
   }
 
   String _getGreeting(AppLocalizations? l10n) {
@@ -60,9 +75,7 @@ class _UserHomePageState extends State<UserHomePage> {
         final currentUserId = auth.user?.id ?? 'guest';
         final firstName = auth.user?.name.split(' ').first ?? 'User';
 
-        String greetingName = state.currentRole == UserRole.lender 
-            ? 'Lender $firstName' 
-            : 'Borrower $firstName';
+        String greetingName = firstName;
 
         final publicBooks = state.books
             .where((b) =>
@@ -112,7 +125,7 @@ class _UserHomePageState extends State<UserHomePage> {
                     backgroundImage: NetworkImage(
                         auth.user?.avatarUrl ?? 'https://picsum.photos/seed/$currentUserId/100/100'),
                     onBackgroundImageError: (error, stack) {},
-                    backgroundColor: RuangBukuColors.surfaceContainerHigh,
+                    backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh,
                   ),
                 ),
               ),
@@ -143,20 +156,10 @@ class _UserHomePageState extends State<UserHomePage> {
                       Text(
                         l10n?.findNextRead ?? 'Find your next read from your community library.',
                         style: textTheme.bodyLarge?.copyWith(
-                          color: RuangBukuColors.textSecondary,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
                       const SizedBox(height: RuangBukuSpacing.xl),
-                      AppSearchField(
-                        controller: _searchController,
-                        hintText: l10n?.searchBooks ?? 'Search books or neighbors...',
-                        onChanged: (val) =>
-                            setState(() => _searchQuery = val),
-                        onClear: () {
-                          _searchController.clear();
-                          setState(() => _searchQuery = '');
-                        },
-                      ),
                     ],
                   ),
                 ),
@@ -175,12 +178,16 @@ class _UserHomePageState extends State<UserHomePage> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(l10n?.popularNearYou ?? 'Popular Near You',
+                        Text('Rekomendasi Buku',
                             style: textTheme.headlineSmall),
                         TextButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            if (widget.onNavigateToTab != null) {
+                              widget.onNavigateToTab!(1); // index 1 is "Cari Buku" / Find Book
+                            }
+                          },
                           style: TextButton.styleFrom(
-                            foregroundColor: RuangBukuColors.accent,
+                            foregroundColor: Theme.of(context).colorScheme.secondary,
                           ),
                           child: Text(l10n?.seeAll ?? 'See all'),
                         ),
@@ -189,7 +196,7 @@ class _UserHomePageState extends State<UserHomePage> {
                   ),
                   const SizedBox(height: RuangBukuSpacing.md),
                   SizedBox(
-                    height: 280,
+                    height: 300,
                     child: ListView.separated(
                       padding: const EdgeInsets.symmetric(
                           horizontal: RuangBukuSpacing.marginMobile),
@@ -199,11 +206,20 @@ class _UserHomePageState extends State<UserHomePage> {
                           const SizedBox(width: RuangBukuSpacing.lg),
                       itemBuilder: (context, index) {
                         final bk = popularBooks[index];
+                        String genreName = '-';
+                        if (bk.genreIds.isNotEmpty) {
+                          final genreId = bk.genreIds.first;
+                          final match = state.genres.where((g) => g.id == genreId);
+                          if (match.isNotEmpty) {
+                            genreName = match.first.name;
+                          }
+                        }
                         return PopularBookCard(
                           bookId: bk.id,
                           title: bk.title,
                           author: bk.author,
                           imageUrl: bk.imageUrl,
+                          genre: genreName,
                         );
                       },
                     ),
@@ -228,9 +244,9 @@ class _UserHomePageState extends State<UserHomePage> {
                     padding: const EdgeInsets.all(RuangBukuSpacing.marginMobile),
                     child: Center(
                       child: Text(
-                        l10n?.noBooksFound(_searchQuery) ?? 'No books found matching "$_searchQuery"',
+                        'Belum ada buku terbaru.',
                         style: textTheme.bodyLarge?.copyWith(
-                            color: RuangBukuColors.textSecondary),
+                            color: Theme.of(context).colorScheme.onSurfaceVariant),
                       ),
                     ),
                   )
@@ -245,6 +261,14 @@ class _UserHomePageState extends State<UserHomePage> {
                         const SizedBox(height: RuangBukuSpacing.md),
                     itemBuilder: (context, index) {
                       final bk = filteredRecentBooks[index];
+                      String genreName = '-';
+                      if (bk.genreIds.isNotEmpty) {
+                        final genreId = bk.genreIds.first;
+                        final match = state.genres.where((g) => g.id == genreId);
+                        if (match.isNotEmpty) {
+                          genreName = match.first.name;
+                        }
+                      }
                       return RecentBookCard(
                         bookId: bk.id,
                         title: bk.title,
@@ -254,6 +278,7 @@ class _UserHomePageState extends State<UserHomePage> {
                             'https://picsum.photos/seed/${bk.ownerId}/100/100',
                         imageUrl: bk.imageUrl,
                         isAvailable: !_isBookOnLoan(state, bk.id),
+                        genre: genreName,
                       );
                     },
                   ),

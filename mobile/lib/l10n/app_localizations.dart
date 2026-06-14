@@ -1399,6 +1399,234 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Selamat malam,'**
   String get goodEvening;
+
+  /// No description provided for @appearanceLoc.
+  ///
+  /// In id, this message translates to:
+  /// **'Tampilan & Lokalisasi'**
+  String get appearanceLoc;
+
+  /// No description provided for @themeMode.
+  ///
+  /// In id, this message translates to:
+  /// **'Tema (Theme)'**
+  String get themeMode;
+
+  /// No description provided for @systemDefault.
+  ///
+  /// In id, this message translates to:
+  /// **'Sistem Default'**
+  String get systemDefault;
+
+  /// No description provided for @lightMode.
+  ///
+  /// In id, this message translates to:
+  /// **'Mode Terang'**
+  String get lightMode;
+
+  /// No description provided for @darkMode.
+  ///
+  /// In id, this message translates to:
+  /// **'Mode Gelap'**
+  String get darkMode;
+
+  /// No description provided for @notificationSettings.
+  ///
+  /// In id, this message translates to:
+  /// **'Pengaturan Notifikasi'**
+  String get notificationSettings;
+
+  /// No description provided for @notifBorrow.
+  ///
+  /// In id, this message translates to:
+  /// **'Notifikasi Peminjaman'**
+  String get notifBorrow;
+
+  /// No description provided for @notifBorrowDesc.
+  ///
+  /// In id, this message translates to:
+  /// **'Beri tahu saat ada yang ingin meminjam buku Anda'**
+  String get notifBorrowDesc;
+
+  /// No description provided for @notifSla.
+  ///
+  /// In id, this message translates to:
+  /// **'Pengingat Deposit (SLA)'**
+  String get notifSla;
+
+  /// No description provided for @notifSlaDesc.
+  ///
+  /// In id, this message translates to:
+  /// **'Beri tahu sebelum batas waktu deposit 24 jam habis'**
+  String get notifSlaDesc;
+
+  /// No description provided for @notifReturn.
+  ///
+  /// In id, this message translates to:
+  /// **'Pengingat Penyerahan/Pengembalian'**
+  String get notifReturn;
+
+  /// No description provided for @notifReturnDesc.
+  ///
+  /// In id, this message translates to:
+  /// **'Beri tahu untuk buku yang harus dikembalikan hari ini'**
+  String get notifReturnDesc;
+
+  /// No description provided for @helpSupportDesc.
+  ///
+  /// In id, this message translates to:
+  /// **'Jika Anda memiliki pertanyaan atau mengalami kendala dalam menggunakan aplikasi RuangBuku, silakan hubungi tim dukungan kami melalui salah satu kanal berikut:'**
+  String get helpSupportDesc;
+
+  /// No description provided for @emailUs.
+  ///
+  /// In id, this message translates to:
+  /// **'Email Kami'**
+  String get emailUs;
+
+  /// No description provided for @chatWhatsapp.
+  ///
+  /// In id, this message translates to:
+  /// **'Chat via WhatsApp'**
+  String get chatWhatsapp;
+
+  /// No description provided for @faqTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Pertanyaan yang Sering Diajukan (FAQ)'**
+  String get faqTitle;
+
+  /// No description provided for @faq1Q.
+  ///
+  /// In id, this message translates to:
+  /// **'Bagaimana cara meminjam buku?'**
+  String get faq1Q;
+
+  /// No description provided for @faq1A.
+  ///
+  /// In id, this message translates to:
+  /// **'Cari buku yang diinginkan, klik \'Pinjam Buku\', lalu tunggu konfirmasi pemilik.'**
+  String get faq1A;
+
+  /// No description provided for @faq2Q.
+  ///
+  /// In id, this message translates to:
+  /// **'Bagaimana sistem deposit bekerja?'**
+  String get faq2Q;
+
+  /// No description provided for @faq2A.
+  ///
+  /// In id, this message translates to:
+  /// **'Peminjam membayar uang jaminan yang akan dikembalikan saat buku kembali dengan aman.'**
+  String get faq2A;
+
+  /// No description provided for @faq3Q.
+  ///
+  /// In id, this message translates to:
+  /// **'Apa yang terjadi jika buku rusak?'**
+  String get faq3Q;
+
+  /// No description provided for @faq3A.
+  ///
+  /// In id, this message translates to:
+  /// **'Pemilik dapat mengklaim uang deposit sebagai ganti rugi kerusakan.'**
+  String get faq3A;
+
+  /// No description provided for @sortTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Urutkan berdasar Judul'**
+  String get sortTitle;
+
+  /// No description provided for @privacyPref.
+  ///
+  /// In id, this message translates to:
+  /// **'Privasi & Preferensi Buku'**
+  String get privacyPref;
+
+  /// No description provided for @publicDefault.
+  ///
+  /// In id, this message translates to:
+  /// **'Koleksi Publik Secara Default'**
+  String get publicDefault;
+
+  /// No description provided for @publicDefaultDesc.
+  ///
+  /// In id, this message translates to:
+  /// **'Buku baru yang ditambahkan otomatis menjadi Koleksi Publik'**
+  String get publicDefaultDesc;
+
+  /// No description provided for @hideWa.
+  ///
+  /// In id, this message translates to:
+  /// **'Sembunyikan Nomor WA'**
+  String get hideWa;
+
+  /// No description provided for @hideWaDesc.
+  ///
+  /// In id, this message translates to:
+  /// **'Nomor hanya bisa dilihat setelah pinjaman disetujui'**
+  String get hideWaDesc;
+
+  /// No description provided for @conditionLabel.
+  ///
+  /// In id, this message translates to:
+  /// **'Kondisi'**
+  String get conditionLabel;
+
+  /// No description provided for @likeNew.
+  ///
+  /// In id, this message translates to:
+  /// **'Seperti Baru'**
+  String get likeNew;
+
+  /// No description provided for @veryGood.
+  ///
+  /// In id, this message translates to:
+  /// **'Sangat Baik'**
+  String get veryGood;
+
+  /// No description provided for @good.
+  ///
+  /// In id, this message translates to:
+  /// **'Baik'**
+  String get good;
+
+  /// No description provided for @acceptable.
+  ///
+  /// In id, this message translates to:
+  /// **'Bisa Diterima'**
+  String get acceptable;
+
+  /// No description provided for @availableLending.
+  ///
+  /// In id, this message translates to:
+  /// **'Tersedia untuk Dipinjam'**
+  String get availableLending;
+
+  /// No description provided for @availableLendingDesc.
+  ///
+  /// In id, this message translates to:
+  /// **'Izinkan tetangga di area Anda meminjam buku ini.'**
+  String get availableLendingDesc;
+
+  /// No description provided for @addCoverPhoto.
+  ///
+  /// In id, this message translates to:
+  /// **'Tambah foto sampul'**
+  String get addCoverPhoto;
+
+  /// No description provided for @change.
+  ///
+  /// In id, this message translates to:
+  /// **'Ubah'**
+  String get change;
+
+  /// No description provided for @coverPhoto.
+  ///
+  /// In id, this message translates to:
+  /// **'Foto Sampul'**
+  String get coverPhoto;
 }
 
 class _AppLocalizationsDelegate

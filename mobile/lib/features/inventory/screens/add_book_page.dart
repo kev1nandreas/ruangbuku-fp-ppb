@@ -24,8 +24,9 @@ class _AddBookPageState extends State<AddBookPage> {
   final TextEditingController _authorController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   
-  String _condition = 'Like New';
+  String _condition = 'Good';
   bool _isAvailableForLending = true;
+  List<String> _selectedGenreIds = [];
   String? _coverImageUrl;
   bool _isUploadingCover = false;
 
@@ -145,6 +146,7 @@ class _AddBookPageState extends State<AddBookPage> {
         _condition,
         _isAvailableForLending,
         coverImageUrl: _coverImageUrl,
+        genreIds: _selectedGenreIds,
       );
 
       if (mounted) {
@@ -230,7 +232,7 @@ class _AddBookPageState extends State<AddBookPage> {
             const SizedBox(height: RuangBukuSpacing.xl),
 
             Text(
-              'Cover Photo',
+              l10n?.coverPhoto ?? 'Cover Photo',
               style: textTheme.titleLarge,
             ),
             const SizedBox(height: RuangBukuSpacing.md),
@@ -270,6 +272,40 @@ class _AddBookPageState extends State<AddBookPage> {
                 hintText: l10n?.enterDescription ?? 'Enter synopsis or short description',
                 alignLabelWithHint: true,
               ),
+            ),
+            const SizedBox(height: RuangBukuSpacing.xl),
+
+            Text(
+              'Genres',
+              style: textTheme.titleLarge,
+            ),
+            const SizedBox(height: RuangBukuSpacing.md),
+            ListenableBuilder(
+              listenable: RuangBukuState.instance,
+              builder: (context, _) {
+                final genres = RuangBukuState.instance.genres;
+                if (genres.isEmpty) return const Text('No genres available');
+                return Wrap(
+                  spacing: 8.0,
+                  runSpacing: 4.0,
+                  children: genres.map((g) {
+                    final isSelected = _selectedGenreIds.contains(g.id);
+                    return FilterChip(
+                      label: Text(g.name),
+                      selected: isSelected,
+                      onSelected: (selected) {
+                        setState(() {
+                          if (selected) {
+                            _selectedGenreIds.add(g.id);
+                          } else {
+                            _selectedGenreIds.remove(g.id);
+                          }
+                        });
+                      },
+                    );
+                  }).toList(),
+                );
+              },
             ),
             const SizedBox(height: RuangBukuSpacing.xl),
 
@@ -338,13 +374,13 @@ class _CoverPicker extends StatelessWidget {
         child: isUploading
             ? const Center(child: CircularProgressIndicator())
             : imageUrl == null
-                ? const Column(
+                ? Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.add_a_photo_outlined,
+                      const Icon(Icons.add_a_photo_outlined,
                           size: 36, color: RuangBukuColors.primary),
-                      SizedBox(height: RuangBukuSpacing.sm),
-                      Text('Tambah foto sampul'),
+                      const SizedBox(height: RuangBukuSpacing.sm),
+                      Text(AppLocalizations.of(context)?.addCoverPhoto ?? 'Add cover photo'),
                     ],
                   )
                 : Align(
@@ -357,9 +393,9 @@ class _CoverPicker extends StatelessWidget {
                         color: Colors.black54,
                         borderRadius: RuangBukuRadius.borderRadiusSm,
                       ),
-                      child: const Text(
-                        'Ubah',
-                        style: TextStyle(color: Colors.white, fontSize: 12),
+                      child: Text(
+                        AppLocalizations.of(context)?.change ?? 'Change',
+                        style: const TextStyle(color: Colors.white, fontSize: 12),
                       ),
                     ),
                   ),

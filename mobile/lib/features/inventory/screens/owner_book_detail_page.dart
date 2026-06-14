@@ -96,6 +96,25 @@ class _OwnerBookDetailPageState extends State<OwnerBookDetailPage> {
       badgeColor = Colors.grey;
     }
 
+    // Check if there is an active borrowing for this book
+    final activeBorrowing = RuangBukuState.instance.ownerBorrowings.where((b) =>
+        b.bookId == book.id &&
+        b.status != BorrowStatus.completed &&
+        b.status != BorrowStatus.cancelled).firstOrNull;
+
+    if (activeBorrowing != null) {
+      if (activeBorrowing.status == BorrowStatus.bookReceived) {
+        statusText = l10n?.onLoanText ?? 'Sedang Dipinjam';
+        badgeColor = RuangBukuColors.primary;
+      } else if (activeBorrowing.status == BorrowStatus.requested) {
+        statusText = l10n?.requestedStatus ?? 'Requested';
+        badgeColor = Colors.orange;
+      } else {
+        statusText = 'Dalam Transaksi';
+        badgeColor = RuangBukuColors.primary;
+      }
+    }
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -108,15 +127,27 @@ class _OwnerBookDetailPageState extends State<OwnerBookDetailPage> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.edit),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => EditBookPage(bookId: widget.bookId),
-                ),
-              );
-            },
+            icon: Icon(
+              Icons.edit, 
+              color: (activeBorrowing != null || book.hasActiveBorrowing) 
+                  ? Colors.grey.withValues(alpha: 0.5) 
+                  : null
+            ),
+            onPressed: (activeBorrowing != null || book.hasActiveBorrowing) 
+                ? () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(l10n?.bookCurrentlyOnLoan ?? 'Buku sedang dipinjam, tidak dapat diedit')),
+                    );
+                  }
+                : () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => EditBookPage(bookId: widget.bookId),
+                      ),
+                    );
+                  },
+            tooltip: (activeBorrowing != null || book.hasActiveBorrowing) ? 'Buku sedang dipinjam' : 'Edit Buku',
           ),
         ],
       ),
@@ -161,30 +192,42 @@ class _OwnerBookDetailPageState extends State<OwnerBookDetailPage> {
               ),
               child: Column(
                 children: [
-                  ListTile(
-                    leading: const Icon(Icons.info_outline, color: RuangBukuColors.textSecondary),
-                    title: Text(l10n?.condition ?? 'Condition', style: textTheme.labelLarge),
-                    trailing: Text(book.condition, style: textTheme.bodyLarge),
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      children: [
+                        Icon(Icons.info_outline, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                        const SizedBox(width: 16),
+                        Expanded(child: Text(l10n?.condition ?? 'Condition', style: textTheme.labelLarge)),
+                        Text(book.condition, style: textTheme.bodyLarge),
+                      ],
+                    ),
                   ),
                   const Divider(height: 1),
-                  ListTile(
-                    leading: const Icon(Icons.swap_horiz, color: RuangBukuColors.textSecondary),
-                    title: Text(l10n?.lendingStatus ?? 'Lending Status', style: textTheme.labelLarge),
-                    trailing: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: badgeColor.withValues(alpha: 0.2),
-                        borderRadius: RuangBukuRadius.borderRadiusSm,
-                      ),
-                      child: Text(
-                        statusText,
-                        style: textTheme.labelMedium?.copyWith(color: badgeColor, fontWeight: FontWeight.w700),
-                      ),
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      children: [
+                        Icon(Icons.swap_horiz, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                        const SizedBox(width: 16),
+                        Expanded(child: Text(l10n?.lendingStatus ?? 'Lending Status', style: textTheme.labelLarge)),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: badgeColor.withValues(alpha: 0.2),
+                            borderRadius: RuangBukuRadius.borderRadiusSm,
+                          ),
+                          child: Text(
+                            statusText,
+                            style: textTheme.labelMedium?.copyWith(color: badgeColor, fontWeight: FontWeight.w700),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   const Divider(height: 1),
                   ListTile(
-                    leading: const Icon(Icons.history, color: RuangBukuColors.textSecondary),
+                    leading: Icon(Icons.history, color: Theme.of(context).colorScheme.onSurfaceVariant),
                     title: Text(l10n?.borrowHistory ?? 'Borrow History', style: textTheme.labelLarge),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: () {},
@@ -197,14 +240,27 @@ class _OwnerBookDetailPageState extends State<OwnerBookDetailPage> {
             // Danger Zone
             OutlinedButton.icon(
               style: OutlinedButton.styleFrom(
-                foregroundColor: RuangBukuColors.error,
-                side: const BorderSide(color: RuangBukuColors.error, width: 1.5),
+                foregroundColor: (activeBorrowing != null || book.hasActiveBorrowing) 
+                    ? Colors.grey.withValues(alpha: 0.5) 
+                    : RuangBukuColors.error,
+                side: BorderSide(
+                  color: (activeBorrowing != null || book.hasActiveBorrowing) 
+                      ? Colors.grey.withValues(alpha: 0.5) 
+                      : RuangBukuColors.error, 
+                  width: 1.5
+                ),
               ),
-              onPressed: () async {
-                final confirm = await showDialog<bool>(
-                  context: context,
-                  builder: (context) {
-                    final controller = TextEditingController();
+              onPressed: (activeBorrowing != null || book.hasActiveBorrowing)
+                ? () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(l10n?.bookCurrentlyOnLoan ?? 'Buku sedang dipinjam, tidak dapat dihapus')),
+                    );
+                  }
+                : () async {
+                    final confirm = await showDialog<bool>(
+                      context: context,
+                      builder: (context) {
+                        final controller = TextEditingController();
                     return AlertDialog(
                       title: Text(l10n?.deleteConfirmTitle ?? 'Do you want to delete your book?'),
                       content: Column(
@@ -246,9 +302,11 @@ class _OwnerBookDetailPageState extends State<OwnerBookDetailPage> {
                 );
 
                 if (confirm == true && context.mounted) {
+                  RuangBukuState.instance.deleteBook(book.id);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(l10n?.deleteNotSupported ?? 'Delete feature not supported by backend yet'))
+                    SnackBar(content: Text(l10n?.bookRemoved ?? 'Book removed from library'))
                   );
+                  Navigator.pop(context); // Go back after deleting
                 }
               },
               icon: const Icon(Icons.delete_outline),

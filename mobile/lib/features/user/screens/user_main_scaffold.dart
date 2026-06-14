@@ -28,7 +28,13 @@ class _UserMainScaffoldState extends State<UserMainScaffold> {
   }
 
   List<Widget> get _pages => [
-    const UserHomePage(),
+    UserHomePage(
+      onNavigateToTab: (index) {
+        setState(() {
+          _currentIndex = index;
+        });
+      },
+    ),
     const FindBookPage(),
     const UserBooksPage(), // Replaced YourBooksPage
     const UserBorrowingPage(), // Replaced BorrowingListPage

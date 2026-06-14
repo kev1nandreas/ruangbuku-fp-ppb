@@ -136,8 +136,9 @@ class _TimelineStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final Color dotColor = isError
-        ? RuangBukuColors.error
+        ? theme.colorScheme.error
         : switch (state) {
             _StepState.completed => Colors.green,
             _StepState.current => RuangBukuColors.primary,
@@ -167,10 +168,10 @@ class _TimelineStep extends StatelessWidget {
                     border: Border.all(color: dotColor, width: 2),
                   ),
                   child: Icon(
-                    state == _StepState.completed
+                    (state == _StepState.completed || (state == _StepState.current && isLast))
                         ? Icons.check
                         : (isError ? Icons.priority_high : Icons.circle),
-                    size: state == _StepState.completed ? 14 : 8,
+                    size: (state == _StepState.completed || (state == _StepState.current && isLast)) ? 14 : 8,
                     color: state == _StepState.pending
                         ? Colors.transparent
                         : Colors.white,
@@ -201,10 +202,10 @@ class _TimelineStep extends StatelessWidget {
                           ? FontWeight.w400
                           : FontWeight.w600,
                       color: state == _StepState.pending
-                          ? RuangBukuColors.textSecondary
+                          ? theme.colorScheme.onSurface.withOpacity(0.5)
                           : (isError
-                              ? RuangBukuColors.error
-                              : RuangBukuColors.textPrimary),
+                              ? theme.colorScheme.error
+                              : theme.colorScheme.onSurface),
                     ),
                   ),
                   if (timestamp != null && state != _StepState.pending) ...[
@@ -212,7 +213,7 @@ class _TimelineStep extends StatelessWidget {
                     Text(
                       BorrowProgressTimeline._fmt(timestamp!),
                       style: textTheme.bodySmall?.copyWith(
-                        color: RuangBukuColors.textSecondary,
+                        color: theme.colorScheme.onSurface.withOpacity(0.6),
                       ),
                     ),
                   ],

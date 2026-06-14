@@ -6,6 +6,7 @@ import '../data/models/login_request.dart';
 import '../data/models/register_request.dart';
 import '../data/models/user_model.dart';
 import '../data/repository/auth_repository.dart';
+import '../../../db/local_bookDB.dart';
 
 enum AuthStatus { initial, loading, authenticated, unauthenticated, error }
 
@@ -37,6 +38,7 @@ class AuthNotifier extends ChangeNotifier {
       
       _status = AuthStatus.authenticated;
       _syncRoleToState(_user?.primaryRoleName); // Fallback to cache if fetch failed
+      await _syncUserToLocalDB();
       RuangBukuState.instance.initializeData();
     } else {
       _status = AuthStatus.unauthenticated;
@@ -52,6 +54,17 @@ class AuthNotifier extends ChangeNotifier {
     }
   }
 
+  Future<void> _syncUserToLocalDB() async {
+    if (_user == null) return;
+    final db = LocalBookDB.instance;
+    await db.upsertUser({
+      'backend_id': _user!.id,
+      'name': _user!.name,
+      'email': _user!.email,
+      'avatarUrl': _user!.avatarUrl,
+    });
+  }
+
   Future<bool> login(String email, String password) async {
     _status = AuthStatus.loading;
     _errorMessage = null;
@@ -64,6 +77,7 @@ class AuthNotifier extends ChangeNotifier {
       _user = response.user;
       _status = AuthStatus.authenticated;
       _syncRoleToState(response.user.primaryRoleName);
+      await _syncUserToLocalDB();
       RuangBukuState.instance.initializeData();
       notifyListeners();
 
@@ -107,6 +121,7 @@ class AuthNotifier extends ChangeNotifier {
       _user = response.user;
       _status = AuthStatus.authenticated;
       _syncRoleToState(response.user.primaryRoleName);
+      await _syncUserToLocalDB();
       RuangBukuState.instance.initializeData();
       notifyListeners();
 
@@ -138,6 +153,7 @@ class AuthNotifier extends ChangeNotifier {
       _user = await _repository.getProfile();
       if (_user != null) {
         _syncRoleToState(_user!.primaryRoleName);
+        await _syncUserToLocalDB();
       }
     } on ApiException catch (e) {
       _errorMessage = e.message;

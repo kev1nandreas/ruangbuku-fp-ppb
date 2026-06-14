@@ -58,7 +58,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final l10n = AppLocalizations.of(context);
 
     return Scaffold(
-      backgroundColor: RuangBukuColors.surface,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: ListenableBuilder(
         listenable: AuthNotifier.instance,
         builder: (context, _) {
@@ -93,7 +93,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       Text(
                         l10n?.noAccountPrompt ?? 'Belum punya akun? ',
                         style: RuangBukuTypography.bodyMedium.copyWith(
-                          color: RuangBukuColors.textSecondary,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
                       GestureDetector(

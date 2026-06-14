@@ -4,6 +4,7 @@ import '../../../core/state.dart';
 import '../screens/request_borrow_page.dart';
 import '../../auth/domain/auth_notifier.dart';
 import 'deposit_proof.dart';
+import '../../../l10n/app_localizations.dart';
 
 /// Contextual call-to-action shown in the borrower book detail bottom sheet.
 /// Renders the right control for the current borrowing lifecycle state.
@@ -29,29 +30,30 @@ class BorrowActionSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final state = RuangBukuState.instance;
+    final l10n = AppLocalizations.of(context);
 
     final currentUserId = AuthNotifier.instance.user?.id ?? '';
 
     // If own book
     if (book.ownerId == currentUserId) {
-      return const OutlinedButton(
+      return OutlinedButton(
         onPressed: null,
-        child: Text('This is your own book'),
+        child: Text(l10n?.thisIsYourOwnBook ?? 'This is your own book'),
       );
     }
 
     if (borrowing == null) {
       // This book already has an active borrow by someone (incl. current user
       // via a different status not caught above) — block requesting it.
-      final isAlreadyBorrowed = state.borrowings.any((b) =>
+      final isAlreadyBorrowed = book.hasActiveBorrowing || state.borrowings.any((b) =>
           b.bookId == book.id &&
           b.status != BorrowStatus.completed &&
           b.status != BorrowStatus.cancelled);
 
       if (isAlreadyBorrowed) {
-        return const OutlinedButton(
+        return OutlinedButton(
           onPressed: null,
-          child: Text('Book Currently on Loan'),
+          child: Text(l10n?.bookCurrentlyOnLoan ?? 'Book Currently on Loan'),
         );
       }
 
@@ -64,43 +66,43 @@ class BorrowActionSection extends StatelessWidget {
 
       if (hasActiveElsewhere) {
         return _statusColumn(
-          message: 'Finish your active borrowing before requesting another.',
+          message: l10n?.finishActiveBorrowing ?? 'Finish your active borrowing before requesting another.',
           messageColor: RuangBukuColors.textSecondary,
-          action: const OutlinedButton(
+          action: OutlinedButton(
             onPressed: null,
-            child: Text('Borrow Book'),
+            child: Text(l10n?.borrowBook ?? 'Borrow Book'),
           ),
         );
       }
 
       return FilledButton(
         onPressed: () => _goToRequest(context),
-        child: const Text('Borrow Book'),
+        child: Text(l10n?.borrowBook ?? 'Borrow Book'),
       );
     }
 
     switch (borrowing!.status) {
       case BorrowStatus.requested:
         return _statusColumn(
-          message: 'Waiting for Lender approval...',
+          message: l10n?.waitingForLenderApproval ?? 'Waiting for Lender approval...',
           messageColor: RuangBukuColors.primary,
           messageBold: true,
-          action: const OutlinedButton(
+          action: OutlinedButton(
             onPressed: null,
-            child: Text('Requested'),
+            child: Text(l10n?.requestedStatus ?? 'Requested'),
           ),
         );
       case BorrowStatus.waitingDeposit:
         return _statusColumn(
-          message: 'Lender approved! Please pay the deposit.',
+          message: l10n?.lenderApprovedPayDeposit ?? 'Lender approved! Please pay the deposit.',
           action: FilledButton(
             onPressed: () => pickAndUploadDepositProof(context, borrowing!.id),
-            child: const Text('Upload Deposit Proof (Rp. 50,000)'),
+            child: Text(l10n?.uploadDepositProofRp ?? 'Upload Deposit Proof (Rp. 50,000)'),
           ),
         );
       case BorrowStatus.depositUploaded:
         return _statusColumn(
-          message: 'Deposit proof submitted.',
+          message: l10n?.depositProofSubmitted ?? 'Deposit proof submitted.',
           action: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -110,55 +112,55 @@ class BorrowActionSection extends StatelessWidget {
                   icon: const Icon(Icons.receipt_long_outlined),
                   onPressed: () => showDepositProofViewer(
                       context, borrowing!.paymentProofUrl!),
-                  label: const Text('View Deposit Proof'),
+                  label: Text(l10n?.viewDepositProof ?? 'View Deposit Proof'),
                 ),
               const SizedBox(height: 8),
-              const OutlinedButton(
+              OutlinedButton(
                 onPressed: null,
-                child: Text('Waiting for Admin Verification'),
+                child: Text(l10n?.waitingAdminVerification ?? 'Waiting for Admin Verification'),
               ),
             ],
           ),
         );
       case BorrowStatus.depositVerified:
         return _statusColumn(
-          message: 'Deposit verified. Meet owner and pick up book.',
+          message: l10n?.depositVerifiedMeetOwner ?? 'Deposit verified. Meet owner and pick up book.',
           action: FilledButton(
             onPressed: () {
               state.confirmBookReceived(borrowing!.id);
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
+                SnackBar(
                     content:
-                        Text('Book status updated: Sedang Dipinjam.')),
+                        Text(l10n?.bookStatusUpdatedBorrowed ?? 'Book status updated: Sedang Dipinjam.')),
               );
             },
-            child: const Text('Confirm Book Received'),
+            child: Text(l10n?.confirmBookReceived ?? 'Confirm Book Received'),
           ),
         );
       case BorrowStatus.bookReceived:
         return _statusColumn(
           message:
-              'You have this book. Coordinate the return; the owner confirms its condition.',
-          action: const OutlinedButton(
+              l10n?.youHaveThisBook ?? 'You have this book. Coordinate the return; the owner confirms its condition.',
+          action: OutlinedButton(
             onPressed: null,
-            child: Text('On Loan'),
+            child: Text(l10n?.onLoanText ?? 'On Loan'),
           ),
         );
       case BorrowStatus.returnedGood:
-        return const OutlinedButton(
+        return OutlinedButton(
           onPressed: null,
-          child: Text('Returned Good - Waiting Refund'),
+          child: Text(l10n?.returnedGoodWaitingRefund ?? 'Returned Good - Waiting Refund'),
         );
       case BorrowStatus.returnedDamaged:
-        return const OutlinedButton(
+        return OutlinedButton(
           onPressed: null,
-          child: Text('Returned Damaged - Dispute Open'),
+          child: Text(l10n?.returnedDamagedDisputeOpen ?? 'Returned Damaged - Dispute Open'),
         );
       case BorrowStatus.completed:
       case BorrowStatus.cancelled:
         return FilledButton(
           onPressed: () => _goToRequest(context),
-          child: const Text('Borrow Book'),
+          child: Text(l10n?.borrowBook ?? 'Borrow Book'),
         );
     }
   }

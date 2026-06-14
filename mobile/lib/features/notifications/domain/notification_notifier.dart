@@ -74,6 +74,47 @@ class NotificationNotifier extends ChangeNotifier {
     }
   }
 
+  /// Menghapus satu notifikasi secara lokal dan di server.
+  Future<void> deleteNotification(AppNotificationModel notif) async {
+    _items = _items.where((n) => n.id != notif.id).toList();
+    if (!notif.isRead) {
+      _unreadCount = (_unreadCount - 1).clamp(0, 1 << 30);
+    }
+    notifyListeners();
+
+    try {
+      await _repository.deleteNotification(notif.id);
+    } catch (e) {
+      debugPrint('NotificationNotifier: deleteNotification failed: $e');
+      // Revert if needed, but keeping it simple for now.
+    }
+  }
+
+  /// Menghapus semua notifikasi dari server dan mengosongkan list.
+  Future<void> clearAll() async {
+    _items = [];
+    _unreadCount = 0;
+    notifyListeners();
+
+    try {
+      await _repository.clearAll();
+    } catch (e) {
+      debugPrint('NotificationNotifier: clearAll failed: $e');
+    }
+  }
+
+  /// Mengirim broadcast notifikasi (khusus admin).
+  Future<void> sendBroadcast(String title, String body) async {
+    try {
+      await _repository.broadcast(title, body);
+      // Optional: automatically reload to show the new broadcast if the admin is viewing their own feed
+      await load();
+    } catch (e) {
+      debugPrint('NotificationNotifier: sendBroadcast failed: $e');
+      rethrow;
+    }
+  }
+
   /// Refreshes only the unread badge (e.g. on tab focus).
   Future<void> refreshUnreadCount() async {
     _unreadCount = await _repository.unreadCount();

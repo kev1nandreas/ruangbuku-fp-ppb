@@ -1,15 +1,15 @@
 import 'package:flutter/foundation.dart';
-import '../data/local/book_local_datasource.dart';
 import '../data/models/book_model.dart';
 import '../data/models/genre_model.dart';
 import '../data/repository/book_repository.dart';
+import '../../../db/local_bookDB.dart';
 
 class BookNotifier extends ChangeNotifier {
   BookNotifier._();
   static final BookNotifier instance = BookNotifier._();
 
   final _repository = BookRepository.instance;
-  final _local = BookLocalDatasource.instance;
+  final _local = LocalBookDB.instance;
 
   final List<BookModel> _books = [];
   bool isLoading = false;
@@ -94,9 +94,9 @@ class BookNotifier extends ChangeNotifier {
   Future<List<BookModel>> fetchBooks({required bool isAdmin}) async {
     final data = isAdmin
         ? await _repository.fetchBooks(
-            statusVerifikasi: 'need_verification', isPublic: true)
+            statusVerifikasi: 'need_verification')
         : await _repository.fetchBooks();
-    if (data == null) return [];
+    if (data == null) throw Exception('API fetch failed, fallback to local DB');
     return data.map((e) => BookModel.fromJson(e)).toList();
   }
 
@@ -110,6 +110,8 @@ class BookNotifier extends ChangeNotifier {
       _repository.createBook(payload);
 
   Future<bool> deleteBook(String id) => _repository.deleteBook(id);
+
+  Future<Map<String, dynamic>?> verifyBook(String id) => _repository.verifyBook(id);
 
   Future<Map<String, dynamic>?> updateBook(
           String id, Map<String, dynamic> payload) =>

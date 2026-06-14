@@ -4,18 +4,20 @@ import '../../../core/state.dart';
 import '../../../core/widgets/app_search_field.dart';
 import '../../auth/domain/auth_notifier.dart';
 import '../../notifications/screens/notification_page.dart';
-import '../../profile/screens/profile_page.dart';
-import '../widgets/popular_book_card.dart';
-import '../widgets/recent_book_card.dart';
+import 'admin_profile_page.dart';
+import '../../discovery/widgets/popular_book_card.dart';
+import '../../discovery/widgets/recent_book_card.dart';
+import '../../../l10n/app_localizations.dart';
+import '../../notifications/domain/notification_notifier.dart';
 
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+class AdminHomePage extends StatefulWidget {
+  const AdminHomePage({super.key});
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<AdminHomePage> createState() => _AdminHomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _AdminHomePageState extends State<AdminHomePage> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
 
@@ -32,40 +34,113 @@ class _HomePageState extends State<HomePage> {
         b.status != BorrowStatus.cancelled);
   }
 
+  String _getGreeting(AppLocalizations? l10n) {
+    final hour = DateTime.now().hour;
+    if (hour < 12) {
+      return l10n?.goodMorning ?? 'Good morning,';
+    } else if (hour < 15) {
+      return l10n?.goodAfternoonSiang ?? 'Good afternoon,';
+    } else if (hour < 18) {
+      return l10n?.goodAfternoonSore ?? 'Good afternoon,';
+    } else {
+      return l10n?.goodEvening ?? 'Good evening,';
+    }
+  }
+
+  void _showBroadcastDialog(BuildContext context) {
+    final titleCtrl = TextEditingController();
+    final bodyCtrl = TextEditingController();
+    
+    showDialog(
+      context: context,
+      builder: (context) {
+        bool isLoading = false;
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('Kirim Pengumuman'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('Pesan ini akan dikirim ke seluruh pengguna aplikasi.'),
+                    const SizedBox(height: RuangBukuSpacing.md),
+                    TextField(
+                      controller: titleCtrl,
+                      decoration: const InputDecoration(labelText: 'Judul Pengumuman'),
+                    ),
+                    const SizedBox(height: RuangBukuSpacing.md),
+                    TextField(
+                      controller: bodyCtrl,
+                      decoration: const InputDecoration(labelText: 'Isi Pesan'),
+                      maxLines: 3,
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: isLoading ? null : () => Navigator.pop(context),
+                  child: const Text('Batal'),
+                ),
+                FilledButton(
+                  onPressed: isLoading
+                      ? null
+                      : () async {
+                          if (titleCtrl.text.isEmpty || bodyCtrl.text.isEmpty) return;
+                          setState(() => isLoading = true);
+                          try {
+                            await NotificationNotifier.instance.sendBroadcast(
+                              titleCtrl.text,
+                              bodyCtrl.text,
+                            );
+                            if (context.mounted) {
+                              Navigator.pop(context);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Pengumuman berhasil dikirim')),
+                              );
+                            }
+                          } finally {
+                            if (mounted) {
+                              setState(() => isLoading = false);
+                            }
+                          }
+                        },
+                  child: isLoading
+                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                      : const Text('Kirim'),
+                ),
+              ],
+            );
+          }
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
+    final l10n = AppLocalizations.of(context);
 
     return ListenableBuilder(
       listenable: RuangBukuState.instance,
       builder: (context, _) {
         final state = RuangBukuState.instance;
-
         final auth = AuthNotifier.instance;
         final currentUserId = auth.user?.id ?? 'guest';
         final firstName = auth.user?.name.split(' ').first ?? 'User';
 
-        // Determine user greeting based on active role
-        String greetingName = firstName;
-        if (state.currentRole == UserRole.admin) {
-          greetingName = 'Admin $firstName';
-        } else if (state.currentRole == UserRole.lender) {
-          greetingName = 'Lender $firstName';
-        } else {
-          greetingName = 'Borrower $firstName';
-        }
+        String greetingName = 'Admin $firstName';
 
-        // Get public approved books
         final publicBooks = state.books
             .where((b) =>
                 b.isPublic && b.statusVerifikasi == BookStatus.publicApproved)
             .toList();
 
-        // Popular: first 3 public approved books
         final popularBooks = publicBooks.take(3).toList();
 
-        // Recently Added: filtered by search query
         final filteredRecentBooks = publicBooks.where((b) {
           if (_searchQuery.isEmpty) return true;
           final query = _searchQuery.toLowerCase();
@@ -99,18 +174,24 @@ class _HomePageState extends State<HomePage> {
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) => const ProfilePage()),
+                      MaterialPageRoute(builder: (_) => const AdminProfilePage()),
                     );
                   },
                   child: CircleAvatar(
                     radius: 18,
                     backgroundImage: NetworkImage(
-                        'https://picsum.photos/seed/$currentUserId/100/100'),
+                        auth.user?.avatarUrl ?? 'https://picsum.photos/seed/$currentUserId/100/100'),
+                    onBackgroundImageError: (error, stack) {},
                     backgroundColor: RuangBukuColors.surfaceContainerHigh,
                   ),
                 ),
               ),
             ],
+          ),
+          floatingActionButton: FloatingActionButton(
+            onPressed: () => _showBroadcastDialog(context),
+            tooltip: 'Kirim Pengumuman',
+            child: const Icon(Icons.campaign_outlined),
           ),
           body: RefreshIndicator(
             onRefresh: () async {
@@ -125,18 +206,17 @@ class _HomePageState extends State<HomePage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Welcome Header
                 Padding(
                   padding: const EdgeInsets.symmetric(
                       horizontal: RuangBukuSpacing.marginMobile),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Good morning, $greetingName',
+                      Text('${_getGreeting(l10n)} $greetingName',
                           style: textTheme.displayMedium),
                       const SizedBox(height: RuangBukuSpacing.sm),
                       Text(
-                        'Find your next read from your community library.',
+                        'Monitor community library and verify incoming books.',
                         style: textTheme.bodyLarge?.copyWith(
                           color: RuangBukuColors.textSecondary,
                         ),
@@ -144,6 +224,7 @@ class _HomePageState extends State<HomePage> {
                       const SizedBox(height: RuangBukuSpacing.xl),
                       AppSearchField(
                         controller: _searchController,
+                        hintText: l10n?.searchBooks ?? 'Search books or neighbors...',
                         onChanged: (val) =>
                             setState(() => _searchQuery = val),
                         onClear: () {
@@ -157,7 +238,6 @@ class _HomePageState extends State<HomePage> {
 
                 const SizedBox(height: RuangBukuSpacing.xxl),
 
-                // Popular Near You Carousel
                 if (state.isLoadingBooks)
                   const Padding(
                     padding: EdgeInsets.all(RuangBukuSpacing.xl),
@@ -170,21 +250,21 @@ class _HomePageState extends State<HomePage> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('Popular Near You',
+                        Text(l10n?.popularNearYou ?? 'Popular Near You',
                             style: textTheme.headlineSmall),
                         TextButton(
                           onPressed: () {},
                           style: TextButton.styleFrom(
                             foregroundColor: RuangBukuColors.accent,
                           ),
-                          child: const Text('See all'),
+                          child: Text(l10n?.seeAll ?? 'See all'),
                         ),
                       ],
                     ),
                   ),
                   const SizedBox(height: RuangBukuSpacing.md),
                   SizedBox(
-                    height: 280,
+                    height: 300,
                     child: ListView.separated(
                       padding: const EdgeInsets.symmetric(
                           horizontal: RuangBukuSpacing.marginMobile),
@@ -194,11 +274,20 @@ class _HomePageState extends State<HomePage> {
                           const SizedBox(width: RuangBukuSpacing.lg),
                       itemBuilder: (context, index) {
                         final bk = popularBooks[index];
+                        String genreName = '-';
+                        if (bk.genreIds.isNotEmpty) {
+                          final genreId = bk.genreIds.first;
+                          final match = state.genres.where((g) => g.id == genreId);
+                          if (match.isNotEmpty) {
+                            genreName = match.first.name;
+                          }
+                        }
                         return PopularBookCard(
                           bookId: bk.id,
                           title: bk.title,
                           author: bk.author,
                           imageUrl: bk.imageUrl,
+                          genre: genreName,
                         );
                       },
                     ),
@@ -206,11 +295,10 @@ class _HomePageState extends State<HomePage> {
                   const SizedBox(height: RuangBukuSpacing.xxl),
                 ],
 
-                // Recently Added List
                 Padding(
                   padding: const EdgeInsets.symmetric(
                       horizontal: RuangBukuSpacing.marginMobile),
-                  child: Text('Recently Added', style: textTheme.headlineSmall),
+                  child: Text(l10n?.recentlyAdded ?? 'Recently Added', style: textTheme.headlineSmall),
                 ),
                 const SizedBox(height: RuangBukuSpacing.md),
 
@@ -224,7 +312,7 @@ class _HomePageState extends State<HomePage> {
                     padding: const EdgeInsets.all(RuangBukuSpacing.marginMobile),
                     child: Center(
                       child: Text(
-                        'No books found matching "$_searchQuery"',
+                        l10n?.noBooksFound(_searchQuery) ?? 'No books found matching "$_searchQuery"',
                         style: textTheme.bodyLarge?.copyWith(
                             color: RuangBukuColors.textSecondary),
                       ),
@@ -241,6 +329,14 @@ class _HomePageState extends State<HomePage> {
                         const SizedBox(height: RuangBukuSpacing.md),
                     itemBuilder: (context, index) {
                       final bk = filteredRecentBooks[index];
+                      String genreName = '-';
+                      if (bk.genreIds.isNotEmpty) {
+                        final genreId = bk.genreIds.first;
+                        final match = state.genres.where((g) => g.id == genreId);
+                        if (match.isNotEmpty) {
+                          genreName = match.first.name;
+                        }
+                      }
                       return RecentBookCard(
                         bookId: bk.id,
                         title: bk.title,
@@ -250,6 +346,7 @@ class _HomePageState extends State<HomePage> {
                             'https://picsum.photos/seed/${bk.ownerId}/100/100',
                         imageUrl: bk.imageUrl,
                         isAvailable: !_isBookOnLoan(state, bk.id),
+                        genre: genreName,
                       );
                     },
                   ),

@@ -50,7 +50,7 @@ void showDepositProofViewer(BuildContext context, String proofUrl) {
                       child: CircularProgressIndicator(),
                     );
                   },
-                  errorBuilder: (_, __, ___) => const Padding(
+                  errorBuilder: (context, error, stackTrace) => const Padding(
                     padding: EdgeInsets.all(40),
                     child: Text(
                       'Gagal memuat gambar bukti.',

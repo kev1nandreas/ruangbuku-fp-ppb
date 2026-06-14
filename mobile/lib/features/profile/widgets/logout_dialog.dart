@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme.dart';
+import '../../../l10n/app_localizations.dart';
 
 /// Shows the logout confirmation dialog. Resolves to `true` when the user
 /// confirms they want to sign out.
 Future<bool?> showLogoutDialog(BuildContext context) {
   final textTheme = Theme.of(context).textTheme;
+  final l10n = AppLocalizations.of(context);
 
   return showDialog<bool>(
     context: context,
@@ -34,13 +36,13 @@ Future<bool?> showLogoutDialog(BuildContext context) {
             ),
             const SizedBox(height: RuangBukuSpacing.lg),
             Text(
-              'Keluar dari Akun',
+              l10n?.logoutTitle ?? 'Keluar dari Akun',
               style: textTheme.titleLarge,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: RuangBukuSpacing.sm),
             Text(
-              'Apakah Anda yakin ingin keluar? Anda perlu masuk kembali untuk mengakses akun.',
+              l10n?.logoutDesc ?? 'Apakah Anda yakin ingin keluar? Anda perlu masuk kembali untuk mengakses akun.',
               style: textTheme.bodyMedium?.copyWith(
                 color: RuangBukuColors.textSecondary,
               ),
@@ -62,7 +64,7 @@ Future<bool?> showLogoutDialog(BuildContext context) {
                       ),
                     ),
                     onPressed: () => Navigator.pop(dialogContext, false),
-                    child: const Text('Batal'),
+                    child: Text(l10n?.cancel ?? 'Batal'),
                   ),
                 ),
                 const SizedBox(width: RuangBukuSpacing.md),
@@ -77,7 +79,7 @@ Future<bool?> showLogoutDialog(BuildContext context) {
                       ),
                     ),
                     onPressed: () => Navigator.pop(dialogContext, true),
-                    child: const Text('Keluar'),
+                    child: Text(l10n?.logout ?? 'Keluar'),
                   ),
                 ),
               ],

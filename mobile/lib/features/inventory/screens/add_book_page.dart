@@ -6,6 +6,8 @@ import '../../../core/widgets/bottom_action_bar.dart';
 import '../../../core/widgets/image_picker_helper.dart';
 import '../widgets/condition_dropdown.dart';
 import '../widgets/lending_permission_switch.dart';
+import '../../../l10n/app_localizations.dart';
+import '../../../core/api/api_client.dart';
 
 class AddBookPage extends StatefulWidget {
   const AddBookPage({super.key});
@@ -22,8 +24,9 @@ class _AddBookPageState extends State<AddBookPage> {
   final TextEditingController _authorController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   
-  String _condition = 'Like New';
+  String _condition = 'Good';
   bool _isAvailableForLending = true;
+  List<String> _selectedGenreIds = [];
   String? _coverImageUrl;
   bool _isUploadingCover = false;
 
@@ -48,24 +51,54 @@ class _AddBookPageState extends State<AddBookPage> {
       _isLoading = true;
     });
 
-    final details = await BookNotifier.instance.checkIsbn(isbn);
+    try {
+      final details = await BookNotifier.instance.checkIsbn(isbn);
 
-    if (mounted) {
-      setState(() {
-        _isLoading = false;
-        if (details != null) {
-          _titleController.text = details['title']?.toString() ?? '';
-          _authorController.text = details['author']?.toString() ?? '';
-          _descriptionController.text = details['description']?.toString() ?? '';
+      final l10n = AppLocalizations.of(context);
+
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          if (details != null) {
+            _titleController.text = details['title']?.toString() ?? '';
+            _authorController.text = details['author']?.toString() ?? '';
+            _descriptionController.text = details['description']?.toString() ?? '';
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(l10n?.bookDetailsLoaded ?? 'Detail buku berhasil dimuat dari API!')),
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(l10n?.bookNotFoundInServer ?? 'Buku tidak ditemukan di server/Google Books.')),
+            );
+          }
+        });
+      }
+    } on ApiException catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        final l10n = AppLocalizations.of(context);
+        
+        if (e.statusCode == 400 || e.statusCode == 404) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Detail buku berhasil dimuat dari API!')),
+            SnackBar(content: Text(l10n?.bookNotFoundInServer ?? 'Buku tidak ditemukan di server/Google Books.')),
+          );
+        } else if (e.statusCode == 401) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Sesi Anda telah berakhir, silakan login kembali.')),
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Buku tidak ditemukan di server/Google Books.')),
+            SnackBar(content: Text('API Error: ${e.message}')),
           );
         }
-      });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      }
     }
   }
 
@@ -93,9 +126,11 @@ class _AddBookPageState extends State<AddBookPage> {
     final author = _authorController.text.trim();
     final description = _descriptionController.text.trim();
 
+    final l10n = AppLocalizations.of(context);
+
     if (title.isEmpty || author.isEmpty || isbn.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill in ISBN, Title, and Author.')),
+        SnackBar(content: Text(l10n?.fillInRequiredFields ?? 'Please fill in ISBN, Title, and Author.')),
       );
       return;
     }
@@ -111,6 +146,7 @@ class _AddBookPageState extends State<AddBookPage> {
         _condition,
         _isAvailableForLending,
         coverImageUrl: _coverImageUrl,
+        genreIds: _selectedGenreIds,
       );
 
       if (mounted) {
@@ -118,8 +154,8 @@ class _AddBookPageState extends State<AddBookPage> {
           SnackBar(
             content: Text(
               _isAvailableForLending 
-                  ? '"$title" added and submitted for Admin Curation approval (F-01)!' 
-                  : '"$title" added to your private collection!'
+                  ? (l10n?.bookAddedForCuration(title) ?? '"$title" added and submitted for Admin Curation approval (F-01)!')
+                  : (l10n?.bookAddedPrivate(title) ?? '"$title" added to your private collection!')
             ),
           ),
         );
@@ -140,6 +176,7 @@ class _AddBookPageState extends State<AddBookPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -148,7 +185,7 @@ class _AddBookPageState extends State<AddBookPage> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Add a Book',
+          l10n?.addABook ?? 'Add a Book',
           style: textTheme.headlineSmall?.copyWith(
             fontWeight: FontWeight.w600,
           ),
@@ -160,7 +197,7 @@ class _AddBookPageState extends State<AddBookPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Add by ISBN',
+              l10n?.addByIsbn ?? 'Add by ISBN',
               style: textTheme.titleLarge,
             ),
             const SizedBox(height: RuangBukuSpacing.md),
@@ -170,9 +207,9 @@ class _AddBookPageState extends State<AddBookPage> {
                 Expanded(
                   child: TextField(
                     controller: _isbnController,
-                    decoration: const InputDecoration(
-                      labelText: 'ISBN Number',
-                      hintText: 'e.g., 9781471156267',
+                    decoration: InputDecoration(
+                      labelText: l10n?.isbnNumber ?? 'ISBN Number',
+                      hintText: l10n?.isbnHint ?? 'e.g., 9781471156267',
                     ),
                   ),
                 ),
@@ -195,7 +232,7 @@ class _AddBookPageState extends State<AddBookPage> {
             const SizedBox(height: RuangBukuSpacing.xl),
 
             Text(
-              'Cover Photo',
+              l10n?.coverPhoto ?? 'Cover Photo',
               style: textTheme.titleLarge,
             ),
             const SizedBox(height: RuangBukuSpacing.md),
@@ -207,39 +244,73 @@ class _AddBookPageState extends State<AddBookPage> {
             const SizedBox(height: RuangBukuSpacing.xl),
 
             Text(
-              'Book Details',
+              l10n?.bookDetails ?? 'Book Details',
               style: textTheme.titleLarge,
             ),
             const SizedBox(height: RuangBukuSpacing.md),
             TextField(
               controller: _titleController,
-              decoration: const InputDecoration(
-                labelText: 'Title',
-                hintText: 'Enter book title',
+              decoration: InputDecoration(
+                labelText: l10n?.bookTitleLabel ?? 'Title',
+                hintText: l10n?.enterBookTitle ?? 'Enter book title',
               ),
             ),
             const SizedBox(height: RuangBukuSpacing.lg),
             TextField(
               controller: _authorController,
-              decoration: const InputDecoration(
-                labelText: 'Author',
-                hintText: 'Enter author name',
+              decoration: InputDecoration(
+                labelText: l10n?.authorLabel ?? 'Author',
+                hintText: l10n?.enterAuthorName ?? 'Enter author name',
               ),
             ),
             const SizedBox(height: RuangBukuSpacing.lg),
             TextField(
               controller: _descriptionController,
               maxLines: 3,
-              decoration: const InputDecoration(
-                labelText: 'Description',
-                hintText: 'Enter synopsis or short description',
+              decoration: InputDecoration(
+                labelText: l10n?.descriptionLabel ?? 'Description',
+                hintText: l10n?.enterDescription ?? 'Enter synopsis or short description',
                 alignLabelWithHint: true,
               ),
             ),
             const SizedBox(height: RuangBukuSpacing.xl),
 
             Text(
-              'Your Copy',
+              'Genres',
+              style: textTheme.titleLarge,
+            ),
+            const SizedBox(height: RuangBukuSpacing.md),
+            ListenableBuilder(
+              listenable: RuangBukuState.instance,
+              builder: (context, _) {
+                final genres = RuangBukuState.instance.genres;
+                if (genres.isEmpty) return const Text('No genres available');
+                return Wrap(
+                  spacing: 8.0,
+                  runSpacing: 4.0,
+                  children: genres.map((g) {
+                    final isSelected = _selectedGenreIds.contains(g.id);
+                    return FilterChip(
+                      label: Text(g.name),
+                      selected: isSelected,
+                      onSelected: (selected) {
+                        setState(() {
+                          if (selected) {
+                            _selectedGenreIds.add(g.id);
+                          } else {
+                            _selectedGenreIds.remove(g.id);
+                          }
+                        });
+                      },
+                    );
+                  }).toList(),
+                );
+              },
+            ),
+            const SizedBox(height: RuangBukuSpacing.xl),
+
+            Text(
+              l10n?.yourCopy ?? 'Your Copy',
               style: textTheme.titleLarge,
             ),
             const SizedBox(height: RuangBukuSpacing.md),
@@ -262,7 +333,7 @@ class _AddBookPageState extends State<AddBookPage> {
       bottomSheet: BottomActionBar(
         child: FilledButton(
           onPressed: _submitBook,
-          child: const Text('Add Book to Library'),
+          child: Text(l10n?.addBookToLibrary ?? 'Add Book to Library'),
         ),
       ),
     );
@@ -303,13 +374,13 @@ class _CoverPicker extends StatelessWidget {
         child: isUploading
             ? const Center(child: CircularProgressIndicator())
             : imageUrl == null
-                ? const Column(
+                ? Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.add_a_photo_outlined,
+                      const Icon(Icons.add_a_photo_outlined,
                           size: 36, color: RuangBukuColors.primary),
-                      SizedBox(height: RuangBukuSpacing.sm),
-                      Text('Tambah foto sampul'),
+                      const SizedBox(height: RuangBukuSpacing.sm),
+                      Text(AppLocalizations.of(context)?.addCoverPhoto ?? 'Add cover photo'),
                     ],
                   )
                 : Align(
@@ -322,9 +393,9 @@ class _CoverPicker extends StatelessWidget {
                         color: Colors.black54,
                         borderRadius: RuangBukuRadius.borderRadiusSm,
                       ),
-                      child: const Text(
-                        'Ubah',
-                        style: TextStyle(color: Colors.white, fontSize: 12),
+                      child: Text(
+                        AppLocalizations.of(context)?.change ?? 'Change',
+                        style: const TextStyle(color: Colors.white, fontSize: 12),
                       ),
                     ),
                   ),

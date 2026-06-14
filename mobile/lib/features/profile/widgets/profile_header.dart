@@ -19,9 +19,9 @@ class ProfileHeader extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
 
     if (user == null && isLoading) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(vertical: RuangBukuSpacing.xxl),
-        child: CircularProgressIndicator(color: RuangBukuColors.primary),
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: RuangBukuSpacing.xxl),
+        child: CircularProgressIndicator(color: Theme.of(context).colorScheme.primary),
       );
     }
 
@@ -46,7 +46,7 @@ class ProfileHeader extends StatelessWidget {
           Text(
             email,
             style: textTheme.bodyMedium
-                ?.copyWith(color: RuangBukuColors.textSecondary),
+                ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
           ),
           if (roleName != null) ...[
             const SizedBox(height: RuangBukuSpacing.md),
@@ -71,22 +71,22 @@ class _RoleChip extends StatelessWidget {
         vertical: RuangBukuSpacing.sm,
       ),
       decoration: BoxDecoration(
-        color: RuangBukuColors.primary.withValues(alpha: 0.12),
+        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
         borderRadius: RuangBukuRadius.borderRadiusFull,
         border: Border.all(
-          color: RuangBukuColors.primary.withValues(alpha: 0.4),
+          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.4),
         ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.verified_user_outlined,
-              size: 16, color: RuangBukuColors.primary),
+          Icon(Icons.verified_user_outlined,
+              size: 16, color: Theme.of(context).colorScheme.primary),
           const SizedBox(width: RuangBukuSpacing.xs),
           Text(
             roleName.toUpperCase(),
             style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: RuangBukuColors.primary,
+                  color: Theme.of(context).colorScheme.primary,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 0.5,
                 ),

@@ -31,6 +31,8 @@ class BorrowNotifier {
 
   Future<void> confirmHandOver(String id) => _repository.confirmHandOver(id);
 
+  Future<void> requestReturn(String id) => _repository.requestReturn(id);
+
   Future<void> confirmReturn(String id) => _repository.confirmReturn(id);
 
   Future<void> reportDamage(String id, String description, List<String> photoUrls) =>
@@ -39,6 +41,8 @@ class BorrowNotifier {
   // --- admin actions ---------------------------------------------------
 
   Future<void> confirmDeposit(String id) => _repository.confirmDeposit(id);
+
+  Future<void> rejectDeposit(String id) => _repository.rejectDeposit(id);
 
   Future<void> returnDeposit(String id, {String? proofUrl, String? note}) =>
       _repository.returnDeposit(id, proofUrl: proofUrl, note: note);

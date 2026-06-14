@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../domain/auth_notifier.dart';
 import '../widgets/auth_header.dart';
 import '../widgets/login_card.dart';
@@ -54,8 +55,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return Scaffold(
-      backgroundColor: RuangBukuColors.surface,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: ListenableBuilder(
         listenable: AuthNotifier.instance,
         builder: (context, _) {
@@ -88,9 +91,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        'Belum punya akun? ',
+                        l10n?.noAccountPrompt ?? 'Belum punya akun? ',
                         style: RuangBukuTypography.bodyMedium.copyWith(
-                          color: RuangBukuColors.textSecondary,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
                       GestureDetector(
@@ -102,7 +105,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ),
                                 ),
                         child: Text(
-                          'Daftar',
+                          l10n?.register ?? 'Daftar',
                           style: RuangBukuTypography.bodyMedium.copyWith(
                             color: RuangBukuColors.primary,
                             fontWeight: FontWeight.w600,

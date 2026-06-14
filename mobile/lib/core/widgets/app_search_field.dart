@@ -30,6 +30,7 @@ class AppSearchField extends StatelessWidget {
     return TextField(
       controller: controller,
       onChanged: onChanged,
+      style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
       decoration: InputDecoration(
         prefixIcon: const Icon(Icons.search),
         suffixIcon: hasText
@@ -41,6 +42,7 @@ class AppSearchField extends StatelessWidget {
         filled: true,
         fillColor: Theme.of(context).colorScheme.surfaceContainerHigh,
         hintText: hintText,
+        hintStyle: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
         border: OutlineInputBorder(
           borderRadius: RuangBukuRadius.borderRadiusFull,
           borderSide: BorderSide.none,
@@ -51,8 +53,8 @@ class AppSearchField extends StatelessWidget {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: RuangBukuRadius.borderRadiusFull,
-          borderSide: const BorderSide(
-            color: RuangBukuColors.primary,
+          borderSide: BorderSide(
+            color: Theme.of(context).colorScheme.primary,
             width: 2.0,
           ),
         ),

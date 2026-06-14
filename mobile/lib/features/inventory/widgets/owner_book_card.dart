@@ -5,6 +5,7 @@ import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/status_badge.dart';
 import '../screens/edit_book_page.dart';
 import '../screens/owner_book_detail_page.dart';
+import '../../../l10n/app_localizations.dart';
 
 /// Catalog card for a book the user owns, with Edit/Delete actions and a status
 /// badge (Available / Pending / Rejected / Private / On Loan).
@@ -30,22 +31,34 @@ class OwnerBookCard extends StatelessWidget {
     final textTheme = theme.textTheme;
     final semanticColors = theme.extension<RuangBukuSemanticColors>()!;
     final state = RuangBukuState.instance;
+    final l10n = AppLocalizations.of(context);
 
     // Resolve status badge colors.
-    Color textColor = RuangBukuColors.textSecondary;
+    Color textColor = Theme.of(context).colorScheme.onSurfaceVariant;
     Color badgeBg = semanticColors.neutralChip.withValues(alpha: 0.2);
+    String labelText = status;
+
     switch (status) {
-      case 'Available':
+      case 'available':
         textColor = semanticColors.success;
         badgeBg = semanticColors.success.withValues(alpha: 0.2);
+        labelText = l10n?.available ?? 'Available';
         break;
-      case 'Pending Approval':
+      case 'pending':
         textColor = Colors.orange;
         badgeBg = Colors.orange.withValues(alpha: 0.2);
+        labelText = l10n?.pendingApproval ?? 'Pending Approval';
         break;
-      case 'Rejected':
+      case 'rejected':
         textColor = Colors.red;
         badgeBg = Colors.red.withValues(alpha: 0.2);
+        labelText = l10n?.rejected ?? 'Rejected';
+        break;
+      case 'private':
+        labelText = l10n?.privateBook ?? 'Private';
+        break;
+      case 'on_loan':
+        labelText = l10n?.onLoan ?? 'On Loan';
         break;
     }
 
@@ -90,7 +103,7 @@ class OwnerBookCard extends StatelessWidget {
                     ),
                     const SizedBox(width: RuangBukuSpacing.sm),
                     StatusBadge(
-                      label: status,
+                      label: labelText,
                       color: textColor,
                       backgroundColor: badgeBg,
                     ),
@@ -100,7 +113,7 @@ class OwnerBookCard extends StatelessWidget {
                 Text(
                   author,
                   style: textTheme.bodyMedium?.copyWith(
-                    color: RuangBukuColors.textSecondary,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
                 const SizedBox(height: RuangBukuSpacing.lg),
@@ -109,40 +122,100 @@ class OwnerBookCard extends StatelessWidget {
                   children: [
                     OutlinedButton.icon(
                       style: OutlinedButton.styleFrom(
+                        foregroundColor: status == 'on_loan' ? Colors.grey.withValues(alpha: 0.5) : theme.colorScheme.primary,
+                        side: BorderSide(color: status == 'on_loan' ? Colors.grey.withValues(alpha: 0.5) : theme.colorScheme.primary),
                         minimumSize: const Size(0, 36),
                         padding: const EdgeInsets.symmetric(
                             horizontal: RuangBukuSpacing.md),
                       ),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => EditBookPage(bookId: bookId),
-                          ),
-                        );
-                      },
+                      onPressed: status == 'on_loan' 
+                          ? () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text(l10n?.bookCurrentlyOnLoan ?? 'Buku sedang dipinjam, tidak dapat diedit')),
+                              );
+                            }
+                          : () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => EditBookPage(bookId: bookId),
+                                ),
+                              );
+                            },
                       icon: const Icon(Icons.edit, size: 16),
-                      label: const Text('Edit'),
+                      label: Text(l10n?.edit ?? 'Edit'),
                     ),
                     const SizedBox(width: RuangBukuSpacing.sm),
                     OutlinedButton.icon(
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: RuangBukuColors.error,
-                        side: const BorderSide(
-                            color: RuangBukuColors.error, width: 1.5),
+                        foregroundColor: status == 'on_loan' ? Colors.grey.withValues(alpha: 0.5) : RuangBukuColors.error,
+                        side: BorderSide(
+                            color: status == 'on_loan' ? Colors.grey.withValues(alpha: 0.5) : RuangBukuColors.error, width: 1.5),
                         minimumSize: const Size(0, 36),
                         padding: const EdgeInsets.symmetric(
                             horizontal: RuangBukuSpacing.md),
                       ),
-                      onPressed: () {
-                        state.deleteBook(bookId);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content: Text('Book removed from library')),
+                      onPressed: status == 'on_loan'
+                          ? () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text(l10n?.bookCurrentlyOnLoan ?? 'Buku sedang dipinjam, tidak dapat dihapus')),
+                              );
+                            }
+                          : () async {
+                              final confirm = await showDialog<bool>(
+                                context: context,
+                                builder: (context) {
+                                  final controller = TextEditingController();
+                            return AlertDialog(
+                              title: Text(l10n?.deleteConfirmTitle ?? 'Do you want to delete your book?'),
+                              content: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(l10n?.deleteConfirmMsg(title) ?? 'Please enter "$title" to confirm.'),
+                                  const SizedBox(height: 16),
+                                  TextField(
+                                    controller: controller,
+                                    decoration: InputDecoration(
+                                      hintText: title,
+                                      border: const OutlineInputBorder(),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context, false),
+                                    child: Text(l10n?.cancel ?? 'Cancel'),
+                                  ),
+                                ValueListenableBuilder<TextEditingValue>(
+                                  valueListenable: controller,
+                                  builder: (context, value, child) {
+                                    final isMatch = value.text == title;
+                                    return FilledButton(
+                                      style: FilledButton.styleFrom(
+                                        backgroundColor: isMatch ? RuangBukuColors.error : Colors.grey,
+                                      ),
+                                      onPressed: isMatch ? () => Navigator.pop(context, true) : null,
+                                      child: Text(l10n?.delete ?? 'Delete'),
+                                    );
+                                  },
+                                ),
+                              ],
+                            );
+                          },
                         );
+
+                        if (confirm == true && context.mounted) {
+                          state.deleteBook(bookId);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                                content: Text(l10n?.bookRemoved ?? 'Book removed from library')),
+                          );
+                        }
                       },
                       icon: const Icon(Icons.delete_outline, size: 16),
-                      label: const Text('Delete'),
+                      label: Text(l10n?.delete ?? 'Delete'),
                     ),
                   ],
                 ),

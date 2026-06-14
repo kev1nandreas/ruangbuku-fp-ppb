@@ -14,6 +14,7 @@ class BookModel {
   final String distance;
   String condition;
   final List<String> genreIds;
+  final bool hasActiveBorrowing;
 
   BookModel({
     required this.id,
@@ -29,6 +30,7 @@ class BookModel {
     required this.distance,
     required this.condition,
     this.genreIds = const [],
+    this.hasActiveBorrowing = false,
   });
 
   BookModel copyWith({
@@ -49,6 +51,7 @@ class BookModel {
       distance: distance,
       condition: condition ?? this.condition,
       genreIds: genreIds,
+      hasActiveBorrowing: hasActiveBorrowing,
     );
   }
 
@@ -70,8 +73,14 @@ class BookModel {
       ownerId = user['id']?.toString() ?? '';
       ownerName = user['name'] ?? 'Unknown';
       if (user['pivot'] != null) {
-        isPublic = user['pivot']['isPublic'] == 1 || user['pivot']['isPublic'] == true;
+        final val = user['pivot']['is_public'] ?? user['pivot']['isPublic'];
+        isPublic = val == 1 || val == true || val == '1' || val == 'true';
       }
+    }
+    // Fallback if is_public is at root
+    if (!isPublic && json['is_public'] != null) {
+      final val = json['is_public'];
+      isPublic = val == 1 || val == true || val == '1' || val == 'true';
     }
 
     return BookModel(
@@ -81,13 +90,73 @@ class BookModel {
       author: json['author'] ?? 'Unknown',
       description: json['description'] ?? '',
       isPublic: isPublic,
-      statusVerifikasi: parseStatus(json['statusVerifikasi'] ?? ''),
+      statusVerifikasi: parseStatus(json['status_verifikasi'] ?? json['statusVerifikasi'] ?? ''),
       ownerId: ownerId,
       ownerName: ownerName,
-      imageUrl: json['coverImageUrl'] ?? 'https://picsum.photos/200/300',
+      imageUrl: json['cover_image_url'] ?? json['coverImageUrl'] ?? 'https://picsum.photos/200/300',
       distance: '0 km away',
       condition: 'Good',
       genreIds: (json['genres'] as List?)?.map((g) => g['id'].toString()).toList() ?? [],
+      hasActiveBorrowing: (json['peminjaman'] as List?)?.isNotEmpty ?? false,
     );
+  }
+
+  factory BookModel.fromLocalMap(Map<String, dynamic> map) {
+    BookStatus parseStatus(String? status) {
+      if (status == 'approved') return BookStatus.publicApproved;
+      if (status == 'need_verification') return BookStatus.publicPending;
+      if (status == 'rejected') return BookStatus.publicRejected;
+      return BookStatus.private;
+    }
+
+    return BookModel(
+      id: map['id']?.toString() ?? '',
+      isbn: map['isbn']?.toString() ?? '',
+      title: map['title']?.toString() ?? 'No Title',
+      author: map['author']?.toString() ?? 'Unknown',
+      description: map['description']?.toString() ?? '',
+      isPublic: map['isPublic'] == 1 || map['isPublic'] == true,
+      statusVerifikasi: parseStatus(map['statusVerifikasi']?.toString()),
+      ownerId: map['ownerId']?.toString() ?? '',
+      ownerName: map['ownerName']?.toString() ?? 'Unknown',
+      imageUrl: map['imageUrl']?.toString() ?? 'https://picsum.photos/200/300',
+      distance: map['distance']?.toString() ?? '0 km away',
+      condition: map['condition']?.toString() ?? 'Good',
+      hasActiveBorrowing: map['hasActiveBorrowing'] == 1 || map['hasActiveBorrowing'] == true,
+    );
+  }
+
+  Map<String, dynamic> toLocalMap() {
+    String statusString = 'private';
+    switch (statusVerifikasi) {
+      case BookStatus.publicApproved:
+        statusString = 'approved';
+        break;
+      case BookStatus.publicPending:
+        statusString = 'need_verification';
+        break;
+      case BookStatus.publicRejected:
+        statusString = 'rejected';
+        break;
+      case BookStatus.private:
+        statusString = 'private';
+        break;
+    }
+
+    return {
+      'id': id,
+      'isbn': isbn,
+      'title': title,
+      'author': author,
+      'description': description,
+      'isPublic': isPublic ? 1 : 0,
+      'statusVerifikasi': statusString,
+      'ownerId': ownerId,
+      'ownerName': ownerName,
+      'imageUrl': imageUrl,
+      'distance': distance,
+      'condition': condition,
+      'hasActiveBorrowing': hasActiveBorrowing ? 1 : 0,
+    };
   }
 }

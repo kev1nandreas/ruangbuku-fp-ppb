@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme.dart';
+import '../../../l10n/app_localizations.dart';
 
 /// Toggle row letting the owner mark a book as available for lending. Shared by
 /// the add/edit book forms.
@@ -33,10 +34,10 @@ class LendingPermissionSwitch extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Available for Lending', style: textTheme.titleMedium),
+                Text(AppLocalizations.of(context)?.availableLending ?? 'Available for Lending', style: textTheme.titleMedium),
                 const SizedBox(height: RuangBukuSpacing.xs),
                 Text(
-                  'Allow others in your area to borrow this book.',
+                  AppLocalizations.of(context)?.availableLendingDesc ?? 'Allow others in your area to borrow this book.',
                   style: textTheme.bodySmall
                       ?.copyWith(color: RuangBukuColors.textSecondary),
                 ),

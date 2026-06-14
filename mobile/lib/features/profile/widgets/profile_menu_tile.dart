@@ -23,11 +23,11 @@ class ProfileMenuTile extends StatelessWidget {
           color: Theme.of(context).colorScheme.surfaceContainerHigh,
           borderRadius: RuangBukuRadius.borderRadiusSm,
         ),
-        child: Icon(icon, color: RuangBukuColors.textPrimary, size: 20),
+        child: Icon(icon, color: Theme.of(context).colorScheme.onSurface, size: 20),
       ),
       title: Text(title, style: Theme.of(context).textTheme.titleMedium),
       trailing:
-          const Icon(Icons.chevron_right, color: RuangBukuColors.textSecondary),
+          Icon(Icons.chevron_right, color: Theme.of(context).colorScheme.onSurfaceVariant),
       onTap: onTap,
     );
   }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../domain/auth_notifier.dart';
 import '../widgets/auth_header.dart';
 import '../widgets/register_card.dart';
@@ -67,8 +68,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return Scaffold(
-      backgroundColor: RuangBukuColors.surface,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: ListenableBuilder(
         listenable: AuthNotifier.instance,
         builder: (context, _) {
@@ -106,9 +109,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        'Sudah punya akun? ',
+                        l10n?.hasAccountPrompt ?? 'Sudah punya akun? ',
                         style: RuangBukuTypography.bodyMedium.copyWith(
-                          color: RuangBukuColors.textSecondary,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
                       GestureDetector(
@@ -116,7 +119,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             ? null
                             : () => Navigator.of(context).pop(),
                         child: Text(
-                          'Masuk',
+                          l10n?.login ?? 'Masuk',
                           style: RuangBukuTypography.bodyMedium.copyWith(
                             color: RuangBukuColors.primary,
                             fontWeight: FontWeight.w600,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme.dart';
+import '../../../l10n/app_localizations.dart';
 
 class PaymentPage extends StatelessWidget {
   const PaymentPage({super.key});
@@ -8,6 +9,7 @@ class PaymentPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -16,7 +18,7 @@ class PaymentPage extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Payment Details',
+          l10n?.paymentDetails ?? 'Payment Details',
           style: textTheme.headlineSmall?.copyWith(
             fontWeight: FontWeight.w600,
           ),
@@ -28,8 +30,10 @@ class PaymentPage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Linked Accounts',
-              style: textTheme.titleLarge,
+              l10n?.paymentDesc ?? 'Gunakan detail berikut untuk memverifikasi pembayaran deposit atau mentransfer dana.',
+              style: textTheme.bodyLarge?.copyWith(
+                color: RuangBukuColors.textSecondary,
+              ),
             ),
             const SizedBox(height: RuangBukuSpacing.md),
             
@@ -45,16 +49,16 @@ class PaymentPage extends StatelessWidget {
                 ),
               ),
               child: ListTile(
-                leading: const Icon(Icons.account_balance_wallet, color: RuangBukuColors.primary),
-                title: Text('GoPay', style: textTheme.titleMedium),
-                subtitle: Text('0812-XXXX-XXXX', style: textTheme.bodySmall),
+                leading: const Icon(Icons.account_balance_outlined, color: RuangBukuColors.primary),
+                title: Text(l10n?.bankTransfer ?? 'Bank Transfer', style: textTheme.titleMedium),
+                subtitle: Text('BCA 123-456-7890 (a.n. RuangBuku)', style: textTheme.bodySmall),
                 trailing: const Icon(Icons.check_circle, color: RuangBukuColors.primary),
               ),
             ),
             const SizedBox(height: RuangBukuSpacing.xxl),
 
             Text(
-              'Add New Method',
+              l10n?.addNewMethod ?? 'Add New Method',
               style: textTheme.titleLarge,
             ),
             const SizedBox(height: RuangBukuSpacing.md),
@@ -66,7 +70,7 @@ class PaymentPage extends StatelessWidget {
                 borderRadius: RuangBukuRadius.borderRadiusLg,
               ),
               leading: const Icon(Icons.account_balance),
-              title: Text('Bank Transfer', style: textTheme.titleMedium),
+              title: Text(l10n?.bankTransfer ?? 'Bank Transfer', style: textTheme.titleMedium),
               trailing: const Icon(Icons.add),
               onTap: () {},
             ),
@@ -79,7 +83,7 @@ class PaymentPage extends StatelessWidget {
                 borderRadius: RuangBukuRadius.borderRadiusLg,
               ),
               leading: const Icon(Icons.account_balance_wallet_outlined),
-              title: Text('E-Wallet', style: textTheme.titleMedium),
+              title: Text(l10n?.eWallet ?? 'E-Wallet', style: textTheme.titleMedium),
               trailing: const Icon(Icons.add),
               onTap: () {},
             ),

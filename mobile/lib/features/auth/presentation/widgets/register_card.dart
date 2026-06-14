@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme.dart';
+import '../../../../l10n/app_localizations.dart';
 
 /// The register form card: name, email, password + confirmation fields and the
 /// submit button.
@@ -33,10 +34,12 @@ class RegisterCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return Container(
       padding: const EdgeInsets.all(RuangBukuSpacing.xl),
       decoration: BoxDecoration(
-        color: RuangBukuColors.cardSurface,
+        color: Theme.of(context).colorScheme.surfaceContainer,
         borderRadius: RuangBukuRadius.borderRadiusXl,
         boxShadow: RuangBukuElevation.level2,
       ),
@@ -46,14 +49,16 @@ class RegisterCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'Daftar',
-              style: RuangBukuTypography.headlineMedium,
+              l10n?.register ?? 'Daftar',
+              style: RuangBukuTypography.headlineMedium.copyWith(
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
             ),
             const SizedBox(height: RuangBukuSpacing.sm),
             Text(
-              'Buat akun untuk mulai meminjam buku',
+              l10n?.registerSubtitle ?? 'Buat akun untuk mulai meminjam buku',
               style: RuangBukuTypography.bodyMedium.copyWith(
-                color: RuangBukuColors.textSecondary,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
             const SizedBox(height: RuangBukuSpacing.xl),
@@ -62,17 +67,17 @@ class RegisterCard extends StatelessWidget {
               keyboardType: TextInputType.name,
               textInputAction: TextInputAction.next,
               enabled: !isLoading,
-              decoration: const InputDecoration(
-                labelText: 'Nama',
-                hintText: 'Masukkan nama Anda',
-                prefixIcon: Icon(Icons.person_outline),
+              decoration: InputDecoration(
+                labelText: l10n?.name ?? 'Nama',
+                hintText: l10n?.nameHint ?? 'Masukkan nama Anda',
+                prefixIcon: const Icon(Icons.person_outline),
               ),
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
-                  return 'Nama tidak boleh kosong';
+                  return l10n?.nameEmptyError ?? 'Nama tidak boleh kosong';
                 }
                 if (value.trim().length < 3) {
-                  return 'Nama minimal 3 karakter';
+                  return l10n?.nameLengthError ?? 'Nama minimal 3 karakter';
                 }
                 return null;
               },
@@ -83,18 +88,18 @@ class RegisterCard extends StatelessWidget {
               keyboardType: TextInputType.emailAddress,
               textInputAction: TextInputAction.next,
               enabled: !isLoading,
-              decoration: const InputDecoration(
-                labelText: 'Email',
-                hintText: 'Masukkan email Anda',
-                prefixIcon: Icon(Icons.email_outlined),
+              decoration: InputDecoration(
+                labelText: l10n?.email ?? 'Email',
+                hintText: l10n?.emailHint ?? 'Masukkan email Anda',
+                prefixIcon: const Icon(Icons.email_outlined),
               ),
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
-                  return 'Email tidak boleh kosong';
+                  return l10n?.emailEmptyError ?? 'Email tidak boleh kosong';
                 }
                 if (!RegExp(r'^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$')
                     .hasMatch(value.trim())) {
-                  return 'Format email tidak valid';
+                  return l10n?.emailInvalidError ?? 'Format email tidak valid';
                 }
                 if (value.trim().length > 50) {
                   return 'Email maksimal 50 karakter';
@@ -109,8 +114,8 @@ class RegisterCard extends StatelessWidget {
               textInputAction: TextInputAction.next,
               enabled: !isLoading,
               decoration: InputDecoration(
-                labelText: 'Kata Sandi',
-                hintText: 'Masukkan kata sandi Anda',
+                labelText: l10n?.password ?? 'Kata Sandi',
+                hintText: l10n?.passwordHint ?? 'Masukkan kata sandi Anda',
                 prefixIcon: const Icon(Icons.lock_outlined),
                 suffixIcon: IconButton(
                   icon: Icon(
@@ -123,10 +128,10 @@ class RegisterCard extends StatelessWidget {
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Kata sandi tidak boleh kosong';
+                  return l10n?.passwordEmptyError ?? 'Kata sandi tidak boleh kosong';
                 }
                 if (value.length < 8) {
-                  return 'Kata sandi minimal 8 karakter';
+                  return l10n?.passwordLengthError ?? 'Kata sandi minimal 8 karakter';
                 }
                 if (value.length > 50) {
                   return 'Kata sandi maksimal 50 karakter';
@@ -142,8 +147,8 @@ class RegisterCard extends StatelessWidget {
               enabled: !isLoading,
               onFieldSubmitted: (_) => onSubmit(),
               decoration: InputDecoration(
-                labelText: 'Konfirmasi Kata Sandi',
-                hintText: 'Masukkan ulang kata sandi Anda',
+                labelText: l10n?.confirmPassword ?? 'Konfirmasi Kata Sandi',
+                hintText: l10n?.confirmPasswordHint ?? 'Masukkan ulang kata sandi Anda',
                 prefixIcon: const Icon(Icons.lock_outlined),
                 suffixIcon: IconButton(
                   icon: Icon(
@@ -156,10 +161,10 @@ class RegisterCard extends StatelessWidget {
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Konfirmasi kata sandi tidak boleh kosong';
+                  return l10n?.confirmPasswordEmptyError ?? 'Konfirmasi kata sandi tidak boleh kosong';
                 }
                 if (value != passwordController.text) {
-                  return 'Konfirmasi kata sandi tidak cocok';
+                  return l10n?.confirmPasswordMatchError ?? 'Konfirmasi kata sandi tidak cocok';
                 }
                 return null;
               },
@@ -185,7 +190,7 @@ class RegisterCard extends StatelessWidget {
                       ),
                     )
                   : Text(
-                      'Daftar',
+                      l10n?.register ?? 'Daftar',
                       style: RuangBukuTypography.labelLarge.copyWith(
                         color: RuangBukuColors.onPrimary,
                         fontSize: 16,

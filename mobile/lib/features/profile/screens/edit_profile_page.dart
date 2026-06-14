@@ -3,6 +3,7 @@ import '../../../core/theme.dart';
 import '../../../core/widgets/bottom_action_bar.dart';
 import '../../../core/widgets/image_picker_helper.dart';
 import '../../auth/domain/auth_notifier.dart';
+import '../../../db/local_bookDB.dart';
 
 /// Lets the user edit their display name and profile photo. The photo is
 /// uploaded to S3/MinIO via the presigned-URL flow; only the resulting URL is
@@ -19,6 +20,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
   String? _avatarUrl;
   bool _isUploadingAvatar = false;
   bool _isSaving = false;
+  
+  final TextEditingController _dobController = TextEditingController();
+  String _selectedStatus = 'Siswa';
+  final List<String> _statusOptions = ['Siswa', 'Mahasiswa', 'Dosen', 'Umum'];
 
   @override
   void initState() {
@@ -26,11 +31,30 @@ class _EditProfilePageState extends State<EditProfilePage> {
     final user = AuthNotifier.instance.user;
     _nameController = TextEditingController(text: user?.name ?? '');
     _avatarUrl = user?.avatarUrl;
+    _loadLocalProfileData();
+  }
+
+  Future<void> _loadLocalProfileData() async {
+    final email = AuthNotifier.instance.user?.email;
+    if (email == null) return;
+    
+    final userMap = await LocalBookDB.instance.getUserByEmail(email);
+    if (userMap != null && mounted) {
+      setState(() {
+        if (userMap['dob'] != null && userMap['dob'].toString().isNotEmpty) {
+          _dobController.text = userMap['dob'].toString();
+        }
+        if (userMap['status'] != null && _statusOptions.contains(userMap['status'])) {
+          _selectedStatus = userMap['status'].toString();
+        }
+      });
+    }
   }
 
   @override
   void dispose() {
     _nameController.dispose();
+    _dobController.dispose();
     super.dispose();
   }
 
@@ -62,10 +86,23 @@ class _EditProfilePageState extends State<EditProfilePage> {
     }
 
     setState(() => _isSaving = true);
+    
+    // Selalu simpan DOB dan Status ke lokal tanpa mempedulikan internet
+    final email = AuthNotifier.instance.user?.email;
+    if (email != null) {
+      await LocalBookDB.instance.updateUserLocalProfile(
+        email,
+        _dobController.text,
+        _selectedStatus,
+      );
+    }
+
+    // Sinkronkan Nama dan Avatar ke backend
     final ok = await AuthNotifier.instance.updateProfile(
       name: name,
       avatarUrl: _avatarUrl,
     );
+
     if (!mounted) return;
     setState(() => _isSaving = false);
 
@@ -75,9 +112,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
       );
       Navigator.pop(context, true);
     } else {
+      // Walaupun API gagal, data DOB dan Status tetap tersimpan di atas
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(
-          AuthNotifier.instance.errorMessage ?? 'Gagal memperbarui profil.',
+          AuthNotifier.instance.errorMessage ?? 'Gagal memperbarui profil backend, tapi data lokal tersimpan.',
         )),
       );
     }
@@ -146,6 +184,45 @@ class _EditProfilePageState extends State<EditProfilePage> {
               enabled: false,
               controller: TextEditingController(text: user?.email ?? ''),
               decoration: const InputDecoration(),
+            ),
+            const SizedBox(height: RuangBukuSpacing.lg),
+            Text('Tanggal Lahir', style: textTheme.titleMedium),
+            const SizedBox(height: RuangBukuSpacing.sm),
+            TextField(
+              controller: _dobController,
+              readOnly: true,
+              decoration: const InputDecoration(
+                hintText: 'Pilih Tanggal Lahir',
+                suffixIcon: Icon(Icons.calendar_today),
+              ),
+              onTap: () async {
+                final date = await showDatePicker(
+                  context: context,
+                  initialDate: DateTime.now(),
+                  firstDate: DateTime(1900),
+                  lastDate: DateTime.now(),
+                );
+                if (date != null) {
+                  setState(() {
+                    _dobController.text = "${date.day}/${date.month}/${date.year}";
+                  });
+                }
+              },
+            ),
+            const SizedBox(height: RuangBukuSpacing.lg),
+            Text('Status', style: textTheme.titleMedium),
+            const SizedBox(height: RuangBukuSpacing.sm),
+            DropdownButtonFormField<String>(
+              value: _selectedStatus,
+              decoration: const InputDecoration(),
+              items: _statusOptions.map((status) {
+                return DropdownMenuItem(value: status, child: Text(status));
+              }).toList(),
+              onChanged: (val) {
+                if (val != null) {
+                  setState(() => _selectedStatus = val);
+                }
+              },
             ),
             const SizedBox(height: 100),
           ],

@@ -10,12 +10,14 @@ class PopularBookCard extends StatelessWidget {
     required this.title,
     required this.author,
     required this.imageUrl,
+    required this.genre,
   });
 
   final String bookId;
   final String title;
   final String author;
   final String imageUrl;
+  final String genre;
 
   @override
   Widget build(BuildContext context) {
@@ -56,10 +58,28 @@ class PopularBookCard extends StatelessWidget {
             Text(
               author,
               style: textTheme.bodyMedium?.copyWith(
-                color: RuangBukuColors.textSecondary,
+                color: textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: RuangBukuSpacing.xs),
+            Row(
+              children: [
+                Icon(Icons.category_outlined,
+                    size: 14, color: textTheme.bodySmall?.color?.withValues(alpha: 0.7)),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    genre,
+                    style: textTheme.bodySmall?.copyWith(
+                      color: textTheme.bodySmall?.color?.withValues(alpha: 0.7),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
             ),
           ],
         ),

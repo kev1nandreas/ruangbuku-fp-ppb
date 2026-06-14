@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme.dart';
+import '../../../../l10n/app_localizations.dart';
 
 /// The login form card: email + password fields and the submit button.
 class LoginCard extends StatelessWidget {
@@ -24,10 +25,12 @@ class LoginCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return Container(
       padding: const EdgeInsets.all(RuangBukuSpacing.xl),
       decoration: BoxDecoration(
-        color: RuangBukuColors.cardSurface,
+        color: Theme.of(context).colorScheme.surfaceContainer,
         borderRadius: RuangBukuRadius.borderRadiusXl,
         boxShadow: RuangBukuElevation.level2,
       ),
@@ -37,14 +40,16 @@ class LoginCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'Masuk',
-              style: RuangBukuTypography.headlineMedium,
+              l10n?.login ?? 'Masuk',
+              style: RuangBukuTypography.headlineMedium.copyWith(
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
             ),
             const SizedBox(height: RuangBukuSpacing.sm),
             Text(
-              'Silakan masuk untuk melanjutkan',
+              l10n?.loginSubtitle ?? 'Silakan masuk untuk melanjutkan',
               style: RuangBukuTypography.bodyMedium.copyWith(
-                color: RuangBukuColors.textSecondary,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
             const SizedBox(height: RuangBukuSpacing.xl),
@@ -53,18 +58,18 @@ class LoginCard extends StatelessWidget {
               keyboardType: TextInputType.emailAddress,
               textInputAction: TextInputAction.next,
               enabled: !isLoading,
-              decoration: const InputDecoration(
-                labelText: 'Email',
-                hintText: 'Masukkan email Anda',
-                prefixIcon: Icon(Icons.email_outlined),
+              decoration: InputDecoration(
+                labelText: l10n?.email ?? 'Email',
+                hintText: l10n?.emailHint ?? 'Masukkan email Anda',
+                prefixIcon: const Icon(Icons.email_outlined),
               ),
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
-                  return 'Email tidak boleh kosong';
+                  return l10n?.emailEmptyError ?? 'Email tidak boleh kosong';
                 }
                 if (!RegExp(r'^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$')
                     .hasMatch(value.trim())) {
-                  return 'Format email tidak valid';
+                  return l10n?.emailInvalidError ?? 'Format email tidak valid';
                 }
                 return null;
               },
@@ -77,8 +82,8 @@ class LoginCard extends StatelessWidget {
               enabled: !isLoading,
               onFieldSubmitted: (_) => onSubmit(),
               decoration: InputDecoration(
-                labelText: 'Kata Sandi',
-                hintText: 'Masukkan kata sandi Anda',
+                labelText: l10n?.password ?? 'Kata Sandi',
+                hintText: l10n?.passwordHint ?? 'Masukkan kata sandi Anda',
                 prefixIcon: const Icon(Icons.lock_outlined),
                 suffixIcon: IconButton(
                   icon: Icon(
@@ -91,10 +96,10 @@ class LoginCard extends StatelessWidget {
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Kata sandi tidak boleh kosong';
+                  return l10n?.passwordEmptyError ?? 'Kata sandi tidak boleh kosong';
                 }
                 if (value.length < 6) {
-                  return 'Kata sandi minimal 6 karakter';
+                  return l10n?.passwordLengthError ?? 'Kata sandi minimal 6 karakter';
                 }
                 return null;
               },
@@ -120,7 +125,7 @@ class LoginCard extends StatelessWidget {
                       ),
                     )
                   : Text(
-                      'Masuk',
+                      l10n?.login ?? 'Masuk',
                       style: RuangBukuTypography.labelLarge.copyWith(
                         color: RuangBukuColors.onPrimary,
                         fontSize: 16,

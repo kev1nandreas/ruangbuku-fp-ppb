@@ -3,6 +3,7 @@ import '../../../core/theme.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/status_badge.dart';
 import '../../borrowing/screens/borrower_book_detail_page.dart';
+import '../../../l10n/app_localizations.dart';
 
 /// Horizontal list card used in the "Recently Added" section.
 class RecentBookCard extends StatelessWidget {
@@ -15,6 +16,7 @@ class RecentBookCard extends StatelessWidget {
     required this.avatarUrl,
     required this.imageUrl,
     required this.isAvailable,
+    required this.genre,
   });
 
   final String bookId;
@@ -24,12 +26,14 @@ class RecentBookCard extends StatelessWidget {
   final String avatarUrl;
   final String imageUrl;
   final bool isAvailable;
+  final String genre;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
     final semanticColors = theme.extension<RuangBukuSemanticColors>()!;
+    final l10n = AppLocalizations.of(context);
 
     return AppCard(
       onTap: () {
@@ -72,10 +76,10 @@ class RecentBookCard extends StatelessWidget {
                     ),
                     const SizedBox(width: RuangBukuSpacing.sm),
                     StatusBadge(
-                      label: isAvailable ? 'Available' : 'On Loan',
+                      label: isAvailable ? (l10n?.available ?? 'Available') : (l10n?.onLoan ?? 'On Loan'),
                       color: isAvailable
                           ? semanticColors.success
-                          : RuangBukuColors.textSecondary,
+                          : theme.colorScheme.onSurfaceVariant,
                       backgroundColor: (isAvailable
                               ? semanticColors.success
                               : semanticColors.neutralChip)
@@ -84,11 +88,30 @@ class RecentBookCard extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: RuangBukuSpacing.xs),
-                Text(
-                  author,
-                  style: textTheme.bodyMedium?.copyWith(
-                    color: RuangBukuColors.textSecondary,
-                  ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        author,
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: RuangBukuSpacing.sm),
+                    Icon(Icons.category_outlined,
+                        size: 14, color: textTheme.bodySmall?.color?.withValues(alpha: 0.7)),
+                    const SizedBox(width: 4),
+                    Text(
+                      genre,
+                      style: textTheme.bodySmall?.copyWith(
+                        color: textTheme.bodySmall?.color?.withValues(alpha: 0.7),
+                      ),
+                      maxLines: 1,
+                    ),
+                  ],
                 ),
                 const SizedBox(height: RuangBukuSpacing.lg),
                 Row(
@@ -96,10 +119,10 @@ class RecentBookCard extends StatelessWidget {
                     CircleAvatar(
                       radius: 10,
                       backgroundImage: NetworkImage(avatarUrl),
-                      backgroundColor: RuangBukuColors.surfaceContainerHigh,
+                      backgroundColor: theme.colorScheme.surfaceContainerHigh,
                     ),
                     const SizedBox(width: RuangBukuSpacing.sm),
-                    Text('Added by $addedBy', style: textTheme.bodySmall),
+                    Text(l10n?.addedBy(addedBy) ?? 'Added by $addedBy', style: textTheme.bodySmall?.copyWith(color: textTheme.bodySmall?.color?.withValues(alpha: 0.7))),
                   ],
                 ),
               ],

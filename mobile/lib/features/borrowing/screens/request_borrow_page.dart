@@ -6,6 +6,7 @@ import '../domain/borrow_notifier.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/book_summary_row.dart';
 import '../../../core/widgets/bottom_action_bar.dart';
+import '../../../l10n/app_localizations.dart';
 
 class RequestBorrowPage extends StatefulWidget {
   final String bookId;
@@ -47,8 +48,9 @@ class _RequestBorrowPageState extends State<RequestBorrowPage> {
         });
       }
     } catch (e) {
+      final l10n = AppLocalizations.of(context);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error loading book: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n?.errorLoadingBookName(e.toString()) ?? 'Error loading book: $e')));
       }
     } finally {
       if (mounted) setState(() => _isLoadingBook = false);
@@ -83,30 +85,32 @@ class _RequestBorrowPageState extends State<RequestBorrowPage> {
   }
 
   Future<void> _submitRequest(BookModel book) async {
+    final l10n = AppLocalizations.of(context);
+
     if (_pickupDate == null || _returnDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select both Pickup and Return dates.')),
+        SnackBar(content: Text(l10n?.selectBothDates ?? 'Please select both Pickup and Return dates.')),
       );
       return;
     }
 
     if (_returnDate!.isBefore(_pickupDate!)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Return date must be after pickup date.')),
+        SnackBar(content: Text(l10n?.returnDateAfterPickup ?? 'Return date must be after pickup date.')),
       );
       return;
     }
 
     setState(() => _isSubmitting = true);
     try {
-      final startDateStr = _formatDate(_pickupDate);
-      final endDateStr = _formatDate(_returnDate);
+      final startDateStr = _formatDate(_pickupDate, l10n);
+      final endDateStr = _formatDate(_returnDate, l10n);
       
       await BorrowNotifier.instance.requestBorrow(widget.bookId, startDateStr, endDateStr);
       
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Borrowing request submitted successfully!')),
+          SnackBar(content: Text(l10n?.borrowRequestSubmitted ?? 'Borrowing request submitted successfully!')),
         );
         Navigator.popUntil(context, (route) => route.isFirst);
       }
@@ -120,7 +124,7 @@ class _RequestBorrowPageState extends State<RequestBorrowPage> {
                 children: [
                   const Icon(Icons.error_outline, color: RuangBukuColors.error),
                   const SizedBox(width: 8),
-                  Text('Request Failed', style: Theme.of(context).textTheme.titleLarge?.copyWith(color: RuangBukuColors.error)),
+                  Text(l10n?.requestFailed ?? 'Request Failed', style: Theme.of(context).textTheme.titleLarge?.copyWith(color: RuangBukuColors.error)),
                 ],
               ),
               content: Text(
@@ -131,7 +135,7 @@ class _RequestBorrowPageState extends State<RequestBorrowPage> {
                 FilledButton(
                   style: FilledButton.styleFrom(backgroundColor: RuangBukuColors.primary),
                   onPressed: () => Navigator.pop(context),
-                  child: const Text('OK'),
+                  child: Text(l10n?.okText ?? 'OK'),
                 ),
               ],
             );
@@ -143,8 +147,8 @@ class _RequestBorrowPageState extends State<RequestBorrowPage> {
     }
   }
 
-  String _formatDate(DateTime? date) {
-    if (date == null) return 'Select date';
+  String _formatDate(DateTime? date, AppLocalizations? l10n) {
+    if (date == null) return l10n?.selectDateText ?? 'Select date';
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
 
@@ -152,18 +156,19 @@ class _RequestBorrowPageState extends State<RequestBorrowPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
+    final l10n = AppLocalizations.of(context);
 
     if (_isLoadingBook) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Request to Borrow')),
+        appBar: AppBar(title: Text(l10n?.requestToBorrow ?? 'Request to Borrow')),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
 
     if (_book == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Request to Borrow')),
-        body: const Center(child: Text('Book not found')),
+        appBar: AppBar(title: Text(l10n?.requestToBorrow ?? 'Request to Borrow')),
+        body: Center(child: Text(l10n?.bookNotFound ?? 'Book not found')),
       );
     }
 
@@ -176,7 +181,7 @@ class _RequestBorrowPageState extends State<RequestBorrowPage> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Request to Borrow',
+          l10n?.requestToBorrow ?? 'Request to Borrow',
           style: textTheme.headlineSmall?.copyWith(
             fontWeight: FontWeight.w600,
           ),
@@ -199,7 +204,7 @@ class _RequestBorrowPageState extends State<RequestBorrowPage> {
             const SizedBox(height: RuangBukuSpacing.xl),
 
             // Lender Info
-            Text('Lender', style: textTheme.headlineSmall),
+            Text(l10n?.lenderLabel ?? 'Lender', style: textTheme.headlineSmall),
             const SizedBox(height: RuangBukuSpacing.md),
             Row(
               children: [
@@ -216,21 +221,21 @@ class _RequestBorrowPageState extends State<RequestBorrowPage> {
             const SizedBox(height: RuangBukuSpacing.xxl),
 
             // Form Fields
-            Text('Borrow Details', style: textTheme.headlineSmall),
+            Text(l10n?.borrowingDetailsTitle ?? 'Borrow Details', style: textTheme.headlineSmall),
             const SizedBox(height: RuangBukuSpacing.md),
             
             // Pickup Date Input
             InkWell(
               onTap: () => _selectDate(context, true),
               child: InputDecorator(
-                decoration: const InputDecoration(
-                  labelText: 'Pickup Date',
-                  suffixIcon: Icon(Icons.calendar_today_outlined),
+                decoration: InputDecoration(
+                  labelText: l10n?.borrowingDate ?? 'Borrowing Date',
+                  suffixIcon: const Icon(Icons.calendar_today_outlined),
                 ),
                 child: Text(
-                  _formatDate(_pickupDate),
+                  _formatDate(_pickupDate, l10n),
                   style: TextStyle(
-                    color: _pickupDate == null ? RuangBukuColors.textSecondary.withValues(alpha: 0.6) : RuangBukuColors.textPrimary,
+                    color: _pickupDate == null ? theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6) : theme.colorScheme.onSurface,
                   ),
                 ),
               ),
@@ -241,14 +246,14 @@ class _RequestBorrowPageState extends State<RequestBorrowPage> {
             InkWell(
               onTap: () => _selectDate(context, false),
               child: InputDecorator(
-                decoration: const InputDecoration(
-                  labelText: 'Return Date',
-                  suffixIcon: Icon(Icons.calendar_today_outlined),
+                decoration: InputDecoration(
+                  labelText: l10n?.returnDate ?? 'Return Date',
+                  suffixIcon: const Icon(Icons.calendar_today_outlined),
                 ),
                 child: Text(
-                  _formatDate(_returnDate),
+                  _formatDate(_returnDate, l10n),
                   style: TextStyle(
-                    color: _returnDate == null ? RuangBukuColors.textSecondary.withValues(alpha: 0.6) : RuangBukuColors.textPrimary,
+                    color: _returnDate == null ? theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6) : theme.colorScheme.onSurface,
                   ),
                 ),
               ),
@@ -258,9 +263,9 @@ class _RequestBorrowPageState extends State<RequestBorrowPage> {
             TextField(
               controller: _messageController,
               maxLines: 4,
-              decoration: const InputDecoration(
-                labelText: 'Message to Lender (Optional)',
-                hintText: 'Hi, I would love to borrow this book...',
+              decoration: InputDecoration(
+                labelText: l10n?.messageToLender ?? 'Message to Lender (Optional)',
+                hintText: l10n?.messageToLenderHint ?? 'Hi, I would love to borrow this book...',
                 alignLabelWithHint: true,
               ),
             ),
@@ -274,7 +279,7 @@ class _RequestBorrowPageState extends State<RequestBorrowPage> {
             ? const Center(child: CircularProgressIndicator()) 
             : FilledButton(
                 onPressed: () => _submitRequest(book),
-                child: const Text('Send Request'),
+                child: Text(l10n?.sendRequest ?? 'Send Request'),
               ),
       ),
     );

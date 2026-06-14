@@ -2,52 +2,37 @@ import 'package:flutter/material.dart';
 import '../../../core/theme.dart';
 import '../../../core/state.dart';
 import '../../auth/domain/auth_notifier.dart';
-import '../widgets/profile_header.dart';
-import '../widgets/profile_stats_row.dart';
-import '../widgets/profile_menu_tile.dart';
-import '../widgets/logout_dialog.dart';
-import 'payment_page.dart';
-import 'edit_profile_page.dart';
-import 'help_support_page.dart';
-import 'settings_page.dart';
-import '../../borrowing/screens/borrowing_list_page.dart';
+import '../../profile/widgets/profile_header.dart';
+import '../../profile/widgets/profile_stats_row.dart';
+import '../../profile/widgets/profile_menu_tile.dart';
+import '../../profile/widgets/logout_dialog.dart';
+import '../../profile/screens/payment_page.dart';
+import '../../profile/screens/edit_profile_page.dart';
+import '../../profile/screens/help_support_page.dart';
+import '../../profile/screens/settings_page.dart';
+import '../../../l10n/app_localizations.dart';
 
-class ProfilePage extends StatefulWidget {
-  const ProfilePage({super.key});
+class UserProfilePage extends StatefulWidget {
+  final void Function(int)? onNavigateToTab;
+
+  const UserProfilePage({super.key, this.onNavigateToTab});
 
   @override
-  State<ProfilePage> createState() => _ProfilePageState();
+  State<UserProfilePage> createState() => _UserProfilePageState();
 }
 
-class _ProfilePageState extends State<ProfilePage> {
+class _UserProfilePageState extends State<UserProfilePage> {
   @override
   void initState() {
     super.initState();
-    // Load the freshest profile (incl. roles) from /me on entry.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      AuthNotifier.instance.fetchProfile().then((_) => _syncRoleToAppState());
+      AuthNotifier.instance.fetchProfile();
     });
-  }
-
-  /// Mirrors the server role into the local app state so the rest of the UI
-  /// (admin/lender/borrower views) reflects the authenticated user's role.
-  void _syncRoleToAppState() {
-    final roleName = AuthNotifier.instance.user?.primaryRoleName;
-    final mapped = switch (roleName) {
-      'admin' => UserRole.admin,
-      'lender' => UserRole.lender,
-      'borrower' => UserRole.borrower,
-      _ => null,
-    };
-    if (mapped != null && mapped != RuangBukuState.instance.currentRole) {
-      RuangBukuState.instance.changeRole(mapped);
-    }
   }
 
   Future<void> _confirmLogout() async {
     final shouldLogout = await showLogoutDialog(context);
     if (shouldLogout == true) {
-      // Reactive gate in main.dart returns to LoginScreen once unauthenticated.
       await AuthNotifier.instance.logout();
     }
   }
@@ -56,6 +41,7 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
+    final l10n = AppLocalizations.of(context);
 
     return ListenableBuilder(
       listenable: Listenable.merge([
@@ -65,49 +51,39 @@ class _ProfilePageState extends State<ProfilePage> {
       builder: (context, _) {
         final state = RuangBukuState.instance;
         final auth = AuthNotifier.instance;
-
         final currentUserId = auth.user?.id ?? '';
 
         final ownedCount =
             state.books.where((b) => b.ownerId == currentUserId).length;
 
-        final borrowedCount = state.borrowings
+        final uniqueBorrowings = <String, dynamic>{};
+        for (var b in state.borrowings) { uniqueBorrowings[b.id] = b; }
+        for (var b in state.ownerBorrowings) { uniqueBorrowings[b.id] = b; }
+        final allBorrowings = uniqueBorrowings.values;
+
+        final borrowedCount = allBorrowings
             .where((b) =>
-                b.borrowerId == currentUserId && _isHeldOrReturned(b))
+                b.borrowerId == currentUserId && _isActiveBorrowing(b))
             .length;
 
-        final lentCount = state.borrowings.where((b) {
+        final lentCount = allBorrowings.where((b) {
           final isMine = state.books
               .any((bk) => bk.id == b.bookId && bk.ownerId == currentUserId);
-          return isMine && _isHeldOrReturned(b);
+          return isMine && _isActiveBorrowing(b);
         }).length;
 
         return Scaffold(
           appBar: AppBar(
             title: Text(
-              'Profile',
+              l10n?.profile ?? 'Profile',
               style: textTheme.headlineMedium?.copyWith(
                 fontWeight: FontWeight.w700,
               ),
             ),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.settings_outlined),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const SettingsPage(),
-                    ),
-                  );
-                },
-              ),
-            ],
           ),
           body: RefreshIndicator(
             onRefresh: () async {
               await auth.fetchProfile();
-              _syncRoleToAppState();
             },
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
@@ -123,13 +99,14 @@ class _ProfilePageState extends State<ProfilePage> {
                     ownedCount: ownedCount,
                     borrowedCount: borrowedCount,
                     lentCount: lentCount,
+                    onNavigateToTab: widget.onNavigateToTab,
                   ),
                   const SizedBox(height: RuangBukuSpacing.xxl),
 
                   // Menu Options
                   ProfileMenuTile(
                     icon: Icons.person_outline,
-                    title: 'Edit Profile',
+                    title: l10n?.editProfile ?? 'Edit Profile',
                     onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -140,7 +117,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   const Divider(height: 1),
                   ProfileMenuTile(
                     icon: Icons.payment_outlined,
-                    title: 'Payment Details',
+                    title: l10n?.paymentDetails ?? 'Payment Details',
                     onTap: () {
                       Navigator.push(
                         context,
@@ -150,21 +127,11 @@ class _ProfilePageState extends State<ProfilePage> {
                       );
                     },
                   ),
-                  const Divider(height: 1),
-                  ProfileMenuTile(
-                    icon: Icons.history,
-                    title: 'Borrowing History',
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const BorrowingListPage(),
-                      ),
-                    ),
-                  ),
+
                   const Divider(height: 1),
                   ProfileMenuTile(
                     icon: Icons.help_outline,
-                    title: 'Help & Support',
+                    title: l10n?.helpSupport ?? 'Help & Support',
                     onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -172,15 +139,28 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
                     ),
                   ),
+                  const Divider(height: 1),
+                  ProfileMenuTile(
+                    icon: Icons.settings_outlined,
+                    title: l10n?.settings ?? 'Settings',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const SettingsPage(),
+                        ),
+                      );
+                    },
+                  ),
 
                   const SizedBox(height: RuangBukuSpacing.xxl),
 
                   // Logout
                   OutlinedButton.icon(
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: RuangBukuColors.error,
-                      side: const BorderSide(
-                          color: RuangBukuColors.error, width: 1.5),
+                      foregroundColor: Theme.of(context).colorScheme.error,
+                      side: BorderSide(
+                          color: Theme.of(context).colorScheme.error, width: 1.5),
                       minimumSize: const Size.fromHeight(52),
                       shape: RoundedRectangleBorder(
                         borderRadius: RuangBukuRadius.borderRadiusLg,
@@ -188,7 +168,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                     onPressed: _confirmLogout,
                     icon: const Icon(Icons.logout),
-                    label: const Text('Keluar'),
+                    label: Text(l10n?.logout ?? 'Keluar'),
                   ),
                   const SizedBox(height: RuangBukuSpacing.xxl),
                 ],
@@ -200,8 +180,10 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  bool _isHeldOrReturned(BorrowModel b) =>
-      b.status == BorrowStatus.bookReceived ||
-      b.status == BorrowStatus.returnedGood ||
-      b.status == BorrowStatus.returnedDamaged;
+  bool _isActiveBorrowing(BorrowModel b) =>
+      b.status == BorrowStatus.requested ||
+      b.status == BorrowStatus.waitingDeposit ||
+      b.status == BorrowStatus.depositUploaded ||
+      b.status == BorrowStatus.depositVerified ||
+      b.status == BorrowStatus.bookReceived;
 }

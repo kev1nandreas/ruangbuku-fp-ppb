@@ -3,11 +3,13 @@ import 'storage/secure_storage.dart';
 import '../features/discovery/data/models/book_model.dart';
 import '../features/discovery/data/models/genre_model.dart';
 import '../features/discovery/domain/book_notifier.dart';
+import '../db/local_bookDB.dart';
 import '../features/borrowing/data/models/borrow_model.dart';
 import '../features/borrowing/domain/borrow_notifier.dart';
 
 export '../features/discovery/data/models/book_model.dart';
 export '../features/borrowing/data/models/borrow_model.dart';
+import '../features/auth/domain/auth_notifier.dart';
 
 enum UserRole { borrower, lender, admin }
 
@@ -56,12 +58,28 @@ class RuangBukuState extends ChangeNotifier {
   List<BorrowModel> _ownerBorrowings = [];
   final List<NotificationModel> _notifications = [];
   bool _isLoading = false;
+  
+  Locale _currentLocale = const Locale('id');
 
   RuangBukuState._() {
     _seedMockNotifications();
+  }
+
+  bool _hasInitialized = false;
+
+  void initializeData() {
+    if (_hasInitialized) return;
+    _hasInitialized = true;
     fetchGenres();
     fetchBooks();
     fetchBorrowings();
+  }
+
+  Locale get currentLocale => _currentLocale;
+
+  void setLocale(Locale newLocale) {
+    _currentLocale = newLocale;
+    notifyListeners();
   }
 
   UserRole get currentRole => _currentRole;
@@ -103,10 +121,13 @@ class RuangBukuState extends ChangeNotifier {
   bool get isLoadingBooks => _bookNotifier.isLoading;
 
   void changeRole(UserRole newRole) {
+    if (_currentRole == newRole && _hasInitialized) return;
     _currentRole = newRole;
     notifyListeners();
-    fetchBooks();
-    fetchBorrowings();
+    if (_hasInitialized) {
+      fetchBooks();
+      fetchBorrowings();
+    }
   }
 
   void _seedMockNotifications() {
@@ -128,8 +149,35 @@ class RuangBukuState extends ChangeNotifier {
     notifyListeners();
     try {
       _books = await _bookNotifier.fetchBooks(isAdmin: _currentRole == UserRole.admin);
+      
+      final cUserId = await currentUserId();
+      if (cUserId != null && _currentRole != UserRole.admin) {
+        final localDb = LocalBookDB.instance;
+        await localDb.deleteMyBooksByBackendOwner(cUserId);
+        
+        // Find local user ID to map the foreign key, as requested
+        final localUser = await localDb.getUserByEmail(AuthNotifier.instance.user?.email ?? '');
+        final localOwnerId = localUser?['local_id'];
+
+        for (var b in _books.where((book) => book.ownerId == cUserId)) {
+          final map = b.toLocalMap();
+          map['local_owner_id'] = localOwnerId;
+          await localDb.insertMyBook(map);
+        }
+      }
     } catch (e) {
       debugPrint('Error fetching books: $e');
+      if (_currentRole != UserRole.admin) {
+        final cUserId = await currentUserId();
+        if (cUserId != null) {
+          final localDb = LocalBookDB.instance;
+          final localMaps = await localDb.getMyBooksByBackendOwner(cUserId);
+          if (localMaps.isNotEmpty) {
+            _books = localMaps.map((m) => BookModel.fromLocalMap(m)).toList();
+            debugPrint('Loaded ${_books.length} personal books from local storage for offline use');
+          }
+        }
+      }
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -173,18 +221,34 @@ class RuangBukuState extends ChangeNotifier {
   // F-01: Book Registration
   Future<void> addBook(String isbn, String title, String author,
       String description, String condition, bool isPublic,
-      {String? coverImageUrl}) async {
+      {String? coverImageUrl, List<String>? genreIds}) async {
     try {
-      await _bookNotifier.createBook({
+      final payload = {
         'isbn': isbn,
         'title': title,
         'author': author,
         'description': description,
-        'isPublic': isPublic,
+        'is_public': isPublic ? 1 : 0,
         'condition': condition,
         if (coverImageUrl != null && coverImageUrl.isNotEmpty)
           'coverImageUrl': coverImageUrl,
-      });
+        if (genreIds != null && genreIds.isNotEmpty)
+          'genre_ids': genreIds,
+      };
+      
+      final result = await _bookNotifier.createBook(payload);
+      
+      // If successful, create a local dummy book so it's instantly available offline
+      if (result != null) {
+        final newBook = BookModel.fromJson(result);
+        final localDb = LocalBookDB.instance;
+        final localUser = await localDb.getUserByEmail(AuthNotifier.instance.user?.email ?? '');
+        
+        final map = newBook.toLocalMap();
+        map['local_owner_id'] = localUser?['local_id'];
+        await localDb.insertMyBook(map);
+      }
+      
       await fetchBooks();
     } catch (e) {
       debugPrint('Error adding book: $e');
@@ -193,13 +257,31 @@ class RuangBukuState extends ChangeNotifier {
   }
 
   // Admin verifies book
-  void verifyBook(String bookId, bool isApproved) {
-    // Requires backend implementation. Currently, we just mock the local state update.
-    final index = _books.indexWhere((b) => b.id == bookId);
-    if (index != -1) {
-      final book = _books[index];
-      book.statusVerifikasi = isApproved ? BookStatus.publicApproved : BookStatus.publicRejected;
-      notifyListeners();
+  Future<void> verifyBook(String bookId, bool isApproved) async {
+    if (!isApproved) {
+      // The backend does not have a reject route currently, 
+      // but if we handle rejection locally or add it later, we process it here.
+      final index = _books.indexWhere((b) => b.id == bookId);
+      if (index != -1) {
+        _books[index].statusVerifikasi = BookStatus.publicRejected;
+        notifyListeners();
+      }
+      return;
+    }
+
+    try {
+      final result = await _bookNotifier.verifyBook(bookId);
+      if (result != null) {
+        final index = _books.indexWhere((b) => b.id == bookId);
+        if (index != -1) {
+          _books[index].statusVerifikasi = BookStatus.publicApproved;
+          notifyListeners();
+        }
+        await fetchBooks(); // Refresh to ensure sync
+      }
+    } catch (e) {
+      debugPrint('Error verifying book: $e');
+      rethrow;
     }
   }
 
@@ -249,14 +331,24 @@ class RuangBukuState extends ChangeNotifier {
   // Admin verifies payment (confirm-deposit route, admin only)
   Future<void> verifyDepositPayment(String borrowId, bool isValid) async {
     try {
-      // Backend only supports confirming a submitted deposit. Rejecting is a
-      // no-op (the borrower can re-submit while status stays waiting_deposit).
       if (isValid) {
         await _borrowNotifier.confirmDeposit(borrowId);
+      } else {
+        await _borrowNotifier.rejectDeposit(borrowId);
       }
       await fetchBorrowings();
     } catch (e) {
-      debugPrint('Error confirming deposit: $e');
+      debugPrint('Error uploading deposit: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> requestReturn(String borrowId) async {
+    try {
+      await _borrowNotifier.requestReturn(borrowId);
+      await fetchBorrowings();
+    } catch (e) {
+      debugPrint('Error requesting return: $e');
       rethrow;
     }
   }
@@ -333,9 +425,15 @@ class RuangBukuState extends ChangeNotifier {
   // Update book conditions
   Future<void> updateBookCondition(String bookId, String condition, bool isPublic) async {
     if (!bookId.startsWith('book_')) {
-      await _bookNotifier.updateBook(bookId, {
-        'isPublic': isPublic,
-      });
+      try {
+        await _bookNotifier.updateBook(bookId, {
+          'isPublic': isPublic,
+          'condition': condition,
+        });
+      } catch (e) {
+        debugPrint('Error updating book condition: $e');
+        rethrow;
+      }
     }
 
     final index = _books.indexWhere((b) => b.id == bookId);
@@ -345,10 +443,18 @@ class RuangBukuState extends ChangeNotifier {
           ? BookStatus.publicPending
           : oldBook.statusVerifikasi;
 
-      _books[index] = oldBook.copyWith(
+      final newBook = oldBook.copyWith(
         statusVerifikasi: statusVerifikasi,
         condition: condition,
       );
+      _books[index] = newBook;
+      
+      // Also update local storage if it's the user's personal book
+      final cUserId = await currentUserId();
+      if (newBook.ownerId == cUserId) {
+        await LocalBookDB.instance.insertMyBook(newBook.toLocalMap());
+      }
+      
       notifyListeners();
     }
   }

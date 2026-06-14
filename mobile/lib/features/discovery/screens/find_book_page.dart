@@ -20,6 +20,7 @@ class _FindBookPageState extends State<FindBookPage> {
   String _searchQuery = '';
   bool _filterAvailableOnly = false;
   bool _filterWithin5km = false;
+  String _sortOption = 'distance';
 
   @override
   void dispose() {
@@ -32,6 +33,57 @@ class _FindBookPageState extends State<FindBookPage> {
         b.bookId == bookId &&
         b.status != BorrowStatus.completed &&
         b.status != BorrowStatus.cancelled);
+  }
+
+  void _showAdvancedFilter() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24.0)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.all(RuangBukuSpacing.xl),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: RuangBukuSpacing.xl),
+                  decoration: BoxDecoration(
+                    color: RuangBukuColors.outlineVariant,
+                    borderRadius: BorderRadius.circular(2.0),
+                  ),
+                ),
+              ),
+              Text('Advanced Filter', style: Theme.of(context).textTheme.titleLarge),
+              const SizedBox(height: RuangBukuSpacing.lg),
+              Text('Genre (Segera Hadir)', style: Theme.of(context).textTheme.titleMedium),
+              const SizedBox(height: RuangBukuSpacing.md),
+              Wrap(
+                spacing: RuangBukuSpacing.sm,
+                children: [
+                  ChoiceChip(label: const Text('Fiksi'), selected: false, onSelected: (_) {}),
+                  ChoiceChip(label: const Text('Non-Fiksi'), selected: false, onSelected: (_) {}),
+                  ChoiceChip(label: const Text('Sains'), selected: false, onSelected: (_) {}),
+                ],
+              ),
+              const SizedBox(height: RuangBukuSpacing.xxl),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Terapkan Filter'),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -72,6 +124,20 @@ class _FindBookPageState extends State<FindBookPage> {
 
           return true;
         }).toList();
+
+        // Apply sorts
+        filteredBooks.sort((a, b) {
+          if (_sortOption == 'distance') {
+            double distA = 0.0;
+            double distB = 0.0;
+            try { distA = double.parse(a.distance.split(' ').first); } catch (_) {}
+            try { distB = double.parse(b.distance.split(' ').first); } catch (_) {}
+            return distA.compareTo(distB);
+          } else if (_sortOption == 'title') {
+            return a.title.toLowerCase().compareTo(b.title.toLowerCase());
+          }
+          return 0;
+        });
 
         return Scaffold(
           appBar: AppBar(
@@ -127,7 +193,10 @@ class _FindBookPageState extends State<FindBookPage> {
                         _searchController.clear();
                         setState(() => _searchQuery = '');
                       },
-                      idleSuffixIcon: const Icon(Icons.tune),
+                      idleSuffixIcon: IconButton(
+                        icon: const Icon(Icons.tune),
+                        onPressed: _showAdvancedFilter,
+                      ),
                     ),
                     const SizedBox(height: RuangBukuSpacing.lg),
                     SingleChildScrollView(
@@ -166,11 +235,30 @@ class _FindBookPageState extends State<FindBookPage> {
                       children: [
                         Text('${filteredBooks.length} Books Found',
                             style: textTheme.headlineSmall),
-                        Row(
-                          children: [
-                            Text('Sort by Distance',
-                                style: textTheme.labelLarge),
-                            const Icon(Icons.keyboard_arrow_down, size: 20),
+                        PopupMenuButton<String>(
+                          onSelected: (value) {
+                            setState(() {
+                              _sortOption = value;
+                            });
+                          },
+                          child: Row(
+                            children: [
+                              Text(
+                                _sortOption == 'distance' ? 'Sort by Distance' : 'Sort by Title',
+                                style: textTheme.labelLarge,
+                              ),
+                              const Icon(Icons.keyboard_arrow_down, size: 20),
+                            ],
+                          ),
+                          itemBuilder: (context) => [
+                            const PopupMenuItem(
+                              value: 'distance',
+                              child: Text('Distance (Nearest)'),
+                            ),
+                            const PopupMenuItem(
+                              value: 'title',
+                              child: Text('Title (A-Z)'),
+                            ),
                           ],
                         ),
                       ],

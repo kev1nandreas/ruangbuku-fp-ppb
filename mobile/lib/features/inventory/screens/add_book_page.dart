@@ -7,6 +7,7 @@ import '../../../core/widgets/image_picker_helper.dart';
 import '../widgets/condition_dropdown.dart';
 import '../widgets/lending_permission_switch.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../core/api/api_client.dart';
 
 class AddBookPage extends StatefulWidget {
   const AddBookPage({super.key});
@@ -49,26 +50,54 @@ class _AddBookPageState extends State<AddBookPage> {
       _isLoading = true;
     });
 
-    final details = await BookNotifier.instance.checkIsbn(isbn);
+    try {
+      final details = await BookNotifier.instance.checkIsbn(isbn);
 
-    final l10n = AppLocalizations.of(context);
+      final l10n = AppLocalizations.of(context);
 
-    if (mounted) {
-      setState(() {
-        _isLoading = false;
-        if (details != null) {
-          _titleController.text = details['title']?.toString() ?? '';
-          _authorController.text = details['author']?.toString() ?? '';
-          _descriptionController.text = details['description']?.toString() ?? '';
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(l10n?.bookDetailsLoaded ?? 'Detail buku berhasil dimuat dari API!')),
-          );
-        } else {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          if (details != null) {
+            _titleController.text = details['title']?.toString() ?? '';
+            _authorController.text = details['author']?.toString() ?? '';
+            _descriptionController.text = details['description']?.toString() ?? '';
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(l10n?.bookDetailsLoaded ?? 'Detail buku berhasil dimuat dari API!')),
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(l10n?.bookNotFoundInServer ?? 'Buku tidak ditemukan di server/Google Books.')),
+            );
+          }
+        });
+      }
+    } on ApiException catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        final l10n = AppLocalizations.of(context);
+        
+        if (e.statusCode == 400 || e.statusCode == 404) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(l10n?.bookNotFoundInServer ?? 'Buku tidak ditemukan di server/Google Books.')),
           );
+        } else if (e.statusCode == 401) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Sesi Anda telah berakhir, silakan login kembali.')),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('API Error: ${e.message}')),
+          );
         }
-      });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      }
     }
   }
 

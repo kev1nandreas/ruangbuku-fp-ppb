@@ -2,54 +2,37 @@ import 'package:flutter/material.dart';
 import '../../../core/theme.dart';
 import '../../../core/state.dart';
 import '../../auth/domain/auth_notifier.dart';
-import '../widgets/profile_header.dart';
-import '../widgets/profile_stats_row.dart';
-import '../widgets/profile_menu_tile.dart';
-import '../widgets/logout_dialog.dart';
-import 'payment_page.dart';
-import 'edit_profile_page.dart';
-import 'help_support_page.dart';
-import 'settings_page.dart';
-import '../../borrowing/screens/borrowing_list_page.dart';
-import 'settings_page.dart';
+import '../../profile/widgets/profile_header.dart';
+import '../../profile/widgets/profile_stats_row.dart';
+import '../../profile/widgets/profile_menu_tile.dart';
+import '../../profile/widgets/logout_dialog.dart';
+import '../../profile/screens/payment_page.dart';
+import '../../profile/screens/edit_profile_page.dart';
+import '../../profile/screens/help_support_page.dart';
+import '../../profile/screens/settings_page.dart';
 import '../../../l10n/app_localizations.dart';
 
-class ProfilePage extends StatefulWidget {
-  const ProfilePage({super.key});
+class UserProfilePage extends StatefulWidget {
+  final void Function(int)? onNavigateToTab;
+
+  const UserProfilePage({super.key, this.onNavigateToTab});
 
   @override
-  State<ProfilePage> createState() => _ProfilePageState();
+  State<UserProfilePage> createState() => _UserProfilePageState();
 }
 
-class _ProfilePageState extends State<ProfilePage> {
+class _UserProfilePageState extends State<UserProfilePage> {
   @override
   void initState() {
     super.initState();
-    // Load the freshest profile (incl. roles) from /me on entry.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      AuthNotifier.instance.fetchProfile().then((_) => _syncRoleToAppState());
+      AuthNotifier.instance.fetchProfile();
     });
-  }
-
-  /// Mirrors the server role into the local app state so the rest of the UI
-  /// (admin/lender/borrower views) reflects the authenticated user's role.
-  void _syncRoleToAppState() {
-    final roleName = AuthNotifier.instance.user?.primaryRoleName;
-    final mapped = switch (roleName) {
-      'admin' => UserRole.admin,
-      'lender' => UserRole.lender,
-      'borrower' => UserRole.borrower,
-      _ => null,
-    };
-    if (mapped != null && mapped != RuangBukuState.instance.currentRole) {
-      RuangBukuState.instance.changeRole(mapped);
-    }
   }
 
   Future<void> _confirmLogout() async {
     final shouldLogout = await showLogoutDialog(context);
     if (shouldLogout == true) {
-      // Reactive gate in main.dart returns to LoginScreen once unauthenticated.
       await AuthNotifier.instance.logout();
     }
   }
@@ -68,7 +51,6 @@ class _ProfilePageState extends State<ProfilePage> {
       builder: (context, _) {
         final state = RuangBukuState.instance;
         final auth = AuthNotifier.instance;
-
         final currentUserId = auth.user?.id ?? '';
 
         final ownedCount =
@@ -110,7 +92,6 @@ class _ProfilePageState extends State<ProfilePage> {
           body: RefreshIndicator(
             onRefresh: () async {
               await auth.fetchProfile();
-              _syncRoleToAppState();
             },
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
@@ -126,6 +107,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     ownedCount: ownedCount,
                     borrowedCount: borrowedCount,
                     lentCount: lentCount,
+                    onNavigateToTab: widget.onNavigateToTab,
                   ),
                   const SizedBox(height: RuangBukuSpacing.xxl),
 
@@ -153,17 +135,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       );
                     },
                   ),
-                  const Divider(height: 1),
-                  ProfileMenuTile(
-                    icon: Icons.history,
-                    title: l10n?.borrowings ?? 'Borrowing History',
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const BorrowingListPage(),
-                      ),
-                    ),
-                  ),
+
                   const Divider(height: 1),
                   ProfileMenuTile(
                     icon: Icons.help_outline,

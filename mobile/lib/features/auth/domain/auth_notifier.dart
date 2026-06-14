@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import '../../../core/api/api_client.dart';
+import '../../../core/state.dart';
 import '../../../core/notifications/push_notification_service.dart';
 import '../data/models/login_request.dart';
 import '../data/models/register_request.dart';
@@ -26,9 +27,29 @@ class AuthNotifier extends ChangeNotifier {
   bool get isProfileLoading => _isProfileLoading;
 
   Future<void> checkAuthStatus() async {
-    final loggedIn = await _repository.isLoggedIn();
-    _status = loggedIn ? AuthStatus.authenticated : AuthStatus.unauthenticated;
+    final cachedUser = await _repository.getCachedUser();
+    if (cachedUser != null) {
+      _user = cachedUser;
+      
+      // Wait for fetchProfile to ensure we have the absolute latest role from backend
+      // before transitioning away from the splash screen.
+      await fetchProfile();
+      
+      _status = AuthStatus.authenticated;
+      _syncRoleToState(_user?.primaryRoleName); // Fallback to cache if fetch failed
+      RuangBukuState.instance.initializeData();
+    } else {
+      _status = AuthStatus.unauthenticated;
+    }
     notifyListeners();
+  }
+
+  void _syncRoleToState(String? roleName) {
+    if (roleName == 'admin') {
+      RuangBukuState.instance.changeRole(UserRole.admin);
+    } else {
+      RuangBukuState.instance.changeRole(UserRole.borrower);
+    }
   }
 
   Future<bool> login(String email, String password) async {
@@ -42,6 +63,8 @@ class AuthNotifier extends ChangeNotifier {
       );
       _user = response.user;
       _status = AuthStatus.authenticated;
+      _syncRoleToState(response.user.primaryRoleName);
+      RuangBukuState.instance.initializeData();
       notifyListeners();
 
       // Register this device for push now that the auth token is stored.
@@ -83,6 +106,8 @@ class AuthNotifier extends ChangeNotifier {
       );
       _user = response.user;
       _status = AuthStatus.authenticated;
+      _syncRoleToState(response.user.primaryRoleName);
+      RuangBukuState.instance.initializeData();
       notifyListeners();
 
       // Register this device for push now that the auth token is stored.
@@ -111,6 +136,9 @@ class AuthNotifier extends ChangeNotifier {
 
     try {
       _user = await _repository.getProfile();
+      if (_user != null) {
+        _syncRoleToState(_user!.primaryRoleName);
+      }
     } on ApiException catch (e) {
       _errorMessage = e.message;
     } catch (_) {

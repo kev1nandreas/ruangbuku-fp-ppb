@@ -252,7 +252,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get haventAddedBooks =>
-      'You haven\'t added any books yet. Click the \"+\" button below to register a book (F-01)!';
+      'You haven\'t added any books yet. Click the \"+\" button below to register a book!';
 
   @override
   String get rejected => 'Rejected';
@@ -381,7 +381,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String bookAddedForCuration(String title) {
-    return '\"$title\" added and submitted for Admin Curation approval (F-01)!';
+    return '\"$title\" added and submitted for Admin Curation approval!';
   }
 
   @override
@@ -682,7 +682,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get borrowRequestAccepted =>
-      'Borrow request accepted (F-02)! Deep-link to WA simulated.';
+      'Borrow request accepted! Deep-link to WA simulated.';
 
   @override
   String get rejectPayment => 'Reject Payment';
@@ -695,7 +695,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get paymentVerified =>
-      'Payment verified! Deposit status changed to PAID (F-02).';
+      'Payment verified! Deposit status changed to PAID.';
 
   @override
   String reportedDamageLabel(String description) {

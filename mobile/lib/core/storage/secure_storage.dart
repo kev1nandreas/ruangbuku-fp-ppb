@@ -13,6 +13,7 @@ class SecureStorage {
   static const _keyUserId = 'user_id';
   static const _keyUserName = 'user_name';
   static const _keyUserEmail = 'user_email';
+  static const _keyUserRole = 'user_role';
 
   // Preferences Keys
   static const _keyThemeMode = 'pref_theme_mode';
@@ -28,12 +29,14 @@ class SecureStorage {
     required String userId,
     required String userName,
     required String userEmail,
+    required String userRole,
   }) async {
     await Future.wait([
       _storage.write(key: _keyAuthToken, value: token),
       _storage.write(key: _keyUserId, value: userId),
       _storage.write(key: _keyUserName, value: userName),
       _storage.write(key: _keyUserEmail, value: userEmail),
+      _storage.write(key: _keyUserRole, value: userRole),
     ]);
   }
 
@@ -41,6 +44,7 @@ class SecureStorage {
   Future<String?> getUserId() => _storage.read(key: _keyUserId);
   Future<String?> getUserName() => _storage.read(key: _keyUserName);
   Future<String?> getUserEmail() => _storage.read(key: _keyUserEmail);
+  Future<String?> getUserRole() => _storage.read(key: _keyUserRole);
 
   Future<void> clearAll() => _storage.deleteAll();
 

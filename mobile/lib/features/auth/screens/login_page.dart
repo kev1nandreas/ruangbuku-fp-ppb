@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import '../domain/auth_notifier.dart';
+import '../../../core/state.dart';
 import '../../../main.dart';
+import '../../user/screens/user_main_scaffold.dart';
+import '../../admin/screens/admin_main_scaffold.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -24,9 +27,16 @@ class _LoginPageState extends State<LoginPage> {
       );
       if (success) {
         if (!mounted) return;
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const MainScaffold()),
-        );
+        final isAdmin = RuangBukuState.instance.currentRole == UserRole.admin;
+        if (isAdmin) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const AdminMainScaffold()),
+          );
+        } else {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const UserMainScaffold()),
+          );
+        }
       } else {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(

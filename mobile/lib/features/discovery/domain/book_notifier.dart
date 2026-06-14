@@ -1,15 +1,15 @@
 import 'package:flutter/foundation.dart';
-import '../data/local/book_local_datasource.dart';
 import '../data/models/book_model.dart';
 import '../data/models/genre_model.dart';
 import '../data/repository/book_repository.dart';
+import '../../../db/local_bookDB.dart';
 
 class BookNotifier extends ChangeNotifier {
   BookNotifier._();
   static final BookNotifier instance = BookNotifier._();
 
   final _repository = BookRepository.instance;
-  final _local = BookLocalDatasource.instance;
+  final _local = LocalBookDB.instance;
 
   final List<BookModel> _books = [];
   bool isLoading = false;

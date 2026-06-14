@@ -6,6 +6,7 @@ import '../models/login_request.dart';
 import '../models/login_response.dart';
 import '../models/register_request.dart';
 import '../models/user_model.dart';
+import '../models/role_model.dart';
 
 class AuthRepository {
   AuthRepository._();
@@ -35,6 +36,7 @@ class AuthRepository {
         userId: response.user.id,
         userName: response.user.name,
         userEmail: response.user.email,
+        userRole: response.user.primaryRoleName ?? 'borrower',
       );
     } catch (e) {
       debugPrint('AuthRepository: failed to persist session: $e');
@@ -78,6 +80,32 @@ class AuthRepository {
       await _storage.clearAll();
     } catch (e) {
       debugPrint('AuthRepository: failed to clear session: $e');
+    }
+  }
+
+  Future<UserModel?> getCachedUser() async {
+    try {
+      final token = await _storage.getToken();
+      if (token == null || token.isEmpty) return null;
+      
+      final id = await _storage.getUserId();
+      final name = await _storage.getUserName();
+      final email = await _storage.getUserEmail();
+      final role = await _storage.getUserRole();
+      
+      if (id != null && name != null && email != null && role != null) {
+        return UserModel(
+          id: id,
+          name: name,
+          email: email,
+          avatarUrl: null, // Avatar isn't critical for initial load
+          roles: [RoleModel(id: 0, name: role)],
+        );
+      }
+      return null;
+    } catch (e) {
+      debugPrint('AuthRepository: failed to read cached user: $e');
+      return null;
     }
   }
 

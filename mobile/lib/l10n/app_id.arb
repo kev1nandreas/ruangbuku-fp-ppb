@@ -109,7 +109,7 @@
     "allCaughtUp": "Semua Selesai!",
     "noBooksAwaitingCuration": "Tidak ada buku yang menunggu persetujuan kurasi saat ini.",
     "yourLibraryEmpty": "Perpustakaan Anda kosong",
-    "haventAddedBooks": "Anda belum menambahkan buku apa pun. Klik tombol \"+\" di bawah ini untuk mendaftarkan buku (F-01)!",
+    "haventAddedBooks": "Anda belum menambahkan buku apa pun. Klik tombol \"+\" di bawah ini untuk mendaftarkan buku!",
     "rejected": "Ditolak",
     "privateBook": "Privat",
     "deleteConfirmTitle": "Apakah Anda ingin menghapus buku Anda?",
@@ -184,7 +184,7 @@
     "bookDetailsLoaded": "Detail buku berhasil dimuat dari API!",
     "bookNotFoundInServer": "Buku tidak ditemukan di server/Google Books.",
     "fillInRequiredFields": "Harap isi ISBN, Judul, dan Penulis.",
-    "bookAddedForCuration": "\"{title}\" berhasil ditambahkan dan diajukan untuk persetujuan Kurasi Admin (F-01)!",
+    "bookAddedForCuration": "\"{title}\" berhasil ditambahkan dan diajukan untuk persetujuan Kurasi Admin!",
     "@bookAddedForCuration": {
         "placeholders": {
             "title": {
@@ -325,11 +325,11 @@
     "declineLabel": "Tolak",
     "acceptLabel": "Terima",
     "borrowRequestDeclined": "Permintaan peminjaman ditolak.",
-    "borrowRequestAccepted": "Permintaan peminjaman diterima (F-02)! Deep-link ke WA disimulasikan.",
+    "borrowRequestAccepted": "Permintaan peminjaman diterima! Deep-link ke WA disimulasikan.",
     "rejectPayment": "Tolak Pembayaran",
     "verifyPayment": "Verifikasi Pembayaran",
     "paymentRejected": "Pembayaran ditolak.",
-    "paymentVerified": "Pembayaran terverifikasi! Status deposit berubah menjadi DIBAYAR (F-02).",
+    "paymentVerified": "Pembayaran terverifikasi! Status deposit berubah menjadi DIBAYAR.",
     "reportedDamageLabel": "Laporan Kerusakan: {description}",
     "@reportedDamageLabel": {
         "placeholders": {

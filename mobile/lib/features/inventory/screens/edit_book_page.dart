@@ -102,13 +102,26 @@ class _EditBookPageState extends State<EditBookPage> {
           ),
           bottomSheet: BottomActionBar(
             child: FilledButton(
-              onPressed: () {
-                state.updateBookCondition(
-                    book.id, _condition, _isAvailableForLending);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Changes saved successfully')),
-                );
-                Navigator.pop(context);
+              onPressed: () async {
+                try {
+                  await state.updateBookCondition(
+                      book.id, _condition, _isAvailableForLending);
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Changes saved successfully')),
+                    );
+                    Navigator.pop(context);
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Hubungkan dengan internet untuk mengubah detail buku.'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                }
               },
               child: const Text('Save Changes'),
             ),

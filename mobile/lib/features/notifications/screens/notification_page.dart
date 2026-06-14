@@ -85,6 +85,8 @@ class _NotificationPageState extends State<NotificationPage> {
             message: l10n?.noNotificationsCurrentRole ?? 'You have no notifications yet.',
           ),
         ],
+      );
+    }
 
     return ListView.separated(
       physics: const AlwaysScrollableScrollPhysics(),

@@ -563,7 +563,7 @@ abstract class AppLocalizations {
   /// No description provided for @haventAddedBooks.
   ///
   /// In id, this message translates to:
-  /// **'Anda belum menambahkan buku apa pun. Klik tombol \"+\" di bawah ini untuk mendaftarkan buku (F-01)!'**
+  /// **'Anda belum menambahkan buku apa pun. Klik tombol \"+\" di bawah ini untuk mendaftarkan buku!'**
   String get haventAddedBooks;
 
   /// No description provided for @rejected.
@@ -797,7 +797,7 @@ abstract class AppLocalizations {
   /// No description provided for @bookAddedForCuration.
   ///
   /// In id, this message translates to:
-  /// **'\"{title}\" berhasil ditambahkan dan diajukan untuk persetujuan Kurasi Admin (F-01)!'**
+  /// **'\"{title}\" berhasil ditambahkan dan diajukan untuk persetujuan Kurasi Admin!'**
   String bookAddedForCuration(String title);
 
   /// No description provided for @bookAddedPrivate.
@@ -1343,7 +1343,7 @@ abstract class AppLocalizations {
   /// No description provided for @borrowRequestAccepted.
   ///
   /// In id, this message translates to:
-  /// **'Permintaan peminjaman diterima (F-02)! Deep-link ke WA disimulasikan.'**
+  /// **'Permintaan peminjaman diterima! Deep-link ke WA disimulasikan.'**
   String get borrowRequestAccepted;
 
   /// No description provided for @rejectPayment.
@@ -1367,7 +1367,7 @@ abstract class AppLocalizations {
   /// No description provided for @paymentVerified.
   ///
   /// In id, this message translates to:
-  /// **'Pembayaran terverifikasi! Status deposit berubah menjadi DIBAYAR (F-02).'**
+  /// **'Pembayaran terverifikasi! Status deposit berubah menjadi DIBAYAR.'**
   String get paymentVerified;
 
   /// No description provided for @reportedDamageLabel.

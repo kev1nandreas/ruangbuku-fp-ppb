@@ -21,6 +21,7 @@ class ApiClient {
 
   Map<String, String> _headers(String? bearerToken) => {
         'Content-Type': 'application/json',
+        'Accept': 'application/json',
         'Authorization': 'Bearer ${bearerToken ?? ApiConstants.appToken}',
       };
 

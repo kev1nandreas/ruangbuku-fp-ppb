@@ -109,7 +109,7 @@
     "allCaughtUp": "All Caught Up!",
     "noBooksAwaitingCuration": "There are no books awaiting curation approval right now.",
     "yourLibraryEmpty": "Your library is empty",
-    "haventAddedBooks": "You haven't added any books yet. Click the \"+\" button below to register a book (F-01)!",
+    "haventAddedBooks": "You haven't added any books yet. Click the \"+\" button below to register a book!",
     "rejected": "Rejected",
     "privateBook": "Private",
     "deleteConfirmTitle": "Do you want to delete your book?",
@@ -184,7 +184,7 @@
     "bookDetailsLoaded": "Book details successfully loaded from API!",
     "bookNotFoundInServer": "Book not found on server/Google Books.",
     "fillInRequiredFields": "Please fill in ISBN, Title, and Author.",
-    "bookAddedForCuration": "\"{title}\" added and submitted for Admin Curation approval (F-01)!",
+    "bookAddedForCuration": "\"{title}\" added and submitted for Admin Curation approval!",
     "@bookAddedForCuration": {
         "placeholders": {
             "title": {
@@ -325,11 +325,11 @@
     "declineLabel": "Decline",
     "acceptLabel": "Accept",
     "borrowRequestDeclined": "Borrow request declined.",
-    "borrowRequestAccepted": "Borrow request accepted (F-02)! Deep-link to WA simulated.",
+    "borrowRequestAccepted": "Borrow request accepted! Deep-link to WA simulated.",
     "rejectPayment": "Reject Payment",
     "verifyPayment": "Verify Payment",
     "paymentRejected": "Payment rejected.",
-    "paymentVerified": "Payment verified! Deposit status changed to PAID (F-02).",
+    "paymentVerified": "Payment verified! Deposit status changed to PAID.",
     "reportedDamageLabel": "Reported Damage: {description}",
     "@reportedDamageLabel": {
         "placeholders": {

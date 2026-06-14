@@ -3,19 +3,18 @@ import '../../../core/theme.dart';
 import '../../../core/state.dart';
 import '../../../core/widgets/empty_state_view.dart';
 import '../../auth/domain/auth_notifier.dart';
-import '../widgets/admin_curation_card.dart';
-import '../widgets/owner_book_card.dart';
-import 'add_book_page.dart';
+import '../../inventory/widgets/owner_book_card.dart';
+import '../../inventory/screens/add_book_page.dart';
 import '../../../l10n/app_localizations.dart';
 
-class YourBooksPage extends StatefulWidget {
-  const YourBooksPage({super.key});
+class UserBooksPage extends StatefulWidget {
+  const UserBooksPage({super.key});
 
   @override
-  State<YourBooksPage> createState() => _YourBooksPageState();
+  State<UserBooksPage> createState() => _UserBooksPageState();
 }
 
-class _YourBooksPageState extends State<YourBooksPage> {
+class _UserBooksPageState extends State<UserBooksPage> {
   @override
   void initState() {
     super.initState();
@@ -34,58 +33,11 @@ class _YourBooksPageState extends State<YourBooksPage> {
       listenable: RuangBukuState.instance,
       builder: (context, _) {
         final state = RuangBukuState.instance;
-        final isAdmin = state.currentRole == UserRole.admin;
 
         if (state.isLoading) {
           return const Scaffold(body: Center(child: CircularProgressIndicator()));
         }
 
-        // If Admin: Curation Dashboard
-        if (isAdmin) {
-          final pendingBooks = state.books
-              .where((b) =>
-                  b.isPublic &&
-                  b.statusVerifikasi == BookStatus.publicPending)
-              .toList();
-
-          return Scaffold(
-            appBar: AppBar(
-              title: Text(
-                l10n?.adminCuration ?? 'Admin Curation',
-                style: textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-            body: RefreshIndicator(
-              onRefresh: () => state.fetchBooks(),
-              child: pendingBooks.isEmpty
-                ? ListView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    children: [
-                      const SizedBox(height: 120),
-                      EmptyStateView(
-                        icon: Icons.check_circle_outline,
-                        title: l10n?.allCaughtUp ?? 'All Caught Up!',
-                        message: l10n?.noBooksAwaitingCuration ?? 'There are no books awaiting curation approval right now.',
-                      ),
-                    ],
-                  )
-                : ListView.separated(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    padding:
-                        const EdgeInsets.all(RuangBukuSpacing.marginMobile),
-                    itemCount: pendingBooks.length,
-                    separatorBuilder: (context, index) =>
-                        const SizedBox(height: RuangBukuSpacing.lg),
-                    itemBuilder: (context, index) =>
-                        AdminCurationCard(book: pendingBooks[index]),
-                  ),
-            ),
-          );
-        }
-
-        // If Lender/Borrower: Your Owned Books Catalog
         final currentUserId = AuthNotifier.instance.user?.id ?? '';
         final myBooks =
             state.books.where((b) => b.ownerId == currentUserId).toList();

@@ -90,4 +90,61 @@ class BookModel {
       genreIds: (json['genres'] as List?)?.map((g) => g['id'].toString()).toList() ?? [],
     );
   }
+
+  factory BookModel.fromLocalMap(Map<String, dynamic> map) {
+    BookStatus parseStatus(String? status) {
+      if (status == 'approved') return BookStatus.publicApproved;
+      if (status == 'need_verification') return BookStatus.publicPending;
+      if (status == 'rejected') return BookStatus.publicRejected;
+      return BookStatus.private;
+    }
+
+    return BookModel(
+      id: map['id']?.toString() ?? '',
+      isbn: map['isbn']?.toString() ?? '',
+      title: map['title']?.toString() ?? 'No Title',
+      author: map['author']?.toString() ?? 'Unknown',
+      description: map['description']?.toString() ?? '',
+      isPublic: map['isPublic'] == 1 || map['isPublic'] == true,
+      statusVerifikasi: parseStatus(map['statusVerifikasi']?.toString()),
+      ownerId: map['ownerId']?.toString() ?? '',
+      ownerName: map['ownerName']?.toString() ?? 'Unknown',
+      imageUrl: map['imageUrl']?.toString() ?? 'https://picsum.photos/200/300',
+      distance: map['distance']?.toString() ?? '0 km away',
+      condition: map['condition']?.toString() ?? 'Good',
+    );
+  }
+
+  Map<String, dynamic> toLocalMap() {
+    String statusString = 'private';
+    switch (statusVerifikasi) {
+      case BookStatus.publicApproved:
+        statusString = 'approved';
+        break;
+      case BookStatus.publicPending:
+        statusString = 'need_verification';
+        break;
+      case BookStatus.publicRejected:
+        statusString = 'rejected';
+        break;
+      case BookStatus.private:
+        statusString = 'private';
+        break;
+    }
+
+    return {
+      'id': id,
+      'isbn': isbn,
+      'title': title,
+      'author': author,
+      'description': description,
+      'isPublic': isPublic ? 1 : 0,
+      'statusVerifikasi': statusString,
+      'ownerId': ownerId,
+      'ownerName': ownerName,
+      'imageUrl': imageUrl,
+      'distance': distance,
+      'condition': condition,
+    };
+  }
 }

@@ -34,9 +34,20 @@ class HelpSupportPage extends StatelessWidget {
     ),
   ];
 
-  Future<void> _launch(Uri uri) async {
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
+  Future<void> _launch(BuildContext context, Uri uri) async {
+    try {
+      final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+      if (!launched && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Tidak dapat membuka aplikasi tujuan.')),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal membuka: $e')),
+        );
+      }
     }
   }
 
@@ -83,7 +94,7 @@ class HelpSupportPage extends StatelessWidget {
                 color: RuangBukuColors.primary),
             title: const Text('Email'),
             subtitle: const Text(_supportEmail),
-            onTap: () => _launch(Uri(
+            onTap: () => _launch(context, Uri(
               scheme: 'mailto',
               path: _supportEmail,
               query: 'subject=Bantuan RuangBuku',
@@ -94,7 +105,7 @@ class HelpSupportPage extends StatelessWidget {
                 color: RuangBukuColors.primary),
             title: const Text('WhatsApp'),
             subtitle: const Text('Chat tim dukungan'),
-            onTap: () => _launch(
+            onTap: () => _launch(context,
                 Uri.parse('https://wa.me/$_supportWhatsApp')),
           ),
         ],

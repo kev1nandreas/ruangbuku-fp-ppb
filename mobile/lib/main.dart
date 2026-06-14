@@ -8,11 +8,8 @@ import 'core/notifications/push_notification_service.dart';
 
 import 'features/auth/domain/auth_notifier.dart';
 import 'features/auth/presentation/screens/login_screen.dart';
-import 'features/discovery/screens/home_page.dart';
-import 'features/discovery/screens/find_book_page.dart';
-import 'features/inventory/screens/your_books_page.dart';
-import 'features/borrowing/screens/borrowing_list_page.dart';
-import 'features/profile/screens/profile_page.dart';
+import 'features/user/screens/user_main_scaffold.dart';
+import 'features/admin/screens/admin_main_scaffold.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'l10n/app_localizations.dart';
 
@@ -97,7 +94,11 @@ class RuangBukuApp extends StatelessWidget {
               }
 
               if (status == AuthStatus.authenticated) {
-                return const MainScaffold();
+                if (RuangBukuState.instance.currentRole == UserRole.admin) {
+                  return const AdminMainScaffold();
+                } else {
+                  return const UserMainScaffold();
+                }
               }
 
               return const LoginScreen();
@@ -133,83 +134,3 @@ class _SplashScreen extends StatelessWidget {
   }
 }
 
-class MainScaffold extends StatefulWidget {
-  const MainScaffold({super.key});
-
-  @override
-  State<MainScaffold> createState() => _MainScaffoldState();
-}
-
-class _MainScaffoldState extends State<MainScaffold> {
-  int _currentIndex = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      RuangBukuState.instance.fetchBooks();
-      RuangBukuState.instance.fetchBorrowings();
-    });
-  }
-
-  final List<Widget> _pages = const [
-    HomePage(),
-    FindBookPage(),
-    YourBooksPage(),
-    BorrowingListPage(),
-    ProfilePage(),
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    return ListenableBuilder(
-      listenable: RuangBukuState.instance,
-      builder: (context, _) {
-        final state = RuangBukuState.instance;
-        final isAdmin = state.currentRole == UserRole.admin;
-        final l10n = AppLocalizations.of(context);
-
-        return Scaffold(
-          body: _pages[_currentIndex],
-          bottomNavigationBar: BottomNavigationBar(
-            currentIndex: _currentIndex,
-            onTap: (index) {
-              setState(() {
-                _currentIndex = index;
-              });
-            },
-            items: [
-              BottomNavigationBarItem(
-                icon: const Icon(Icons.home_outlined),
-                activeIcon: const Icon(Icons.home),
-                label: l10n?.home ?? 'Home',
-              ),
-              BottomNavigationBarItem(
-                icon: const Icon(Icons.search),
-                activeIcon: const Icon(Icons.search),
-                label: l10n?.findBook ?? 'Find Book',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(
-                  isAdmin ? Icons.gavel_outlined : Icons.library_books_outlined,
-                ),
-                activeIcon: Icon(isAdmin ? Icons.gavel : Icons.library_books),
-                label: isAdmin ? (l10n?.curation ?? 'Curation') : (l10n?.yourBooks ?? 'Your Books'),
-              ),
-              BottomNavigationBarItem(
-                icon: const Icon(Icons.handshake_outlined),
-                activeIcon: const Icon(Icons.handshake),
-                label: l10n?.borrowing ?? 'Borrowing',
-              ),
-              BottomNavigationBarItem(
-                icon: const Icon(Icons.person_outline),
-                activeIcon: const Icon(Icons.person),
-                label: l10n?.profile ?? 'Profile',
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-}

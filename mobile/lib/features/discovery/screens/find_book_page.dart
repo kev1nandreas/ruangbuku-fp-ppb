@@ -4,8 +4,6 @@ import '../../../core/state.dart';
 import '../../../core/widgets/app_search_field.dart';
 import '../../../core/widgets/app_filter_chip.dart';
 import '../../auth/domain/auth_notifier.dart';
-import '../../notifications/screens/notification_page.dart';
-import '../../profile/screens/profile_page.dart';
 import '../widgets/book_grid_card.dart';
 import '../../../l10n/app_localizations.dart';
 
@@ -120,7 +118,6 @@ class _FindBookPageState extends State<FindBookPage> {
       listenable: RuangBukuState.instance,
       builder: (context, _) {
         final state = RuangBukuState.instance;
-        final currentUserId = AuthNotifier.instance.user?.id ?? 'guest';
 
         final publicBooks = state.books
             .where((b) =>
@@ -173,41 +170,13 @@ class _FindBookPageState extends State<FindBookPage> {
 
         return Scaffold(
           appBar: AppBar(
-            leading: IconButton(
-              icon: const Icon(Icons.notifications_outlined),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const NotificationPage()),
-                );
-              },
-            ),
+            automaticallyImplyLeading: false,
             title: Text(
               'RuangBuku',
               style: textTheme.headlineMedium?.copyWith(
                 fontWeight: FontWeight.w700,
               ),
             ),
-            actions: [
-              Padding(
-                padding: const EdgeInsets.only(right: RuangBukuSpacing.lg),
-                child: InkWell(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const ProfilePage()),
-                    );
-                  },
-                  child: CircleAvatar(
-                    radius: 18,
-                    backgroundImage: NetworkImage(
-                        'https://picsum.photos/seed/$currentUserId/100/100'),
-                    onBackgroundImageError: (error, stack) {},
-                    backgroundColor: RuangBukuColors.surfaceContainerHigh,
-                  ),
-                ),
-              ),
-            ],
           ),
           body: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

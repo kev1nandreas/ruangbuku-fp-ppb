@@ -4,19 +4,19 @@ import '../../../core/state.dart';
 import '../../../core/widgets/app_search_field.dart';
 import '../../auth/domain/auth_notifier.dart';
 import '../../notifications/screens/notification_page.dart';
-import '../../profile/screens/profile_page.dart';
-import '../widgets/popular_book_card.dart';
-import '../widgets/recent_book_card.dart';
+import 'admin_profile_page.dart';
+import '../../discovery/widgets/popular_book_card.dart';
+import '../../discovery/widgets/recent_book_card.dart';
 import '../../../l10n/app_localizations.dart';
 
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+class AdminHomePage extends StatefulWidget {
+  const AdminHomePage({super.key});
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<AdminHomePage> createState() => _AdminHomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _AdminHomePageState extends State<AdminHomePage> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
 
@@ -56,31 +56,19 @@ class _HomePageState extends State<HomePage> {
       listenable: RuangBukuState.instance,
       builder: (context, _) {
         final state = RuangBukuState.instance;
-
         final auth = AuthNotifier.instance;
         final currentUserId = auth.user?.id ?? 'guest';
         final firstName = auth.user?.name.split(' ').first ?? 'User';
 
-        // Determine user greeting based on active role
-        String greetingName = firstName;
-        if (state.currentRole == UserRole.admin) {
-          greetingName = 'Admin $firstName';
-        } else if (state.currentRole == UserRole.lender) {
-          greetingName = 'Lender $firstName';
-        } else {
-          greetingName = 'Borrower $firstName';
-        }
+        String greetingName = 'Admin $firstName';
 
-        // Get public approved books
         final publicBooks = state.books
             .where((b) =>
                 b.isPublic && b.statusVerifikasi == BookStatus.publicApproved)
             .toList();
 
-        // Popular: first 3 public approved books
         final popularBooks = publicBooks.take(3).toList();
 
-        // Recently Added: filtered by search query
         final filteredRecentBooks = publicBooks.where((b) {
           if (_searchQuery.isEmpty) return true;
           final query = _searchQuery.toLowerCase();
@@ -114,13 +102,14 @@ class _HomePageState extends State<HomePage> {
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) => const ProfilePage()),
+                      MaterialPageRoute(builder: (_) => const AdminProfilePage()),
                     );
                   },
                   child: CircleAvatar(
                     radius: 18,
                     backgroundImage: NetworkImage(
-                        'https://picsum.photos/seed/$currentUserId/100/100'),
+                        auth.user?.avatarUrl ?? 'https://picsum.photos/seed/$currentUserId/100/100'),
+                    onBackgroundImageError: (error, stack) {},
                     backgroundColor: RuangBukuColors.surfaceContainerHigh,
                   ),
                 ),
@@ -140,7 +129,6 @@ class _HomePageState extends State<HomePage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Welcome Header
                 Padding(
                   padding: const EdgeInsets.symmetric(
                       horizontal: RuangBukuSpacing.marginMobile),
@@ -151,7 +139,7 @@ class _HomePageState extends State<HomePage> {
                           style: textTheme.displayMedium),
                       const SizedBox(height: RuangBukuSpacing.sm),
                       Text(
-                        l10n?.findNextRead ?? 'Find your next read from your community library.',
+                        'Monitor community library and verify incoming books.',
                         style: textTheme.bodyLarge?.copyWith(
                           color: RuangBukuColors.textSecondary,
                         ),
@@ -173,7 +161,6 @@ class _HomePageState extends State<HomePage> {
 
                 const SizedBox(height: RuangBukuSpacing.xxl),
 
-                // Popular Near You Carousel
                 if (state.isLoadingBooks)
                   const Padding(
                     padding: EdgeInsets.all(RuangBukuSpacing.xl),
@@ -222,7 +209,6 @@ class _HomePageState extends State<HomePage> {
                   const SizedBox(height: RuangBukuSpacing.xxl),
                 ],
 
-                // Recently Added List
                 Padding(
                   padding: const EdgeInsets.symmetric(
                       horizontal: RuangBukuSpacing.marginMobile),

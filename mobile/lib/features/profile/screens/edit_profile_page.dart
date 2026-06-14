@@ -3,6 +3,7 @@ import '../../../core/theme.dart';
 import '../../../core/widgets/bottom_action_bar.dart';
 import '../../../core/widgets/image_picker_helper.dart';
 import '../../auth/domain/auth_notifier.dart';
+import '../../../db/local_bookDB.dart';
 
 /// Lets the user edit their display name and profile photo. The photo is
 /// uploaded to S3/MinIO via the presigned-URL flow; only the resulting URL is
@@ -30,6 +31,24 @@ class _EditProfilePageState extends State<EditProfilePage> {
     final user = AuthNotifier.instance.user;
     _nameController = TextEditingController(text: user?.name ?? '');
     _avatarUrl = user?.avatarUrl;
+    _loadLocalProfileData();
+  }
+
+  Future<void> _loadLocalProfileData() async {
+    final email = AuthNotifier.instance.user?.email;
+    if (email == null) return;
+    
+    final userMap = await LocalBookDB.instance.getUserByEmail(email);
+    if (userMap != null && mounted) {
+      setState(() {
+        if (userMap['dob'] != null && userMap['dob'].toString().isNotEmpty) {
+          _dobController.text = userMap['dob'].toString();
+        }
+        if (userMap['status'] != null && _statusOptions.contains(userMap['status'])) {
+          _selectedStatus = userMap['status'].toString();
+        }
+      });
+    }
   }
 
   @override
@@ -67,10 +86,23 @@ class _EditProfilePageState extends State<EditProfilePage> {
     }
 
     setState(() => _isSaving = true);
+    
+    // Selalu simpan DOB dan Status ke lokal tanpa mempedulikan internet
+    final email = AuthNotifier.instance.user?.email;
+    if (email != null) {
+      await LocalBookDB.instance.updateUserLocalProfile(
+        email,
+        _dobController.text,
+        _selectedStatus,
+      );
+    }
+
+    // Sinkronkan Nama dan Avatar ke backend
     final ok = await AuthNotifier.instance.updateProfile(
       name: name,
       avatarUrl: _avatarUrl,
     );
+
     if (!mounted) return;
     setState(() => _isSaving = false);
 
@@ -80,9 +112,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
       );
       Navigator.pop(context, true);
     } else {
+      // Walaupun API gagal, data DOB dan Status tetap tersimpan di atas
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(
-          AuthNotifier.instance.errorMessage ?? 'Gagal memperbarui profil.',
+          AuthNotifier.instance.errorMessage ?? 'Gagal memperbarui profil backend, tapi data lokal tersimpan.',
         )),
       );
     }

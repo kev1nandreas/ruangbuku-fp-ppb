@@ -25,7 +25,7 @@ class LocalBookDB {
     final path = join(dbPath.path, filePath);
     return openDatabase(
       path,
-      version: 4,
+      version: 5,
       onCreate: _createDB,
       onUpgrade: _upgradeDB,
     );
@@ -38,7 +38,9 @@ CREATE TABLE users (
   backend_id TEXT UNIQUE,
   name TEXT,
   email TEXT UNIQUE,
-  avatarUrl TEXT
+  avatarUrl TEXT,
+  dob TEXT,
+  status TEXT
 )
 ''');
 
@@ -119,6 +121,10 @@ CREATE TABLE users (
       try { await db.execute('ALTER TABLE books ADD COLUMN local_owner_id INTEGER'); } catch (_) {}
       try { await db.execute('ALTER TABLE my_books ADD COLUMN local_owner_id INTEGER'); } catch (_) {}
     }
+    if (oldVersion < 5) {
+      try { await db.execute('ALTER TABLE users ADD COLUMN dob TEXT'); } catch (_) {}
+      try { await db.execute('ALTER TABLE users ADD COLUMN status TEXT'); } catch (_) {}
+    }
   }
 
   // --- USER OPERATIONS ---
@@ -132,6 +138,18 @@ CREATE TABLE users (
       return result.first;
     }
     return null;
+  }
+
+  Future<void> updateUserLocalProfile(String email, String dob, String status) async {
+    if (kIsWeb) return;
+    final db = await database;
+    if (db == null) return;
+    await db.update(
+      'users',
+      {'dob': dob, 'status': status},
+      where: 'email = ?',
+      whereArgs: [email],
+    );
   }
 
   Future<int?> upsertUser(Map<String, dynamic> user) async {

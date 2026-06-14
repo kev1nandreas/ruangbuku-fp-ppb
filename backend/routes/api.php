@@ -32,6 +32,9 @@ Route::prefix('v1')->group(function () {
         Route::get('/notifications/unread-count', [NotificationController::class, 'unreadCount']);
         Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead']);
         Route::post('/notifications/{id}/read', [NotificationController::class, 'markRead']);
+        Route::delete('/notifications/clear-all', [NotificationController::class, 'clearAll']);
+        Route::delete('/notifications/{id}', [NotificationController::class, 'destroy']);
+        Route::post('/notifications/broadcast', [NotificationController::class, 'broadcast'])->middleware('role:admin');
 
         // Genre
         Route::apiResource('/genres', GenreController::class);

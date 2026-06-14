@@ -48,6 +48,33 @@ class _NotificationPageState extends State<NotificationPage> {
                   onPressed: _notifier.markAllRead,
                   child: const Text('Tandai dibaca'), // Wait, I'll localize it as l10n?.markAsRead ?? 'Tandai dibaca' later
                 ),
+              if (items.isNotEmpty)
+                IconButton(
+                  icon: const Icon(Icons.delete_sweep_outlined),
+                  tooltip: 'Hapus Semua',
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text('Hapus Semua Notifikasi?'),
+                        content: const Text('Semua riwayat notifikasi Anda akan dihapus secara permanen.'),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text('Batal'),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                              _notifier.clearAll();
+                            },
+                            child: const Text('Hapus', style: TextStyle(color: RuangBukuColors.error)),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
             ],
           ),
           body: Column(
@@ -98,39 +125,58 @@ class _NotificationPageState extends State<NotificationPage> {
   }
 
   Widget _buildItem(BuildContext context, AppNotificationModel notif) {
-    return Opacity(
-      opacity: notif.isRead ? 0.7 : 1.0,
-      child: InkWell(
-        borderRadius: RuangBukuRadius.borderRadiusMd,
-        onTap: () => _onTap(notif),
-        child: NotificationCard(
-          leading: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              CircleAvatar(
-                radius: 20,
-                backgroundColor: notif.iconColor.withValues(alpha: 0.1),
-                child: Icon(notif.icon, color: notif.iconColor, size: 20),
-              ),
-              if (!notif.isRead)
-                Positioned(
-                  right: -1,
-                  top: -1,
-                  child: Container(
-                    width: 10,
-                    height: 10,
-                    decoration: const BoxDecoration(
-                      color: RuangBukuColors.error,
-                      shape: BoxShape.circle,
+    return Dismissible(
+      key: ValueKey(notif.id),
+      direction: DismissDirection.endToStart,
+      background: Container(
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: RuangBukuSpacing.lg),
+        decoration: BoxDecoration(
+          color: RuangBukuColors.error,
+          borderRadius: RuangBukuRadius.borderRadiusMd,
+        ),
+        child: const Icon(Icons.delete_outline, color: RuangBukuColors.surface),
+      ),
+      onDismissed: (_) {
+        _notifier.deleteNotification(notif);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Notifikasi dihapus'), duration: Duration(seconds: 2)),
+        );
+      },
+      child: Opacity(
+        opacity: notif.isRead ? 0.7 : 1.0,
+        child: InkWell(
+          borderRadius: RuangBukuRadius.borderRadiusMd,
+          onTap: () => _onTap(notif),
+          child: NotificationCard(
+            leading: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                CircleAvatar(
+                  radius: 20,
+                  backgroundColor: notif.iconColor.withValues(alpha: 0.1),
+                  child: Icon(notif.icon, color: notif.iconColor, size: 20),
+                ),
+                if (!notif.isRead)
+                  Positioned(
+                    right: -1,
+                    top: -1,
+                    child: Container(
+                      width: 10,
+                      height: 10,
+                      decoration: const BoxDecoration(
+                        color: RuangBukuColors.error,
+                        shape: BoxShape.circle,
+                      ),
                     ),
                   ),
-                ),
-            ],
+              ],
+            ),
+            title: notif.title,
+            message: notif.body,
+            time: notif.time,
+            elevated: !notif.isRead,
           ),
-          title: notif.title,
-          message: notif.body,
-          time: notif.time,
-          elevated: !notif.isRead,
         ),
       ),
     );

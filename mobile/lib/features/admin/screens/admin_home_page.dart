@@ -8,6 +8,7 @@ import 'admin_profile_page.dart';
 import '../../discovery/widgets/popular_book_card.dart';
 import '../../discovery/widgets/recent_book_card.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../notifications/domain/notification_notifier.dart';
 
 class AdminHomePage extends StatefulWidget {
   const AdminHomePage({super.key});
@@ -44,6 +45,77 @@ class _AdminHomePageState extends State<AdminHomePage> {
     } else {
       return l10n?.goodEvening ?? 'Good evening,';
     }
+  }
+
+  void _showBroadcastDialog(BuildContext context) {
+    final titleCtrl = TextEditingController();
+    final bodyCtrl = TextEditingController();
+    
+    showDialog(
+      context: context,
+      builder: (context) {
+        bool isLoading = false;
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('Kirim Pengumuman'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('Pesan ini akan dikirim ke seluruh pengguna aplikasi.'),
+                    const SizedBox(height: RuangBukuSpacing.md),
+                    TextField(
+                      controller: titleCtrl,
+                      decoration: const InputDecoration(labelText: 'Judul Pengumuman'),
+                    ),
+                    const SizedBox(height: RuangBukuSpacing.md),
+                    TextField(
+                      controller: bodyCtrl,
+                      decoration: const InputDecoration(labelText: 'Isi Pesan'),
+                      maxLines: 3,
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: isLoading ? null : () => Navigator.pop(context),
+                  child: const Text('Batal'),
+                ),
+                FilledButton(
+                  onPressed: isLoading
+                      ? null
+                      : () async {
+                          if (titleCtrl.text.isEmpty || bodyCtrl.text.isEmpty) return;
+                          setState(() => isLoading = true);
+                          try {
+                            await NotificationNotifier.instance.sendBroadcast(
+                              titleCtrl.text,
+                              bodyCtrl.text,
+                            );
+                            if (context.mounted) {
+                              Navigator.pop(context);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Pengumuman berhasil dikirim')),
+                              );
+                            }
+                          } finally {
+                            if (mounted) {
+                              setState(() => isLoading = false);
+                            }
+                          }
+                        },
+                  child: isLoading
+                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                      : const Text('Kirim'),
+                ),
+              ],
+            );
+          }
+        );
+      },
+    );
   }
 
   @override
@@ -115,6 +187,11 @@ class _AdminHomePageState extends State<AdminHomePage> {
                 ),
               ),
             ],
+          ),
+          floatingActionButton: FloatingActionButton(
+            onPressed: () => _showBroadcastDialog(context),
+            tooltip: 'Kirim Pengumuman',
+            child: const Icon(Icons.campaign_outlined),
           ),
           body: RefreshIndicator(
             onRefresh: () async {

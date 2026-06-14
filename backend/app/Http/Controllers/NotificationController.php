@@ -86,4 +86,63 @@ class NotificationController extends Controller
 
         return $this->success('Semua notifikasi ditandai dibaca', ['updated' => $updated]);
     }
+
+    /**
+     * Delete a single notification (owned by the caller).
+     */
+    public function destroy(string $id): JsonResponse
+    {
+        $notification = AppNotification::query()
+            ->forUser(Auth::id())
+            ->findOrFail($id);
+
+        $notification->delete();
+
+        return $this->success('Notifikasi berhasil dihapus');
+    }
+
+    /**
+     * Delete all notifications of the caller.
+     */
+    public function clearAll(): JsonResponse
+    {
+        $deleted = AppNotification::query()
+            ->forUser(Auth::id())
+            ->delete();
+
+        return $this->success('Semua notifikasi berhasil dihapus', ['deleted_count' => $deleted]);
+    }
+
+    /**
+     * Broadcast a system notification to all users (Admin only).
+     */
+    public function broadcast(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'body'  => 'required|string',
+        ]);
+
+        $users = \App\Models\User::pluck('id');
+        $notifications = [];
+
+        foreach ($users as $userId) {
+            $notifications[] = [
+                'id' => \Illuminate\Support\Str::uuid(),
+                'user_id' => $userId,
+                'category' => AppNotification::CATEGORY_SYSTEM,
+                'title' => $validated['title'],
+                'body' => $validated['body'],
+                'data' => json_encode([]),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
+        }
+
+        foreach (array_chunk($notifications, 500) as $chunk) {
+            AppNotification::insert($chunk);
+        }
+
+        return $this->success('Pengumuman berhasil dikirim ke seluruh pengguna');
+    }
 }

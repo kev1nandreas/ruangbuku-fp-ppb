@@ -79,6 +79,34 @@ class NotificationRepository {
       bearerToken: token,
     );
   }
+
+  Future<void> deleteNotification(String id) async {
+    final token = await _storage.getToken();
+    await _api.delete(
+      '${ApiConstants.notifications}/$id',
+      bearerToken: token,
+    );
+  }
+
+  Future<void> clearAll() async {
+    final token = await _storage.getToken();
+    await _api.delete(
+      '${ApiConstants.notifications}/clear-all',
+      bearerToken: token,
+    );
+  }
+
+  Future<void> broadcast(String title, String body) async {
+    final token = await _storage.getToken();
+    await _api.post(
+      '${ApiConstants.notifications}/broadcast',
+      {
+        'title': title,
+        'body': body,
+      },
+      bearerToken: token,
+    );
+  }
 }
 
 /// A page of notifications plus the server's total unread count.

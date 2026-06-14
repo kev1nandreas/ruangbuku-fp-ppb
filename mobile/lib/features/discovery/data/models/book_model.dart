@@ -13,6 +13,7 @@ class BookModel {
   final String imageUrl;
   final String distance;
   String condition;
+  final List<String> genreIds;
 
   BookModel({
     required this.id,
@@ -27,6 +28,7 @@ class BookModel {
     required this.imageUrl,
     required this.distance,
     required this.condition,
+    this.genreIds = const [],
   });
 
   BookModel copyWith({
@@ -46,6 +48,7 @@ class BookModel {
       imageUrl: imageUrl,
       distance: distance,
       condition: condition ?? this.condition,
+      genreIds: genreIds,
     );
   }
 
@@ -84,6 +87,7 @@ class BookModel {
       imageUrl: json['coverImageUrl'] ?? 'https://picsum.photos/200/300',
       distance: '0 km away',
       condition: 'Good',
+      genreIds: (json['genres'] as List?)?.map((g) => g['id'].toString()).toList() ?? [],
     );
   }
 }

@@ -14,6 +14,15 @@ class SecureStorage {
   static const _keyUserName = 'user_name';
   static const _keyUserEmail = 'user_email';
 
+  // Preferences Keys
+  static const _keyThemeMode = 'pref_theme_mode';
+  static const _keyLanguage = 'pref_language';
+  static const _keyNotifBorrow = 'pref_notif_borrow';
+  static const _keyNotifSla = 'pref_notif_sla';
+  static const _keyNotifHandover = 'pref_notif_handover';
+  static const _keyPublicDefault = 'pref_public_default';
+  static const _keyHideWa = 'pref_hide_wa';
+
   Future<void> saveAuthData({
     required String token,
     required String userId,
@@ -34,4 +43,22 @@ class SecureStorage {
   Future<String?> getUserEmail() => _storage.read(key: _keyUserEmail);
 
   Future<void> clearAll() => _storage.deleteAll();
+
+  // Settings getters
+  Future<String?> getThemeMode() => _storage.read(key: _keyThemeMode);
+  Future<String?> getLanguage() => _storage.read(key: _keyLanguage);
+  Future<String?> getNotifBorrow() => _storage.read(key: _keyNotifBorrow);
+  Future<String?> getNotifSla() => _storage.read(key: _keyNotifSla);
+  Future<String?> getNotifHandover() => _storage.read(key: _keyNotifHandover);
+  Future<String?> getPublicDefault() => _storage.read(key: _keyPublicDefault);
+  Future<String?> getHideWa() => _storage.read(key: _keyHideWa);
+
+  // Settings setters
+  Future<void> setThemeMode(String value) => _storage.write(key: _keyThemeMode, value: value);
+  Future<void> setLanguage(String value) => _storage.write(key: _keyLanguage, value: value);
+  Future<void> setNotifBorrow(String value) => _storage.write(key: _keyNotifBorrow, value: value);
+  Future<void> setNotifSla(String value) => _storage.write(key: _keyNotifSla, value: value);
+  Future<void> setNotifHandover(String value) => _storage.write(key: _keyNotifHandover, value: value);
+  Future<void> setPublicDefault(String value) => _storage.write(key: _keyPublicDefault, value: value);
+  Future<void> setHideWa(String value) => _storage.write(key: _keyHideWa, value: value);
 }

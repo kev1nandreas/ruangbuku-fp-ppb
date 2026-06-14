@@ -38,8 +38,9 @@ class AppSearchField extends StatelessWidget {
                 onPressed: onClear,
               )
             : idleSuffixIcon,
+        filled: true,
+        fillColor: Theme.of(context).colorScheme.surfaceContainerHigh,
         hintText: hintText,
-        fillColor: RuangBukuColors.surfaceContainerLow,
         border: OutlineInputBorder(
           borderRadius: RuangBukuRadius.borderRadiusFull,
           borderSide: BorderSide.none,

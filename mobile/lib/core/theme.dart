@@ -850,6 +850,77 @@ class RuangBukuTheme {
       ),
     );
   }
+
+  static ThemeData get darkTheme {
+    final darkColorScheme = ColorScheme.fromSeed(
+      seedColor: RuangBukuColors.primary,
+      brightness: Brightness.dark,
+      surface: const Color(0xFF121212),
+    );
+
+    return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.dark,
+      colorScheme: darkColorScheme,
+      scaffoldBackgroundColor: const Color(0xFF121212),
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Color(0xFF121212),
+        foregroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
+      ),
+      bottomNavigationBarTheme: BottomNavigationBarThemeData(
+        backgroundColor: const Color(0xFF1E1E1E),
+        selectedItemColor: RuangBukuColors.primary,
+        unselectedItemColor: Colors.grey.shade600,
+        type: BottomNavigationBarType.fixed,
+        elevation: 8,
+        showUnselectedLabels: true,
+        showSelectedLabels: true,
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: const Color(0xFF1E1E1E),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: RuangBukuSpacing.lg,
+          vertical: RuangBukuSpacing.lg,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: RuangBukuRadius.borderRadiusLg,
+          borderSide: BorderSide(
+            color: Colors.grey.shade700,
+            width: 1.0,
+          ),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: RuangBukuRadius.borderRadiusLg,
+          borderSide: BorderSide(
+            color: Colors.grey.shade700,
+            width: 1.0,
+          ),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: RuangBukuRadius.borderRadiusLg,
+          borderSide: const BorderSide(
+            color: RuangBukuColors.primary,
+            width: 2.0,
+          ),
+        ),
+      ),
+      cardTheme: const CardThemeData(
+        color: Color(0xFF1E1E1E),
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        margin: EdgeInsets.zero,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(16)),
+        ),
+        clipBehavior: Clip.antiAlias,
+      ),
+      textTheme: Typography.material2021().white,
+      visualDensity: VisualDensity.standard,
+    );
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

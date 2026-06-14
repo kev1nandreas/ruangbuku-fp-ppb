@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'core/theme.dart';
 import 'core/state.dart';
+import 'core/preferences_notifier.dart';
 import 'core/notifications/push_notification_service.dart';
 
 import 'features/auth/domain/auth_notifier.dart';
@@ -26,6 +27,7 @@ void main() async {
     debugPrint('main: push init failed: $e');
   }
 
+  await PreferencesNotifier.instance.loadPreferences();
   await AuthNotifier.instance.checkAuthStatus();
 
   // Already-signed-in users (token restored from storage) re-register their
@@ -53,31 +55,37 @@ class RuangBukuApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'RuangBuku',
-      debugShowCheckedModeBanner: false,
-      theme: RuangBukuTheme.lightTheme.copyWith(
-        extensions: [RuangBukuSemanticColors.standard],
-      ),
-      home: ListenableBuilder(
-        listenable: AuthNotifier.instance,
-        builder: (context, _) {
-          final status = AuthNotifier.instance.status;
+    return ListenableBuilder(
+      listenable: PreferencesNotifier.instance,
+      builder: (context, _) {
+        return MaterialApp(
+          title: 'RuangBuku',
+          debugShowCheckedModeBanner: false,
+          themeMode: PreferencesNotifier.instance.themeMode,
+          theme: RuangBukuTheme.lightTheme.copyWith(
+            extensions: [RuangBukuSemanticColors.standard],
+          ),
+          darkTheme: RuangBukuTheme.darkTheme.copyWith(
+            extensions: [RuangBukuSemanticColors.standard],
+          ),
+          home: ListenableBuilder(
+            listenable: AuthNotifier.instance,
+            builder: (context, _) {
+              final status = AuthNotifier.instance.status;
 
-          // Only the one-time startup auth check shows the splash. A `loading`
-          // status during a login attempt must keep the LoginScreen mounted so
-          // it can show its in-button spinner and surface error messages.
-          if (status == AuthStatus.initial) {
-            return const _SplashScreen();
-          }
+              if (status == AuthStatus.initial) {
+                return const _SplashScreen();
+              }
 
-          if (status == AuthStatus.authenticated) {
-            return const MainScaffold();
-          }
+              if (status == AuthStatus.authenticated) {
+                return const MainScaffold();
+              }
 
-          return const LoginScreen();
-        },
-      ),
+              return const LoginScreen();
+            },
+          ),
+        );
+      },
     );
   }
 }

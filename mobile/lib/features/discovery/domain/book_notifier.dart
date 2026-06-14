@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import '../data/local/book_local_datasource.dart';
 import '../data/models/book_model.dart';
+import '../data/models/genre_model.dart';
 import '../data/repository/book_repository.dart';
 
 class BookNotifier extends ChangeNotifier {
@@ -116,4 +117,10 @@ class BookNotifier extends ChangeNotifier {
 
   Future<Map<String, dynamic>?> checkIsbn(String isbn) =>
       _repository.checkIsbn(isbn);
+
+  Future<List<GenreModel>> fetchGenres() async {
+    final data = await _repository.fetchGenres();
+    if (data == null) return [];
+    return data.map((e) => GenreModel.fromJson(e)).toList();
+  }
 }

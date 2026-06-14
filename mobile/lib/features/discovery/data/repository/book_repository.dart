@@ -109,4 +109,17 @@ class BookRepository {
     }
     return false;
   }
+
+  Future<List<Map<String, dynamic>>?> fetchGenres() async {
+    try {
+      final token = await _storage.getToken();
+      final data = await _api.get('/genres', bearerToken: token);
+      if (data['data'] != null && data['data'] is List) {
+        return List<Map<String, dynamic>>.from(data['data']);
+      }
+    } catch (e) {
+      debugPrint('BookRepository: fetchGenres failed: $e');
+    }
+    return null;
+  }
 }

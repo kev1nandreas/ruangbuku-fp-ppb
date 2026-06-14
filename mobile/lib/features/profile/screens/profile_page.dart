@@ -9,6 +9,7 @@ import '../widgets/logout_dialog.dart';
 import 'payment_page.dart';
 import 'edit_profile_page.dart';
 import 'help_support_page.dart';
+import 'settings_page.dart';
 import '../../borrowing/screens/borrowing_list_page.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -92,7 +93,14 @@ class _ProfilePageState extends State<ProfilePage> {
             actions: [
               IconButton(
                 icon: const Icon(Icons.settings_outlined),
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const SettingsPage(),
+                    ),
+                  );
+                },
               ),
             ],
           ),

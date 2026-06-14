@@ -850,6 +850,38 @@ class RuangBukuTheme {
       ),
     );
   }
+
+  static ThemeData get darkTheme {
+    final darkColorScheme = ColorScheme.fromSeed(
+      seedColor: RuangBukuColors.primary,
+      brightness: Brightness.dark,
+      surface: const Color(0xFF121212),
+    );
+
+    return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.dark,
+      colorScheme: darkColorScheme,
+      scaffoldBackgroundColor: const Color(0xFF121212),
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Color(0xFF121212),
+        foregroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
+      ),
+      bottomNavigationBarTheme: BottomNavigationBarThemeData(
+        backgroundColor: const Color(0xFF1E1E1E),
+        selectedItemColor: RuangBukuColors.primary,
+        unselectedItemColor: Colors.grey.shade600,
+        type: BottomNavigationBarType.fixed,
+        elevation: 8,
+        showUnselectedLabels: true,
+        showSelectedLabels: true,
+      ),
+      textTheme: Typography.material2021().white,
+      visualDensity: VisualDensity.standard,
+    );
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'storage/secure_storage.dart';
 import '../features/discovery/data/models/book_model.dart';
+import '../features/discovery/data/models/genre_model.dart';
 import '../features/discovery/domain/book_notifier.dart';
 import '../features/borrowing/data/models/borrow_model.dart';
 import '../features/borrowing/domain/borrow_notifier.dart';
@@ -47,6 +48,7 @@ class RuangBukuState extends ChangeNotifier {
 
   UserRole _currentRole = UserRole.borrower;
   List<BookModel> _books = [];
+  List<GenreModel> _genres = [];
   List<BorrowModel> _borrowings = [];
   // Borrows on books this user OWNS (incoming side), fetched independently of
   // the role toggle: any user can own a book and must be able to accept/reject
@@ -57,12 +59,14 @@ class RuangBukuState extends ChangeNotifier {
 
   RuangBukuState._() {
     _seedMockNotifications();
+    fetchGenres();
     fetchBooks();
     fetchBorrowings();
   }
 
   UserRole get currentRole => _currentRole;
   List<BookModel> get books => _books;
+  List<GenreModel> get genres => _genres;
   List<BorrowModel> get borrowings => _borrowings;
   List<BorrowModel> get ownerBorrowings => _ownerBorrowings;
 
@@ -129,6 +133,15 @@ class RuangBukuState extends ChangeNotifier {
     } finally {
       _isLoading = false;
       notifyListeners();
+    }
+  }
+
+  Future<void> fetchGenres() async {
+    try {
+      _genres = await _bookNotifier.fetchGenres();
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error fetching genres: $e');
     }
   }
 

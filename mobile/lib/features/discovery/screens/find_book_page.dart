@@ -21,6 +21,7 @@ class _FindBookPageState extends State<FindBookPage> {
   bool _filterAvailableOnly = false;
   bool _filterWithin5km = false;
   String _sortOption = 'distance';
+  List<String> _selectedGenres = [];
 
   @override
   void dispose() {
@@ -42,45 +43,67 @@ class _FindBookPageState extends State<FindBookPage> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(24.0)),
       ),
       builder: (context) {
-        return Padding(
-          padding: const EdgeInsets.all(RuangBukuSpacing.xl),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  margin: const EdgeInsets.only(bottom: RuangBukuSpacing.xl),
-                  decoration: BoxDecoration(
-                    color: RuangBukuColors.outlineVariant,
-                    borderRadius: BorderRadius.circular(2.0),
-                  ),
-                ),
-              ),
-              Text('Advanced Filter', style: Theme.of(context).textTheme.titleLarge),
-              const SizedBox(height: RuangBukuSpacing.lg),
-              Text('Genre (Segera Hadir)', style: Theme.of(context).textTheme.titleMedium),
-              const SizedBox(height: RuangBukuSpacing.md),
-              Wrap(
-                spacing: RuangBukuSpacing.sm,
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            final genres = RuangBukuState.instance.genres;
+            return Padding(
+              padding: const EdgeInsets.all(RuangBukuSpacing.xl),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  ChoiceChip(label: const Text('Fiksi'), selected: false, onSelected: (_) {}),
-                  ChoiceChip(label: const Text('Non-Fiksi'), selected: false, onSelected: (_) {}),
-                  ChoiceChip(label: const Text('Sains'), selected: false, onSelected: (_) {}),
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      margin: const EdgeInsets.only(bottom: RuangBukuSpacing.xl),
+                      decoration: BoxDecoration(
+                        color: RuangBukuColors.outlineVariant,
+                        borderRadius: BorderRadius.circular(2.0),
+                      ),
+                    ),
+                  ),
+                  Text('Advanced Filter', style: Theme.of(context).textTheme.titleLarge),
+                  const SizedBox(height: RuangBukuSpacing.lg),
+                  Text('Genre', style: Theme.of(context).textTheme.titleMedium),
+                  const SizedBox(height: RuangBukuSpacing.md),
+                  if (genres.isEmpty)
+                    const Text('Tidak ada genre tersedia.')
+                  else
+                    Wrap(
+                      spacing: RuangBukuSpacing.sm,
+                      children: genres.map((g) {
+                        final isSelected = _selectedGenres.contains(g.id);
+                        return ChoiceChip(
+                          label: Text(g.name),
+                          selected: isSelected,
+                          onSelected: (selected) {
+                            setModalState(() {
+                              if (selected) {
+                                _selectedGenres.add(g.id);
+                              } else {
+                                _selectedGenres.remove(g.id);
+                              }
+                            });
+                          },
+                        );
+                      }).toList(),
+                    ),
+                  const SizedBox(height: RuangBukuSpacing.xxl),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton(
+                      onPressed: () {
+                        setState(() {}); // trigger rebuild on FindBookPage
+                        Navigator.pop(context);
+                      },
+                      child: const Text('Terapkan Filter'),
+                    ),
+                  ),
                 ],
               ),
-              const SizedBox(height: RuangBukuSpacing.xxl),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Terapkan Filter'),
-                ),
-              ),
-            ],
-          ),
+            );
+          }
         );
       },
     );
@@ -119,6 +142,13 @@ class _FindBookPageState extends State<FindBookPage> {
               if (distNum > 5.0) return false;
             } catch (_) {
               // Ignore parse errors
+            }
+          }
+
+          if (_selectedGenres.isNotEmpty) {
+            // Check if the book has at least one of the selected genres
+            if (!b.genreIds.any((id) => _selectedGenres.contains(id))) {
+              return false;
             }
           }
 
@@ -206,10 +236,11 @@ class _FindBookPageState extends State<FindBookPage> {
                           AppFilterChip(
                             label: 'All Categories',
                             isSelected:
-                                !_filterAvailableOnly && !_filterWithin5km,
+                                !_filterAvailableOnly && !_filterWithin5km && _selectedGenres.isEmpty,
                             onTap: () => setState(() {
                               _filterAvailableOnly = false;
                               _filterWithin5km = false;
+                              _selectedGenres.clear();
                             }),
                           ),
                           const SizedBox(width: RuangBukuSpacing.sm),

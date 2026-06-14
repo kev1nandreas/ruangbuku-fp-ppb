@@ -104,7 +104,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 children: [
                   CircleAvatar(
                     radius: 56,
-                    backgroundColor: RuangBukuColors.surfaceContainerLow,
+                    backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh,
                     backgroundImage:
                         _isUploadingAvatar ? null : NetworkImage(shownAvatar),
                     child: _isUploadingAvatar

@@ -209,8 +209,8 @@ class _BorrowerBookDetailPageState extends State<BorrowerBookDetailPage> {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
-                          color: RuangBukuColors.surfaceContainerLow,
-                          borderRadius: RuangBukuRadius.borderRadiusSm,
+                          color: Theme.of(context).colorScheme.surfaceContainerHigh,
+                          borderRadius: RuangBukuRadius.borderRadiusMd,
                         ),
                         child: Text(
                           'Copy: ${book.condition}',

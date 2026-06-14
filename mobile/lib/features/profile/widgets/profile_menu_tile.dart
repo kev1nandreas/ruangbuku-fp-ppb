@@ -20,7 +20,7 @@ class ProfileMenuTile extends StatelessWidget {
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: RuangBukuColors.surfaceContainerLow,
+          color: Theme.of(context).colorScheme.surfaceContainerHigh,
           borderRadius: RuangBukuRadius.borderRadiusSm,
         ),
         child: Icon(icon, color: RuangBukuColors.textPrimary, size: 20),

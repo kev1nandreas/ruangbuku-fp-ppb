@@ -30,7 +30,7 @@ class AppFilterChip extends StatelessWidget {
       decoration: BoxDecoration(
         color: isSelected
             ? RuangBukuColors.primary
-            : RuangBukuColors.surfaceContainerLow,
+            : Theme.of(context).colorScheme.surfaceContainerHigh,
         borderRadius: RuangBukuRadius.borderRadiusFull,
         border: Border.all(
           color: isSelected

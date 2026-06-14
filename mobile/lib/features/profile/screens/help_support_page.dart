@@ -42,7 +42,8 @@ class HelpSupportPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Help & Support')),
@@ -54,7 +55,7 @@ class HelpSupportPage extends StatelessWidget {
           ..._faqs.map((faq) => Card(
                 margin: const EdgeInsets.only(bottom: RuangBukuSpacing.sm),
                 elevation: 0,
-                color: RuangBukuColors.surfaceContainerLow,
+                color: theme.colorScheme.surfaceContainerHigh,
                 shape: RoundedRectangleBorder(
                   borderRadius: RuangBukuRadius.borderRadiusMd,
                 ),

@@ -180,7 +180,7 @@ class _AddBookPageState extends State<AddBookPage> {
                 Container(
                   height: 56, // Match text field height
                   decoration: BoxDecoration(
-                    color: RuangBukuColors.surfaceContainerLow,
+                    color: theme.colorScheme.surfaceContainerHigh,
                     borderRadius: RuangBukuRadius.borderRadiusLg,
                   ),
                   child: IconButton(
@@ -290,7 +290,7 @@ class _CoverPicker extends StatelessWidget {
         height: 180,
         width: double.infinity,
         decoration: BoxDecoration(
-          color: RuangBukuColors.surfaceContainerLow,
+          color: Theme.of(context).colorScheme.surfaceContainerHigh,
           borderRadius: RuangBukuRadius.borderRadiusLg,
           border: Border.all(color: RuangBukuColors.outlineVariant),
           image: (imageUrl != null && !isUploading)

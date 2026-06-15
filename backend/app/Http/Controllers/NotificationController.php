@@ -140,6 +140,9 @@ class NotificationController extends Controller
         }
 
         foreach (array_chunk($notifications, 500) as $chunk) {
+            AppNotification::insert($chunk);
+        }
+
         // Send FCM push notifications one by one to avoid one failure breaking the rest
         foreach ($users as $user) {
             try {

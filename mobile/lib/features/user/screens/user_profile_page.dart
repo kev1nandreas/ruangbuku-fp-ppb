@@ -33,6 +33,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
   Future<void> _confirmLogout() async {
     final shouldLogout = await showLogoutDialog(context);
     if (shouldLogout == true) {
+      if (mounted) {
+        Navigator.of(context, rootNavigator: true).popUntil((route) => route.isFirst);
+      }
       await AuthNotifier.instance.logout();
     }
   }

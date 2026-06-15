@@ -82,6 +82,12 @@ class PeminjamanController extends Controller
             'updated_at' => now(),
         ]);
 
+        $this->notifier->notifyOwner(
+            $peminjaman,
+            'Pengajuan Pinjaman Baru',
+            'Ada pengguna yang ingin meminjam bukumu. Silakan cek dan setujui pengajuannya.',
+        );
+
         return $this->created('Pengajuan peminjaman berhasil dibuat', $peminjaman->load('buku:id,title,author'));
     }
 

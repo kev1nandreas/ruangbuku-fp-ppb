@@ -123,13 +123,13 @@ class NotificationController extends Controller
             'body'  => 'required|string',
         ]);
 
-        $users = \App\Models\User::pluck('id');
+        $users = \App\Models\User::all();
         $notifications = [];
 
-        foreach ($users as $userId) {
+        foreach ($users as $user) {
             $notifications[] = [
                 'id' => \Illuminate\Support\Str::uuid(),
-                'user_id' => $userId,
+                'user_id' => $user->id,
                 'category' => AppNotification::CATEGORY_SYSTEM,
                 'title' => $validated['title'],
                 'body' => $validated['body'],
@@ -140,7 +140,13 @@ class NotificationController extends Controller
         }
 
         foreach (array_chunk($notifications, 500) as $chunk) {
-            AppNotification::insert($chunk);
+        // Send FCM push notifications one by one to avoid one failure breaking the rest
+        foreach ($users as $user) {
+            try {
+                \Illuminate\Support\Facades\Notification::send($user, new \App\Notifications\AnnouncementBroadcast($validated['title'], $validated['body']));
+            } catch (\Throwable $e) {
+                // Ignore delivery errors for individual users
+            }
         }
 
         return $this->success('Pengumuman berhasil dikirim ke seluruh pengguna');

@@ -173,6 +173,29 @@ class BukuController extends Controller
     {
         $buku->update(['statusVerifikasi' => 'approved']);
 
+        $owners = $buku->users()->get();
+        foreach ($owners as $owner) {
+            \App\Models\AppNotification::create([
+                'id' => \Illuminate\Support\Str::uuid(),
+                'user_id' => $owner->id,
+                'category' => \App\Models\AppNotification::CATEGORY_SYSTEM,
+                'title' => 'Buku Disetujui',
+                'body' => "Buku \"{$buku->title}\" telah disetujui oleh admin dan sekarang dapat dicari oleh publik.",
+                'data' => json_encode([]),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            try {
+                \Illuminate\Support\Facades\Notification::send($owner, new \App\Notifications\AnnouncementBroadcast(
+                    'Buku Disetujui',
+                    "Buku \"{$buku->title}\" telah disetujui oleh admin dan sekarang dapat dicari oleh publik."
+                ));
+            } catch (\Throwable $e) {
+                // Ignore failure
+            }
+        }
+
         return $this->success('Buku berhasil diverifikasi', $buku->load('genres:id,name'));
     }
 }

@@ -162,10 +162,10 @@ class OwnerBookCard extends StatelessWidget {
                               );
                             }
                           : () async {
+                              final controller = TextEditingController();
                               final confirm = await showDialog<bool>(
                                 context: context,
                                 builder: (context) {
-                                  final controller = TextEditingController();
                             return AlertDialog(
                               title: Text(l10n?.deleteConfirmTitle ?? 'Do you want to delete your book?'),
                               content: Column(
@@ -205,6 +205,7 @@ class OwnerBookCard extends StatelessWidget {
                             );
                           },
                         );
+                        controller.dispose();
 
                         if (confirm == true && context.mounted) {
                           state.deleteBook(bookId);

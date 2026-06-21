@@ -8,13 +8,14 @@ import '../../../core/state.dart';
 Future<void> showDisputeResolutionDialog(
   BuildContext context,
   BorrowModel borrowing,
-) {
+) async {
   final noteController =
       TextEditingController(text: 'Biaya perbaikan halaman robek');
   final state = RuangBukuState.instance;
   bool depositToOwner = true;
 
-  return showDialog(
+  try {
+    await showDialog(
     context: context,
     builder: (context) {
       return StatefulBuilder(
@@ -103,8 +104,11 @@ Future<void> showDisputeResolutionDialog(
               ),
             ],
           );
-        },
-      );
-    },
-  );
+          },
+        );
+      },
+    );
+  } finally {
+    noteController.dispose();
+  }
 }

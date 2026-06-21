@@ -7,12 +7,13 @@ import '../../../core/state.dart';
 Future<void> showReturnInspectionDialog(
   BuildContext context,
   BorrowModel borrowing,
-) {
+) async {
   final damageController = TextEditingController();
   final state = RuangBukuState.instance;
   bool showDamageInput = false;
 
-  return showDialog(
+  try {
+    await showDialog(
     context: context,
     builder: (context) {
       return StatefulBuilder(
@@ -124,8 +125,11 @@ Future<void> showReturnInspectionDialog(
               ),
             ],
           );
-        },
-      );
-    },
-  );
+          },
+        );
+      },
+    );
+  } finally {
+    damageController.dispose();
+  }
 }

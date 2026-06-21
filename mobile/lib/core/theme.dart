@@ -76,8 +76,31 @@ class RuangBukuColors {
   /// Error container
   static const Color errorContainer = Color(0xFFFFDAD6);
 
-  /// Success / Available status — Soft Sage
+  /// Success / Available status — Soft Sage (light fill / icon)
   static const Color success = Color(0xFF6FCF97);
+
+  // ── Status palette (harmonized with Matcha + Terracotta) ──────────────────
+  // Raw Material colors (Colors.orange/green/red) clash with the warm palette
+  // and fail contrast as small chip text. These muted variants sit inside the
+  // brand world and each ships a darker `...Text` for legible chip labels.
+
+  /// Pending / waiting — warm amber, desaturated toward terracotta
+  static const Color statusPending = Color(0xFFC77D38);
+  static const Color statusPendingText = Color(0xFF8A4F18);
+
+  /// Active / available / done — deep sage that reads against the matcha
+  static const Color statusActive = Color(0xFF4E8D6E);
+  static const Color statusActiveText = Color(0xFF2F6049);
+
+  /// Danger / rejected — reuses the brand error red for the label text
+  static const Color statusDanger = Color(0xFFC4443C);
+  static const Color statusDangerText = error;
+
+  /// Rating star — warm gold tuned to the clay accent (replaces Colors.amber)
+  static const Color rating = Color(0xFFD9A441);
+
+  /// Scrim — translucent dark overlay for image captions (replaces black54)
+  static const Color scrim = Color(0x99212529);
 
   /// On Loan / Neutral status chip
   static const Color neutralChip = Color(0xFF9E9E9E);

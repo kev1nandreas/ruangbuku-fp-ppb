@@ -53,8 +53,8 @@ class BorrowBookInfoCard extends StatelessWidget {
               errorBuilder: (context, error, stackTrace) => Container(
                 width: 80,
                 height: 120,
-                color: Colors.grey[300],
-                child: const Icon(Icons.book, size: 40, color: Colors.grey),
+                color: RuangBukuColors.surfaceContainerHigh,
+                child: const Icon(Icons.book, size: 40, color: RuangBukuColors.outline),
               ),
             ),
           ),

@@ -190,7 +190,7 @@ class _BorrowerBookDetailPageState extends State<BorrowerBookDetailPage> {
                   // Ratings & Details
                   Row(
                     children: [
-                      const Icon(Icons.star, color: Colors.amber, size: 20),
+                      const Icon(Icons.star, color: RuangBukuColors.rating, size: 20),
                       const SizedBox(width: RuangBukuSpacing.xs),
                       Text(
                         '4.5',

@@ -14,18 +14,17 @@ class BorrowStatusChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final color = status.color;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
+        color: status.chipBackground,
         borderRadius: BorderRadius.circular(6),
       ),
       child: Text(
         status.label(l10n),
         style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              color: color,
+              color: status.labelColor(context),
               fontWeight: FontWeight.bold,
             ),
       ),

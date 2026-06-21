@@ -60,7 +60,6 @@ class _OwnerBookDetailPageState extends State<OwnerBookDetailPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
-    final semanticColors = theme.extension<RuangBukuSemanticColors>()!;
     final l10n = AppLocalizations.of(context);
 
     if (_isLoading) {
@@ -85,16 +84,16 @@ class _OwnerBookDetailPageState extends State<OwnerBookDetailPage> {
     final book = _book!;
 
     String statusText = l10n?.available ?? 'Available';
-    Color badgeColor = semanticColors.success;
+    Color badgeColor = RuangBukuColors.statusActiveText;
     if (book.statusVerifikasi == BookStatus.publicPending) {
       statusText = l10n?.pendingApproval ?? 'Pending Approval';
-      badgeColor = Colors.orange;
+      badgeColor = RuangBukuColors.statusPendingText;
     } else if (book.statusVerifikasi == BookStatus.publicRejected) {
       statusText = l10n?.rejected ?? 'Rejected';
-      badgeColor = Colors.red;
+      badgeColor = RuangBukuColors.statusDangerText;
     } else if (book.statusVerifikasi == BookStatus.private) {
       statusText = l10n?.privateBook ?? 'Private Collection';
-      badgeColor = Colors.grey;
+      badgeColor = RuangBukuColors.neutralChip;
     }
 
     // Check if there is an active borrowing for this book
@@ -109,7 +108,7 @@ class _OwnerBookDetailPageState extends State<OwnerBookDetailPage> {
         badgeColor = RuangBukuColors.primary;
       } else if (activeBorrowing.status == BorrowStatus.requested) {
         statusText = l10n?.requestedStatus ?? 'Requested';
-        badgeColor = Colors.orange;
+        badgeColor = RuangBukuColors.statusPendingText;
       } else {
         statusText = 'Dalam Transaksi';
         badgeColor = RuangBukuColors.primary;
@@ -138,7 +137,7 @@ class _OwnerBookDetailPageState extends State<OwnerBookDetailPage> {
           IconButton(
             icon: Icon(
               Icons.edit,
-              color: locked ? Colors.grey.withValues(alpha: 0.5) : null,
+              color: locked ? theme.colorScheme.onSurface.withValues(alpha: 0.38) : null,
             ),
             onPressed: locked
                 ? () => showLockedMessage(l10n?.bookCurrentlyOnLoan ??
@@ -244,11 +243,11 @@ class _OwnerBookDetailPageState extends State<OwnerBookDetailPage> {
             OutlinedButton.icon(
               style: OutlinedButton.styleFrom(
                 foregroundColor: locked
-                    ? Colors.grey.withValues(alpha: 0.5)
+                    ? theme.colorScheme.onSurface.withValues(alpha: 0.38)
                     : RuangBukuColors.error,
                 side: BorderSide(
                   color: locked
-                      ? Colors.grey.withValues(alpha: 0.5)
+                      ? theme.colorScheme.onSurface.withValues(alpha: 0.38)
                       : RuangBukuColors.error,
                   width: 1.5,
                 ),

@@ -140,14 +140,14 @@ class _TimelineStep extends StatelessWidget {
     final Color dotColor = isError
         ? theme.colorScheme.error
         : switch (state) {
-            _StepState.completed => Colors.green,
+            _StepState.completed => RuangBukuColors.statusActive,
             _StepState.current => RuangBukuColors.primary,
             _StepState.pending => RuangBukuColors.outlineVariant,
           };
 
     final Color lineColor = state == _StepState.pending
         ? RuangBukuColors.outlineVariant
-        : Colors.green;
+        : RuangBukuColors.statusActive;
 
     return IntrinsicHeight(
       child: Row(

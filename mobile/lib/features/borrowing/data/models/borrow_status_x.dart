@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theme.dart';
 import '../../../../l10n/app_localizations.dart';
 import 'borrow_model.dart';
 
@@ -30,21 +31,50 @@ extension BorrowStatusX on BorrowStatus {
     }
   }
 
-  /// Accent color used for status chips/badges.
+  /// Accent color (fill / icon) for status chips and badges. Tuned to sit
+  /// inside the Matcha + Terracotta palette instead of raw Material colors.
   Color get color {
     switch (this) {
       case BorrowStatus.requested:
       case BorrowStatus.waitingDeposit:
       case BorrowStatus.depositUploaded:
-        return Colors.orange;
+        return RuangBukuColors.statusPending;
       case BorrowStatus.depositVerified:
       case BorrowStatus.bookReceived:
       case BorrowStatus.returnedGood:
       case BorrowStatus.completed:
-        return Colors.green;
+        return RuangBukuColors.statusActive;
       case BorrowStatus.returnedDamaged:
       case BorrowStatus.cancelled:
-        return Colors.red;
+        return RuangBukuColors.statusDanger;
     }
   }
+
+  /// Darker variant of [color] for chip/badge *text*, so small labels stay
+  /// legible on the translucent fill (the fill color itself is too light).
+  Color get textColor {
+    switch (this) {
+      case BorrowStatus.requested:
+      case BorrowStatus.waitingDeposit:
+      case BorrowStatus.depositUploaded:
+        return RuangBukuColors.statusPendingText;
+      case BorrowStatus.depositVerified:
+      case BorrowStatus.bookReceived:
+      case BorrowStatus.returnedGood:
+      case BorrowStatus.completed:
+        return RuangBukuColors.statusActiveText;
+      case BorrowStatus.returnedDamaged:
+      case BorrowStatus.cancelled:
+        return RuangBukuColors.statusDangerText;
+    }
+  }
+
+  /// Soft tinted background for chips/badges.
+  Color get chipBackground => color.withValues(alpha: 0.14);
+
+  /// Brightness-aware label color for chips/badges. On light surfaces the dark
+  /// [textColor] gives strong contrast; on dark surfaces that same dark tone
+  /// would disappear, so the lighter [color] is used against the tinted fill.
+  Color labelColor(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark ? color : textColor;
 }

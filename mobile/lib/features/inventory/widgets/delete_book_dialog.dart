@@ -41,7 +41,7 @@ Future<bool?> showDeleteBookDialog(BuildContext context, String bookTitle) {
               return FilledButton(
                 style: FilledButton.styleFrom(
                   backgroundColor:
-                      isMatch ? RuangBukuColors.error : Colors.grey,
+                      isMatch ? RuangBukuColors.error : RuangBukuColors.outlineVariant,
                 ),
                 onPressed:
                     isMatch ? () => Navigator.pop(context, true) : null,

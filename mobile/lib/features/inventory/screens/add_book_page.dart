@@ -389,7 +389,7 @@ class _CoverPicker extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 10, vertical: 6),
                       decoration: BoxDecoration(
-                        color: Colors.black54,
+                        color: RuangBukuColors.scrim,
                         borderRadius: RuangBukuRadius.borderRadiusSm,
                       ),
                       child: Text(

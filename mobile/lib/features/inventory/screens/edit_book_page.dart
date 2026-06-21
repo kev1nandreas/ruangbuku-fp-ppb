@@ -117,7 +117,7 @@ class _EditBookPageState extends State<EditBookPage> {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text('Hubungkan dengan internet untuk mengubah detail buku.'),
-                        backgroundColor: Colors.red,
+                        backgroundColor: RuangBukuColors.error,
                       ),
                     );
                   }

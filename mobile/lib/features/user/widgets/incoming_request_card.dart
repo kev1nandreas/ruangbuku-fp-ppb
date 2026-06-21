@@ -70,8 +70,8 @@ class _IncomingRequestCardState extends State<IncomingRequestCard> {
                   errorBuilder: (_, _, _) => Container(
                     width: 50,
                     height: 75,
-                    color: Colors.grey[300],
-                    child: const Icon(Icons.book, color: Colors.grey),
+                    color: RuangBukuColors.surfaceContainerHigh,
+                    child: const Icon(Icons.book, color: RuangBukuColors.outline),
                   ),
                 ),
               ),

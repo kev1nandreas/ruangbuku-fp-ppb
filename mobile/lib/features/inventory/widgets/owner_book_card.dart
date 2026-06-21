@@ -40,18 +40,18 @@ class OwnerBookCard extends StatelessWidget {
 
     switch (status) {
       case 'available':
-        textColor = semanticColors.success;
-        badgeBg = semanticColors.success.withValues(alpha: 0.2);
+        textColor = RuangBukuColors.statusActiveText;
+        badgeBg = RuangBukuColors.statusActive.withValues(alpha: 0.14);
         labelText = l10n?.available ?? 'Available';
         break;
       case 'pending':
-        textColor = Colors.orange;
-        badgeBg = Colors.orange.withValues(alpha: 0.2);
+        textColor = RuangBukuColors.statusPendingText;
+        badgeBg = RuangBukuColors.statusPending.withValues(alpha: 0.14);
         labelText = l10n?.pendingApproval ?? 'Pending Approval';
         break;
       case 'rejected':
-        textColor = Colors.red;
-        badgeBg = Colors.red.withValues(alpha: 0.2);
+        textColor = RuangBukuColors.statusDangerText;
+        badgeBg = RuangBukuColors.statusDanger.withValues(alpha: 0.14);
         labelText = l10n?.rejected ?? 'Rejected';
         break;
       case 'private':
@@ -122,8 +122,8 @@ class OwnerBookCard extends StatelessWidget {
                   children: [
                     OutlinedButton.icon(
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: status == 'on_loan' ? Colors.grey.withValues(alpha: 0.5) : theme.colorScheme.primary,
-                        side: BorderSide(color: status == 'on_loan' ? Colors.grey.withValues(alpha: 0.5) : theme.colorScheme.primary),
+                        foregroundColor: status == 'on_loan' ? theme.colorScheme.onSurface.withValues(alpha: 0.38) : theme.colorScheme.primary,
+                        side: BorderSide(color: status == 'on_loan' ? theme.colorScheme.onSurface.withValues(alpha: 0.38) : theme.colorScheme.primary),
                         minimumSize: const Size(0, 36),
                         padding: const EdgeInsets.symmetric(
                             horizontal: RuangBukuSpacing.md),
@@ -148,9 +148,9 @@ class OwnerBookCard extends StatelessWidget {
                     const SizedBox(width: RuangBukuSpacing.sm),
                     OutlinedButton.icon(
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: status == 'on_loan' ? Colors.grey.withValues(alpha: 0.5) : RuangBukuColors.error,
+                        foregroundColor: status == 'on_loan' ? theme.colorScheme.onSurface.withValues(alpha: 0.38) : RuangBukuColors.error,
                         side: BorderSide(
-                            color: status == 'on_loan' ? Colors.grey.withValues(alpha: 0.5) : RuangBukuColors.error, width: 1.5),
+                            color: status == 'on_loan' ? theme.colorScheme.onSurface.withValues(alpha: 0.38) : RuangBukuColors.error, width: 1.5),
                         minimumSize: const Size(0, 36),
                         padding: const EdgeInsets.symmetric(
                             horizontal: RuangBukuSpacing.md),
@@ -194,7 +194,7 @@ class OwnerBookCard extends StatelessWidget {
                                     final isMatch = value.text == title;
                                     return FilledButton(
                                       style: FilledButton.styleFrom(
-                                        backgroundColor: isMatch ? RuangBukuColors.error : Colors.grey,
+                                        backgroundColor: isMatch ? RuangBukuColors.error : RuangBukuColors.outlineVariant,
                                       ),
                                       onPressed: isMatch ? () => Navigator.pop(context, true) : null,
                                       child: Text(l10n?.delete ?? 'Delete'),

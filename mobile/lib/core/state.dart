@@ -461,4 +461,22 @@ class RuangBukuState extends ChangeNotifier {
 
   /// Returns the persisted current user id, or null when not logged in.
   Future<String?> currentUserId() => _storage.getUserId();
+
+  /// Wipes all per-user session state so a different account signing in next
+  /// starts clean (no stale role, books, borrowings, genres, or notifications
+  /// leaking from the previous user). Called on logout. Resets the role to the
+  /// default and the init guard so [initializeData] re-runs for the next login.
+  void reset() {
+    _currentRole = UserRole.borrower;
+    _books = [];
+    _genres = [];
+    _borrowings = [];
+    _ownerBorrowings = [];
+    _notifications.clear();
+    _seedMockNotifications();
+    _isLoading = false;
+    _hasInitialized = false;
+    _bookNotifier.reset();
+    notifyListeners();
+  }
 }

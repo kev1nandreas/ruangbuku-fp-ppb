@@ -26,7 +26,7 @@ class _AddBookPageState extends State<AddBookPage> {
   
   String _condition = 'Good';
   bool _isAvailableForLending = true;
-  List<String> _selectedGenreIds = [];
+  final List<String> _selectedGenreIds = [];
   String? _coverImageUrl;
   bool _isUploadingCover = false;
 
@@ -54,9 +54,8 @@ class _AddBookPageState extends State<AddBookPage> {
     try {
       final details = await BookNotifier.instance.checkIsbn(isbn);
 
-      final l10n = AppLocalizations.of(context);
-
       if (mounted) {
+        final l10n = AppLocalizations.of(context);
         setState(() {
           _isLoading = false;
           if (details != null) {

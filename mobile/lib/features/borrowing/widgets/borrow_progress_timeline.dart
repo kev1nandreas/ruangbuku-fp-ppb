@@ -202,7 +202,7 @@ class _TimelineStep extends StatelessWidget {
                           ? FontWeight.w400
                           : FontWeight.w600,
                       color: state == _StepState.pending
-                          ? theme.colorScheme.onSurface.withOpacity(0.5)
+                          ? theme.colorScheme.onSurface.withValues(alpha: 0.5)
                           : (isError
                               ? theme.colorScheme.error
                               : theme.colorScheme.onSurface),
@@ -213,7 +213,7 @@ class _TimelineStep extends StatelessWidget {
                     Text(
                       BorrowProgressTimeline._fmt(timestamp!),
                       style: textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurface.withOpacity(0.6),
+                        color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                       ),
                     ),
                   ],

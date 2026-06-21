@@ -7,6 +7,7 @@ import '../data/models/app_notification_model.dart';
 import '../domain/notification_notifier.dart';
 import '../widgets/notification_card.dart';
 import '../../../l10n/app_localizations.dart';
+
 class NotificationPage extends StatefulWidget {
   const NotificationPage({super.key});
 
@@ -46,7 +47,7 @@ class _NotificationPageState extends State<NotificationPage> {
               if (_notifier.unreadCount > 0)
                 TextButton(
                   onPressed: _notifier.markAllRead,
-                  child: const Text('Tandai dibaca'), // Wait, I'll localize it as l10n?.markAsRead ?? 'Tandai dibaca' later
+                  child: const Text('Tandai dibaca'),
                 ),
               if (items.isNotEmpty)
                 IconButton(

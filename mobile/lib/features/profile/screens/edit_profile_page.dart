@@ -138,34 +138,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Center(
-              child: Stack(
-                children: [
-                  CircleAvatar(
-                    radius: 56,
-                    backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh,
-                    backgroundImage:
-                        _isUploadingAvatar ? null : NetworkImage(shownAvatar),
-                    child: _isUploadingAvatar
-                        ? const CircularProgressIndicator()
-                        : null,
-                  ),
-                  Positioned(
-                    right: 0,
-                    bottom: 0,
-                    child: GestureDetector(
-                      onTap: _isUploadingAvatar ? null : _pickAvatar,
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: const BoxDecoration(
-                          color: RuangBukuColors.primary,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(Icons.camera_alt,
-                            size: 18, color: RuangBukuColors.onPrimary),
-                      ),
-                    ),
-                  ),
-                ],
+              child: _AvatarEditor(
+                imageUrl: shownAvatar,
+                isUploading: _isUploadingAvatar,
+                onTap: _isUploadingAvatar ? null : _pickAvatar,
               ),
             ),
             const SizedBox(height: RuangBukuSpacing.xxl),
@@ -213,7 +189,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
             Text('Status', style: textTheme.titleMedium),
             const SizedBox(height: RuangBukuSpacing.sm),
             DropdownButtonFormField<String>(
-              value: _selectedStatus,
+              initialValue: _selectedStatus,
               decoration: const InputDecoration(),
               items: _statusOptions.map((status) {
                 return DropdownMenuItem(value: status, child: Text(status));
@@ -240,6 +216,50 @@ class _EditProfilePageState extends State<EditProfilePage> {
               : const Text('Simpan Perubahan'),
         ),
       ),
+    );
+  }
+}
+
+/// Circular avatar with a camera badge that triggers the image picker. Shows a
+/// spinner while a new photo uploads.
+class _AvatarEditor extends StatelessWidget {
+  const _AvatarEditor({
+    required this.imageUrl,
+    required this.isUploading,
+    required this.onTap,
+  });
+
+  final String imageUrl;
+  final bool isUploading;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        CircleAvatar(
+          radius: 56,
+          backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh,
+          backgroundImage: isUploading ? null : NetworkImage(imageUrl),
+          child: isUploading ? const CircularProgressIndicator() : null,
+        ),
+        Positioned(
+          right: 0,
+          bottom: 0,
+          child: GestureDetector(
+            onTap: onTap,
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: const BoxDecoration(
+                color: RuangBukuColors.primary,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.camera_alt,
+                  size: 18, color: RuangBukuColors.onPrimary),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

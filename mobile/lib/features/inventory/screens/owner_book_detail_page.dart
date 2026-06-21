@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../core/theme.dart';
 import '../../../core/state.dart';
 import '../../discovery/domain/book_notifier.dart';
+import '../widgets/delete_book_dialog.dart';
 import 'edit_book_page.dart';
 import '../../../l10n/app_localizations.dart';
 
@@ -115,6 +116,14 @@ class _OwnerBookDetailPageState extends State<OwnerBookDetailPage> {
       }
     }
 
+    // Editing and deleting are blocked while the book is tied up in a borrow.
+    final locked = activeBorrowing != null || book.hasActiveBorrowing;
+
+    void showLockedMessage(String message) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(message)));
+    }
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -128,26 +137,20 @@ class _OwnerBookDetailPageState extends State<OwnerBookDetailPage> {
         actions: [
           IconButton(
             icon: Icon(
-              Icons.edit, 
-              color: (activeBorrowing != null || book.hasActiveBorrowing) 
-                  ? Colors.grey.withValues(alpha: 0.5) 
-                  : null
+              Icons.edit,
+              color: locked ? Colors.grey.withValues(alpha: 0.5) : null,
             ),
-            onPressed: (activeBorrowing != null || book.hasActiveBorrowing) 
-                ? () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(l10n?.bookCurrentlyOnLoan ?? 'Buku sedang dipinjam, tidak dapat diedit')),
-                    );
-                  }
-                : () {
-                    Navigator.push(
+            onPressed: locked
+                ? () => showLockedMessage(l10n?.bookCurrentlyOnLoan ??
+                    'Buku sedang dipinjam, tidak dapat diedit')
+                : () => Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => EditBookPage(bookId: widget.bookId),
+                        builder: (context) =>
+                            EditBookPage(bookId: widget.bookId),
                       ),
-                    );
-                  },
-            tooltip: (activeBorrowing != null || book.hasActiveBorrowing) ? 'Buku sedang dipinjam' : 'Edit Buku',
+                    ),
+            tooltip: locked ? 'Buku sedang dipinjam' : 'Edit Buku',
           ),
         ],
       ),
@@ -240,75 +243,30 @@ class _OwnerBookDetailPageState extends State<OwnerBookDetailPage> {
             // Danger Zone
             OutlinedButton.icon(
               style: OutlinedButton.styleFrom(
-                foregroundColor: (activeBorrowing != null || book.hasActiveBorrowing) 
-                    ? Colors.grey.withValues(alpha: 0.5) 
+                foregroundColor: locked
+                    ? Colors.grey.withValues(alpha: 0.5)
                     : RuangBukuColors.error,
                 side: BorderSide(
-                  color: (activeBorrowing != null || book.hasActiveBorrowing) 
-                      ? Colors.grey.withValues(alpha: 0.5) 
-                      : RuangBukuColors.error, 
-                  width: 1.5
+                  color: locked
+                      ? Colors.grey.withValues(alpha: 0.5)
+                      : RuangBukuColors.error,
+                  width: 1.5,
                 ),
               ),
-              onPressed: (activeBorrowing != null || book.hasActiveBorrowing)
-                ? () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(l10n?.bookCurrentlyOnLoan ?? 'Buku sedang dipinjam, tidak dapat dihapus')),
-                    );
-                  }
-                : () async {
-                    final confirm = await showDialog<bool>(
-                      context: context,
-                      builder: (context) {
-                        final controller = TextEditingController();
-                    return AlertDialog(
-                      title: Text(l10n?.deleteConfirmTitle ?? 'Do you want to delete your book?'),
-                      content: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(l10n?.deleteConfirmMsg(book.title) ?? 'Please enter "${book.title}" to confirm.'),
-                          const SizedBox(height: 16),
-                          TextField(
-                            controller: controller,
-                            decoration: InputDecoration(
-                              hintText: book.title,
-                              border: const OutlineInputBorder(),
-                            ),
-                          ),
-                        ],
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context, false),
-                          child: Text(l10n?.cancel ?? 'Cancel'),
-                        ),
-                        ValueListenableBuilder<TextEditingValue>(
-                          valueListenable: controller,
-                          builder: (context, value, child) {
-                            final isMatch = value.text == book.title;
-                            return FilledButton(
-                              style: FilledButton.styleFrom(
-                                backgroundColor: isMatch ? RuangBukuColors.error : Colors.grey,
-                              ),
-                              onPressed: isMatch ? () => Navigator.pop(context, true) : null,
-                              child: Text(l10n?.delete ?? 'Delete'),
-                            );
-                          },
-                        ),
-                      ],
-                    );
-                  },
-                );
-
-                if (confirm == true && context.mounted) {
-                  RuangBukuState.instance.deleteBook(book.id);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(l10n?.bookRemoved ?? 'Book removed from library'))
-                  );
-                  Navigator.pop(context); // Go back after deleting
-                }
-              },
+              onPressed: locked
+                  ? () => showLockedMessage(l10n?.bookCurrentlyOnLoan ??
+                      'Buku sedang dipinjam, tidak dapat dihapus')
+                  : () async {
+                      final confirm =
+                          await showDeleteBookDialog(context, book.title);
+                      if (confirm == true && context.mounted) {
+                        RuangBukuState.instance.deleteBook(book.id);
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            content: Text(l10n?.bookRemoved ??
+                                'Book removed from library')));
+                        Navigator.pop(context);
+                      }
+                    },
               icon: const Icon(Icons.delete_outline),
               label: Text(l10n?.removeBook ?? 'Remove Book from Library'),
             ),

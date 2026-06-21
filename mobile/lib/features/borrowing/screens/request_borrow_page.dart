@@ -48,8 +48,8 @@ class _RequestBorrowPageState extends State<RequestBorrowPage> {
         });
       }
     } catch (e) {
-      final l10n = AppLocalizations.of(context);
       if (mounted) {
+        final l10n = AppLocalizations.of(context);
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n?.errorLoadingBookName(e.toString()) ?? 'Error loading book: $e')));
       }
     } finally {
@@ -224,39 +224,18 @@ class _RequestBorrowPageState extends State<RequestBorrowPage> {
             Text(l10n?.borrowingDetailsTitle ?? 'Borrow Details', style: textTheme.headlineSmall),
             const SizedBox(height: RuangBukuSpacing.md),
             
-            // Pickup Date Input
-            InkWell(
+            _DateField(
+              label: l10n?.borrowingDate ?? 'Borrowing Date',
+              valueText: _formatDate(_pickupDate, l10n),
+              isPlaceholder: _pickupDate == null,
               onTap: () => _selectDate(context, true),
-              child: InputDecorator(
-                decoration: InputDecoration(
-                  labelText: l10n?.borrowingDate ?? 'Borrowing Date',
-                  suffixIcon: const Icon(Icons.calendar_today_outlined),
-                ),
-                child: Text(
-                  _formatDate(_pickupDate, l10n),
-                  style: TextStyle(
-                    color: _pickupDate == null ? theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6) : theme.colorScheme.onSurface,
-                  ),
-                ),
-              ),
             ),
             const SizedBox(height: RuangBukuSpacing.lg),
-            
-            // Return Date Input
-            InkWell(
+            _DateField(
+              label: l10n?.returnDate ?? 'Return Date',
+              valueText: _formatDate(_returnDate, l10n),
+              isPlaceholder: _returnDate == null,
               onTap: () => _selectDate(context, false),
-              child: InputDecorator(
-                decoration: InputDecoration(
-                  labelText: l10n?.returnDate ?? 'Return Date',
-                  suffixIcon: const Icon(Icons.calendar_today_outlined),
-                ),
-                child: Text(
-                  _formatDate(_returnDate, l10n),
-                  style: TextStyle(
-                    color: _returnDate == null ? theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6) : theme.colorScheme.onSurface,
-                  ),
-                ),
-              ),
             ),
             const SizedBox(height: RuangBukuSpacing.lg),
 
@@ -275,12 +254,50 @@ class _RequestBorrowPageState extends State<RequestBorrowPage> {
         ),
       ),
       bottomSheet: BottomActionBar(
-        child: _isSubmitting 
-            ? const Center(child: CircularProgressIndicator()) 
+        child: _isSubmitting
+            ? const Center(child: CircularProgressIndicator())
             : FilledButton(
                 onPressed: () => _submitRequest(book),
                 child: Text(l10n?.sendRequest ?? 'Send Request'),
               ),
+      ),
+    );
+  }
+}
+
+/// Read-only, tappable field that opens a date picker and shows the chosen date
+/// (greyed out while still a placeholder).
+class _DateField extends StatelessWidget {
+  const _DateField({
+    required this.label,
+    required this.valueText,
+    required this.isPlaceholder,
+    required this.onTap,
+  });
+
+  final String label;
+  final String valueText;
+  final bool isPlaceholder;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return InkWell(
+      onTap: onTap,
+      child: InputDecorator(
+        decoration: InputDecoration(
+          labelText: label,
+          suffixIcon: const Icon(Icons.calendar_today_outlined),
+        ),
+        child: Text(
+          valueText,
+          style: TextStyle(
+            color: isPlaceholder
+                ? scheme.onSurfaceVariant.withValues(alpha: 0.6)
+                : scheme.onSurface,
+          ),
+        ),
       ),
     );
   }

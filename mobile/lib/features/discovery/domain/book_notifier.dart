@@ -125,4 +125,12 @@ class BookNotifier extends ChangeNotifier {
     if (data == null) return [];
     return data.map((e) => GenreModel.fromJson(e)).toList();
   }
+
+  /// Clears the cached book list so a different user signing in next doesn't
+  /// see the previous user's books. Called from logout.
+  void reset() {
+    _books.clear();
+    isLoading = false;
+    notifyListeners();
+  }
 }

@@ -120,4 +120,14 @@ class NotificationNotifier extends ChangeNotifier {
     _unreadCount = await _repository.unreadCount();
     notifyListeners();
   }
+
+  /// Clears the cached feed so a different user signing in next doesn't see the
+  /// previous user's notifications. Called from logout.
+  void reset() {
+    _items = [];
+    _unreadCount = 0;
+    _categoryFilter = null;
+    _loading = false;
+    notifyListeners();
+  }
 }

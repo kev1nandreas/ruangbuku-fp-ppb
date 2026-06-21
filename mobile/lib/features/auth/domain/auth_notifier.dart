@@ -7,6 +7,7 @@ import '../data/models/register_request.dart';
 import '../data/models/user_model.dart';
 import '../data/repository/auth_repository.dart';
 import '../../../db/local_bookDB.dart';
+import '../../notifications/domain/notification_notifier.dart';
 
 enum AuthStatus { initial, loading, authenticated, unauthenticated, error }
 
@@ -195,6 +196,13 @@ class AuthNotifier extends ChangeNotifier {
     await _repository.logout();
     _user = null;
     _status = AuthStatus.unauthenticated;
+
+    // Wipe per-user session state held in the other singletons so the next
+    // account to sign in starts clean (no stale role, books, borrowings, or
+    // notifications leaking from the previous user).
+    RuangBukuState.instance.reset();
+    NotificationNotifier.instance.reset();
+
     notifyListeners();
   }
 }

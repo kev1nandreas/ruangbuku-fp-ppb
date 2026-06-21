@@ -84,6 +84,7 @@ class BookRepository {
       debugPrint('BookRepository: checkIsbn failed: $e');
       rethrow;
     }
+    return null;
   }
 
   Future<Map<String, dynamic>?> createBook(Map<String, dynamic> payload) async {

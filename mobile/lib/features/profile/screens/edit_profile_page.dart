@@ -156,9 +156,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
             const SizedBox(height: RuangBukuSpacing.lg),
             Text('Email', style: textTheme.titleMedium),
             const SizedBox(height: RuangBukuSpacing.sm),
-            TextField(
+            TextFormField(
               enabled: false,
-              controller: TextEditingController(text: user?.email ?? ''),
+              initialValue: user?.email ?? '',
               decoration: const InputDecoration(),
             ),
             const SizedBox(height: RuangBukuSpacing.lg),
@@ -178,7 +178,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   firstDate: DateTime(1900),
                   lastDate: DateTime.now(),
                 );
-                if (date != null) {
+                if (date != null && mounted) {
                   setState(() {
                     _dobController.text = "${date.day}/${date.month}/${date.year}";
                   });

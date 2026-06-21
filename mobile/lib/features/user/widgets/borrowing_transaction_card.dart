@@ -47,6 +47,7 @@ class BorrowingTransactionCard extends StatelessWidget {
                 width: 50,
                 height: 75,
                 fit: BoxFit.cover,
+                cacheWidth: 160,
                 errorBuilder: (context, error, stackTrace) => Container(
                   width: 50,
                   height: 75,

@@ -57,7 +57,17 @@ class RuangBukuState extends ChangeNotifier {
   // requests on it regardless of which role view is active.
   List<BorrowModel> _ownerBorrowings = [];
   final List<NotificationModel> _notifications = [];
-  bool _isLoading = false;
+  // Per-operation loading flags. Kept separate so a fast-finishing fetch can't
+  // clear the spinner while a sibling fetch is still in flight. `isLoading`
+  // exposes the combined state for screens that show one global indicator.
+  bool _isLoadingBooksOp = false;
+  bool _isLoadingBorrowings = false;
+
+  // Re-entrancy guards: if a fetch is already running, return its Future
+  // instead of starting a second interleaved pass (which would race the
+  // local-DB mirror writes / flip the loading flags out of order).
+  Future<void>? _booksInFlight;
+  Future<void>? _borrowingsInFlight;
   
   Locale _currentLocale = const Locale('id');
 
@@ -117,7 +127,8 @@ class RuangBukuState extends ChangeNotifier {
 
     return [..._notifications, ...dynamicNotifs];
   }
-  bool get isLoading => _isLoading;
+  /// True while either the books or borrowings fetch is in flight.
+  bool get isLoading => _isLoadingBooksOp || _isLoadingBorrowings;
   bool get isLoadingBooks => _bookNotifier.isLoading;
 
   void changeRole(UserRole newRole) {
@@ -144,17 +155,26 @@ class RuangBukuState extends ChangeNotifier {
     ]);
   }
 
-  Future<void> fetchBooks() async {
-    _isLoading = true;
+  /// Fetches the book catalog. Re-entrant calls (e.g. a role toggle during a
+  /// pull-to-refresh) share the in-flight Future instead of racing the local
+  /// mirror writes.
+  Future<void> fetchBooks() {
+    return _booksInFlight ??= _doFetchBooks().whenComplete(() {
+      _booksInFlight = null;
+    });
+  }
+
+  Future<void> _doFetchBooks() async {
+    _isLoadingBooksOp = true;
     notifyListeners();
     try {
       _books = await _bookNotifier.fetchBooks(isAdmin: _currentRole == UserRole.admin);
-      
+
       final cUserId = await currentUserId();
       if (cUserId != null && _currentRole != UserRole.admin) {
         final localDb = LocalBookDB.instance;
         await localDb.deleteMyBooksByBackendOwner(cUserId);
-        
+
         // Find local user ID to map the foreign key, as requested
         final localUser = await localDb.getUserByEmail(AuthNotifier.instance.user?.email ?? '');
         final localOwnerId = localUser?['local_id'];
@@ -179,7 +199,7 @@ class RuangBukuState extends ChangeNotifier {
         }
       }
     } finally {
-      _isLoading = false;
+      _isLoadingBooksOp = false;
       notifyListeners();
     }
   }
@@ -193,8 +213,14 @@ class RuangBukuState extends ChangeNotifier {
     }
   }
 
-  Future<void> fetchBorrowings() async {
-    _isLoading = true;
+  Future<void> fetchBorrowings() {
+    return _borrowingsInFlight ??= _doFetchBorrowings().whenComplete(() {
+      _borrowingsInFlight = null;
+    });
+  }
+
+  Future<void> _doFetchBorrowings() async {
+    _isLoadingBorrowings = true;
     notifyListeners();
     try {
       // Borrows where this user is the borrower (or, for admins, all borrows).
@@ -213,7 +239,7 @@ class RuangBukuState extends ChangeNotifier {
     } catch (e) {
       debugPrint('Error fetching borrowings: $e');
     } finally {
-      _isLoading = false;
+      _isLoadingBorrowings = false;
       notifyListeners();
     }
   }
@@ -474,7 +500,10 @@ class RuangBukuState extends ChangeNotifier {
     _ownerBorrowings = [];
     _notifications.clear();
     _seedMockNotifications();
-    _isLoading = false;
+    _isLoadingBooksOp = false;
+    _isLoadingBorrowings = false;
+    _booksInFlight = null;
+    _borrowingsInFlight = null;
     _hasInitialized = false;
     _bookNotifier.reset();
     notifyListeners();

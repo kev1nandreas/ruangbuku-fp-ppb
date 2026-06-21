@@ -50,6 +50,7 @@ class BorrowBookInfoCard extends StatelessWidget {
               width: 80,
               height: 120,
               fit: BoxFit.cover,
+              cacheWidth: 240,
               errorBuilder: (context, error, stackTrace) => Container(
                 width: 80,
                 height: 120,

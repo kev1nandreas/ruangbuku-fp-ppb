@@ -71,7 +71,7 @@ class BookModel {
     if (json['users'] != null && json['users'] is List && json['users'].isNotEmpty) {
       final user = json['users'][0];
       ownerId = user['id']?.toString() ?? '';
-      ownerName = user['name'] ?? 'Unknown';
+      ownerName = user['name']?.toString() ?? 'Unknown';
       if (user['pivot'] != null) {
         final val = user['pivot']['is_public'] ?? user['pivot']['isPublic'];
         isPublic = val == 1 || val == true || val == '1' || val == 'true';
@@ -86,9 +86,9 @@ class BookModel {
     return BookModel(
       id: json['id']?.toString() ?? '',
       isbn: json['isbn'] ?? '',
-      title: json['title'] ?? 'Unknown',
-      author: json['author'] ?? 'Unknown',
-      description: json['description'] ?? '',
+      title: json['title']?.toString() ?? 'Unknown',
+      author: json['author']?.toString() ?? 'Unknown',
+      description: json['description']?.toString() ?? '',
       isPublic: isPublic,
       statusVerifikasi: parseStatus(json['status_verifikasi'] ?? json['statusVerifikasi'] ?? ''),
       ownerId: ownerId,
@@ -96,7 +96,12 @@ class BookModel {
       imageUrl: json['cover_image_url'] ?? json['coverImageUrl'] ?? 'https://picsum.photos/200/300',
       distance: '0 km away',
       condition: 'Good',
-      genreIds: (json['genres'] as List?)?.map((g) => g['id'].toString()).toList() ?? [],
+      genreIds: (json['genres'] as List?)
+              ?.whereType<Map>()
+              .map((g) => g['id']?.toString() ?? '')
+              .where((id) => id.isNotEmpty)
+              .toList() ??
+          [],
       hasActiveBorrowing: (json['peminjaman'] as List?)?.isNotEmpty ?? false,
     );
   }

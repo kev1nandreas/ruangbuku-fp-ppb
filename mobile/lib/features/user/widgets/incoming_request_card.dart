@@ -67,6 +67,7 @@ class _IncomingRequestCardState extends State<IncomingRequestCard> {
                   width: 50,
                   height: 75,
                   fit: BoxFit.cover,
+                  cacheWidth: 160,
                   errorBuilder: (_, _, _) => Container(
                     width: 50,
                     height: 75,

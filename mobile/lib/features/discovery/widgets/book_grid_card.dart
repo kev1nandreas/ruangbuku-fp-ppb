@@ -79,6 +79,7 @@ class BookGridCard extends StatelessWidget {
                         : Image.network(
                             imageUrl,
                             fit: BoxFit.cover,
+                            cacheWidth: 360,
                             errorBuilder: (context, error, stack) =>
                                 _coverFallback(context),
                             loadingBuilder: (context, child, progress) {

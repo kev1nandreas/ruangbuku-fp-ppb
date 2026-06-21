@@ -1,0 +1,98 @@
+name: CI/CD - RuangBuku Mobile Build Staging
+
+on:
+    push:
+        branches: ["staging"]
+        paths:
+            - "mobile/**"
+            - ".github/workflows/build-mobile.yml"
+    workflow_dispatch:
+
+env:
+    MINIO_BUCKET: stg-ruangbuku-apk
+    MINIO_ENDPOINT: https://storage-ruangbuku.kevin-andreas.com
+    FLUTTER_VERSION: "3.41.4"
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        timeout-minutes: 60
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Build release APK with Docker (Flutter)
+              run: |
+                  docker run --rm \
+                    -v "${{ github.workspace }}/mobile:/app" \
+                    -w /app \
+                    "ghcr.io/cirruslabs/flutter:${FLUTTER_VERSION}" \
+                    sh -c "flutter pub get && flutter build apk --release"
+
+            - name: Compute release name
+              id: release
+              run: |
+                  DEPLOY_NAME="ruangbuku-stg-$(date -u +'%Y%m%d').apk"
+                  echo "DEPLOY_NAME=${DEPLOY_NAME}" >> "$GITHUB_ENV"
+                  echo "deploy_name=${DEPLOY_NAME}" >> "$GITHUB_OUTPUT"
+
+            - name: Stage APK for upload
+              run: |
+                  mkdir -p dist
+                  cp mobile/build/app/outputs/flutter-apk/app-release.apk "dist/${DEPLOY_NAME}"
+                  ls -lh dist
+
+            - name: Upload APK artifact (GitHub)
+              uses: actions/upload-artifact@v4
+              with:
+                  name: ${{ steps.release.outputs.deploy_name }}
+                  path: dist/${{ steps.release.outputs.deploy_name }}
+                  if-no-files-found: error
+
+            - name: Push APK to MinIO
+              env:
+                  MINIO_ACCESS_KEY: ${{ secrets.MINIO_ACCESS_KEY }}
+                  MINIO_SECRET_KEY: ${{ secrets.MINIO_SECRET_KEY }}
+                  KEEP_RELEASES: "3"
+              run: |
+                  echo "Uploading as ${DEPLOY_NAME}"
+
+                  docker run --rm \
+                    --entrypoint /bin/sh \
+                    -v "${{ github.workspace }}/dist:/upload:ro" \
+                    -e MINIO_ENDPOINT \
+                    -e MINIO_ACCESS_KEY \
+                    -e MINIO_SECRET_KEY \
+                    -e MINIO_BUCKET \
+                    -e DEPLOY_NAME \
+                    -e KEEP_RELEASES \
+                    minio/mc:latest \
+                    -c '
+                      set -e
+                      mc alias set local "$MINIO_ENDPOINT" "$MINIO_ACCESS_KEY" "$MINIO_SECRET_KEY"
+                      mc mb --ignore-existing "local/$MINIO_BUCKET"
+                      mc anonymous set download "local/$MINIO_BUCKET"
+
+                      mc cp "/upload/$DEPLOY_NAME" "local/$MINIO_BUCKET/$DEPLOY_NAME"
+                      echo "Uploaded $DEPLOY_NAME"
+
+                      mc ls "local/$MINIO_BUCKET/" \
+                        | awk "{print \$NF}" \
+                        | grep "^ruangbuku-stg-.*\.apk$" \
+                        | sort -r \
+                        | tail -n "+$((KEEP_RELEASES + 1))" \
+                        | while read -r old; do
+                            echo "Removing old build: $old"
+                            mc rm "local/$MINIO_BUCKET/$old"
+                          done
+                    '
+
+                  echo "Download: ${MINIO_ENDPOINT}/${MINIO_BUCKET}/${DEPLOY_NAME}"
+
+            - name: Clean up local residuals
+              if: always()
+              run: |
+                  rm -rf dist
+                  docker image rm minio/mc:latest "ghcr.io/cirruslabs/flutter:${FLUTTER_VERSION}" 2>/dev/null || true
+                  docker image prune -f || true

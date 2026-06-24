@@ -38,8 +38,6 @@ class BorrowNotifier {
   Future<void> reportDamage(String id, String description, List<String> photoUrls) =>
       _repository.reportDamage(id, description, photoUrls);
 
-  // --- admin actions ---------------------------------------------------
-
   Future<void> confirmDeposit(String id) => _repository.confirmDeposit(id);
 
   Future<void> rejectDeposit(String id) => _repository.rejectDeposit(id);

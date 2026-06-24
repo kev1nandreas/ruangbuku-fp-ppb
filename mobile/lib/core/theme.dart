@@ -2,22 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'theme_dark.dart';
 
-// =============================================================================
 // RuangBuku — Theme Blueprint (Single Source of Truth)
-// =============================================================================
 // This file defines the complete visual identity for the RuangBuku app.
 // ALL screens MUST consume these tokens exclusively via Theme.of(context).
 // Direct hard-coding of colors, sizes, or paddings in screen files is FORBIDDEN.
-// =============================================================================
 
-// ─────────────────────────────────────────────────────────────────────────────
 // 1. COLOR PALETTE — Modern Aesthetic Library
-// ─────────────────────────────────────────────────────────────────────────────
 
 class RuangBukuColors {
   RuangBukuColors._();
 
-  // ── Core Palette ──────────────────────────────────────────────────────────
+  // Core Palette
   /// Background / Surface — Off-White / Soft Linen
   static const Color surface = Color(0xFFF8F9FA);
 
@@ -33,7 +28,7 @@ class RuangBukuColors {
   /// Typography — Alternate deeper navy variant
   static const Color textDeep = Color(0xFF1A2530);
 
-  // ── Derived / Supporting Colors ───────────────────────────────────────────
+  // Derived / Supporting Colors
   /// On-primary text (white on Matcha Green)
   static const Color onPrimary = Color(0xFFFFFFFF);
 
@@ -79,7 +74,7 @@ class RuangBukuColors {
   /// Success / Available status — Soft Sage (light fill / icon)
   static const Color success = Color(0xFF6FCF97);
 
-  // ── Status palette (harmonized with Matcha + Terracotta) ──────────────────
+  // Status palette (harmonized with Matcha + Terracotta)
   // Raw Material colors (Colors.orange/green/red) clash with the warm palette
   // and fail contrast as small chip text. These muted variants sit inside the
   // brand world and each ships a darker `...Text` for legible chip labels.
@@ -115,9 +110,7 @@ class RuangBukuColors {
   static const Color divider = Color(0xFFE0E0E0);
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // 2. SPACING TOKENS — 4px Baseline Grid
-// ─────────────────────────────────────────────────────────────────────────────
 
 class RuangBukuSpacing {
   RuangBukuSpacing._();
@@ -153,9 +146,7 @@ class RuangBukuSpacing {
   static const double huge = 48.0;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // 3. SHAPE / RADIUS TOKENS
-// ─────────────────────────────────────────────────────────────────────────────
 
 class RuangBukuRadius {
   RuangBukuRadius._();
@@ -187,9 +178,7 @@ class RuangBukuRadius {
   static final BorderRadius borderRadiusFull = BorderRadius.circular(full);
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // 4. ELEVATION / SHADOW TOKENS
-// ─────────────────────────────────────────────────────────────────────────────
 
 class RuangBukuElevation {
   RuangBukuElevation._();
@@ -225,9 +214,7 @@ class RuangBukuElevation {
   ];
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // 5. TYPOGRAPHY — Literata (Headings) + Inter (Body/UI)
-// ─────────────────────────────────────────────────────────────────────────────
 
 class RuangBukuTypography {
   RuangBukuTypography._();
@@ -340,14 +327,12 @@ class RuangBukuTypography {
       );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // 6. THEME DATA — Complete Material 3 ThemeData
-// ─────────────────────────────────────────────────────────────────────────────
 
 class RuangBukuTheme {
   RuangBukuTheme._();
 
-  // ── Color Scheme ──────────────────────────────────────────────────────────
+  // Color Scheme
   static const ColorScheme _colorScheme = ColorScheme(
     brightness: Brightness.light,
     // Core
@@ -387,7 +372,7 @@ class RuangBukuTheme {
     shadow: RuangBukuColors.shadowTint,
   );
 
-  // ── Text Theme ────────────────────────────────────────────────────────────
+  // Text Theme
   static final TextTheme _textTheme = TextTheme(
     displayLarge: RuangBukuTypography.displayLarge,
     displayMedium: RuangBukuTypography.displayLargeMobile,
@@ -406,8 +391,7 @@ class RuangBukuTheme {
     labelSmall: RuangBukuTypography.labelSmall,
   );
 
-  // ── Component Themes ─────────────────────────────────────────────────────
-
+  // Component Themes
   /// AppBar — transparent/surface background, Literata title
   static final AppBarTheme _appBarTheme = AppBarTheme(
     backgroundColor: RuangBukuColors.surface,
@@ -824,8 +808,7 @@ class RuangBukuTheme {
     ),
   );
 
-  // ── Build the Complete ThemeData ──────────────────────────────────────────
-
+  // Build the Complete ThemeData
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,
@@ -878,9 +861,7 @@ class RuangBukuTheme {
   static ThemeData get darkTheme => RuangBukuDarkTheme.theme;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // 7. EXTENSION — Convenient access to custom semantic colors
-// ─────────────────────────────────────────────────────────────────────────────
 
 /// Extension on [ThemeData] for quick access to RuangBuku semantic tokens
 /// that don't map cleanly to Material's ColorScheme.

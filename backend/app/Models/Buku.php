@@ -19,6 +19,7 @@ class Buku extends Model
         'description',
         'coverImageUrl',
         'statusVerifikasi',
+        'tahun',
     ];
 
     public function genres()

@@ -2,18 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'theme.dart';
 
-// =============================================================================
 // RuangBuku — Dark Theme Blueprint (Separated from theme.dart)
-// =============================================================================
 
-// ─────────────────────────────────────────────────────────────────────────────
 // 1. DARK COLOR PALETTE (Charcoal Gray - Option B)
-// ─────────────────────────────────────────────────────────────────────────────
 
 class RuangBukuDarkColors {
   RuangBukuDarkColors._();
 
-  // ── Core Palette ──────────────────────────────────────────────────────────
+  // Core Palette
   /// Background / Surface — Very dark grey (Material Default)
   static const Color surface = Color(0xFF121212);
 
@@ -29,7 +25,7 @@ class RuangBukuDarkColors {
   /// Typography — Pure White for ultimate contrast
   static const Color textDeep = Color(0xFFFFFFFF);
 
-  // ── Derived / Supporting Colors ───────────────────────────────────────────
+  // Derived / Supporting Colors
   /// On-primary text
   static const Color onPrimary = Color(0xFF121212);
 
@@ -85,9 +81,7 @@ class RuangBukuDarkColors {
   static const Color divider = Color(0xFF2C2C2C);
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // 2. DARK TYPOGRAPHY — Poppins (Headings) + Roboto (Body)
-// ─────────────────────────────────────────────────────────────────────────────
 
 class RuangBukuDarkTypography {
   RuangBukuDarkTypography._();
@@ -200,9 +194,7 @@ class RuangBukuDarkTypography {
       );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // 3. DARK THEME DATA — Complete Material 3 ThemeData
-// ─────────────────────────────────────────────────────────────────────────────
 
 class RuangBukuDarkTheme {
   RuangBukuDarkTheme._();
@@ -647,8 +639,7 @@ class RuangBukuDarkTheme {
     ),
   );
 
-  // ── Build the Complete ThemeData ──────────────────────────────────────────
-
+  // Build the Complete ThemeData
   static ThemeData get theme {
     return ThemeData(
       useMaterial3: true,

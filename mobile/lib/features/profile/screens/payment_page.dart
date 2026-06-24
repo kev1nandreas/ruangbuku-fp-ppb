@@ -63,7 +63,6 @@ class PaymentPage extends StatelessWidget {
             ),
             const SizedBox(height: RuangBukuSpacing.md),
 
-            // Add Bank
             ListTile(
               tileColor: theme.colorScheme.surfaceContainerHigh,
               shape: RoundedRectangleBorder(
@@ -76,7 +75,6 @@ class PaymentPage extends StatelessWidget {
             ),
             const SizedBox(height: RuangBukuSpacing.md),
 
-            // Add E-Wallet
             ListTile(
               tileColor: theme.colorScheme.surfaceContainerHigh,
               shape: RoundedRectangleBorder(

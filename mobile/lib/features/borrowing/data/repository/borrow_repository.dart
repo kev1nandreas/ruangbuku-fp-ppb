@@ -103,8 +103,6 @@ class BorrowRepository {
     );
   }
 
-  // --- admin actions ---------------------------------------------------
-
   /// Admin confirms the borrower's submitted deposit proof.
   Future<void> confirmDeposit(String id) async {
     final token = await _storage.getToken();

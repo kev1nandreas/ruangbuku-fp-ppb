@@ -36,10 +36,12 @@ class AuthNotifier extends ChangeNotifier {
       // Wait for fetchProfile to ensure we have the absolute latest role from backend
       // before transitioning away from the splash screen.
       await fetchProfile();
-      
-      _status = AuthStatus.authenticated;
+
+      // Set the role into state BEFORE flipping to authenticated so the first
+      // post-splash rebuild routes to the correct scaffold.
       _syncRoleToState(_user?.primaryRoleName); // Fallback to cache if fetch failed
       await _syncUserToLocalDB();
+      _status = AuthStatus.authenticated;
       RuangBukuState.instance.initializeData();
     } else {
       _status = AuthStatus.unauthenticated;
@@ -76,9 +78,11 @@ class AuthNotifier extends ChangeNotifier {
         LoginRequest(email: email, password: password),
       );
       _user = response.user;
-      _status = AuthStatus.authenticated;
+      // Sync the role into state BEFORE flipping to authenticated, so the first
+      // rebuild already routes to the correct scaffold (no borrower-default flash).
       _syncRoleToState(response.user.primaryRoleName);
       await _syncUserToLocalDB();
+      _status = AuthStatus.authenticated;
       RuangBukuState.instance.initializeData();
       notifyListeners();
 
@@ -120,9 +124,11 @@ class AuthNotifier extends ChangeNotifier {
         ),
       );
       _user = response.user;
-      _status = AuthStatus.authenticated;
+      // Sync the role into state BEFORE flipping to authenticated, so the first
+      // rebuild already routes to the correct scaffold (no borrower-default flash).
       _syncRoleToState(response.user.primaryRoleName);
       await _syncUserToLocalDB();
+      _status = AuthStatus.authenticated;
       RuangBukuState.instance.initializeData();
       notifyListeners();
 

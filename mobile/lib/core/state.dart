@@ -105,7 +105,6 @@ class RuangBukuState extends ChangeNotifier {
   List<NotificationModel> get notifications {
     final dynamicNotifs = <NotificationModel>[];
 
-    // Add pending incoming borrowings as notifications
     if (_currentRole == UserRole.lender) {
       for (final b in _borrowings) {
         if (b.status == BorrowStatus.requested) {
@@ -282,7 +281,6 @@ class RuangBukuState extends ChangeNotifier {
     }
   }
 
-  // Admin verifies book
   Future<void> verifyBook(String bookId, bool isApproved) async {
     if (!isApproved) {
       // The backend does not have a reject route currently, 
@@ -439,7 +437,6 @@ class RuangBukuState extends ChangeNotifier {
     }
   }
 
-  // Delete book from owner catalog
   Future<void> deleteBook(String bookId) async {
     if (!bookId.startsWith('book_')) {
       await _bookNotifier.deleteBook(bookId);
@@ -448,7 +445,6 @@ class RuangBukuState extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Update book conditions
   Future<void> updateBookCondition(String bookId, String condition, bool isPublic) async {
     if (!bookId.startsWith('book_')) {
       try {

@@ -96,7 +96,6 @@ class _OwnerBookDetailPageState extends State<OwnerBookDetailPage> {
       badgeColor = RuangBukuColors.neutralChip;
     }
 
-    // Check if there is an active borrowing for this book
     final activeBorrowing = RuangBukuState.instance.ownerBorrowings.where((b) =>
         b.bookId == book.id &&
         b.status != BorrowStatus.completed &&

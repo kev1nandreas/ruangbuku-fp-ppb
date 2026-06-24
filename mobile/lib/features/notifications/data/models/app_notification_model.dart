@@ -84,8 +84,6 @@ class AppNotificationModel {
         createdAt: createdAt,
       );
 
-  // --- presentation helpers (consumed by NotificationCard.fromModel) ---
-
   IconData get icon => switch (category) {
         NotificationCategory.peminjaman => Icons.menu_book_outlined,
         NotificationCategory.test => Icons.science_outlined,

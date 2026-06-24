@@ -15,7 +15,6 @@ class SecureStorage {
   static const _keyUserEmail = 'user_email';
   static const _keyUserRole = 'user_role';
 
-  // Preferences Keys
   static const _keyThemeMode = 'pref_theme_mode';
   static const _keyLanguage = 'pref_language';
   static const _keyNotifBorrow = 'pref_notif_borrow';
@@ -48,7 +47,6 @@ class SecureStorage {
 
   Future<void> clearAll() => _storage.deleteAll();
 
-  // Settings getters
   Future<String?> getThemeMode() => _storage.read(key: _keyThemeMode);
   Future<String?> getLanguage() => _storage.read(key: _keyLanguage);
   Future<String?> getNotifBorrow() => _storage.read(key: _keyNotifBorrow);
@@ -57,7 +55,6 @@ class SecureStorage {
   Future<String?> getPublicDefault() => _storage.read(key: _keyPublicDefault);
   Future<String?> getHideWa() => _storage.read(key: _keyHideWa);
 
-  // Settings setters
   Future<void> setThemeMode(String value) => _storage.write(key: _keyThemeMode, value: value);
   Future<void> setLanguage(String value) => _storage.write(key: _keyLanguage, value: value);
   Future<void> setNotifBorrow(String value) => _storage.write(key: _keyNotifBorrow, value: value);

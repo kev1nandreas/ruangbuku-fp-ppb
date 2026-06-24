@@ -22,6 +22,7 @@ class StoreBukuRequest extends FormRequest
             'coverImageUrl'   => ['nullable', 'string', 'max:255'],
             'genre_ids'       => ['nullable', 'array'],
             'genre_ids.*'     => ['string', 'exists:genres,id'],
+            'tahun_buku'      => ['nullable', 'string', 'max:255'],
         ];
     }
 }

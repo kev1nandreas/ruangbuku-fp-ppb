@@ -78,6 +78,7 @@ class PeminjamanController extends Controller
             'start_date' => $validated['start_date'],
             'end_date'   => $validated['end_date'],
             'status'     => Peminjaman::STATUS_PENDING,
+            'kondisi_buku' => $validated['kondisi_buku'] ?? null,
             'created_at' => now(),
             'updated_at' => now(),
         ]);

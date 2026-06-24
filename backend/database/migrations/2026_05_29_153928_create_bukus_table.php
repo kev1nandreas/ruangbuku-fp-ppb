@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('description', 2000)->nullable();
             $table->string('statusVerifikasi', 20)->default('private');
             $table->string('coverImageUrl', 255)->nullable();
+            $table->string('tahun', 255)->nullable();
             $table->timestamps();
         });
     }

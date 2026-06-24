@@ -20,6 +20,7 @@ return new class extends Migration
             $table->timestamp('handed_over_at')->nullable();
             $table->timestamp('returned_at')->nullable();
             $table->string('buktiDeposit', 255)->nullable();
+            $table->string('kondisi_buku', 255)->nullable();
 
             // Deposit settlement — recorded by admin when the borrow is closed.
             // `deposit_returned_to`: who received the deposit (borrower | owner).

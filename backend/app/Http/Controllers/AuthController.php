@@ -23,7 +23,7 @@ class AuthController extends Controller
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return $this->created('Registrasi berhasil', [
-            'user'  => $user,
+            'user'  => $user->load('roles'),
             'token' => $token,
         ]);
     }
@@ -39,7 +39,7 @@ class AuthController extends Controller
 
         return $this->success('Login berhasil', [
             'token' => $token,
-            'user'  => $user,
+            'user'  => $user->load('roles'),
         ]);
     }
 
